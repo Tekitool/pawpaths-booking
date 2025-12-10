@@ -9,11 +9,15 @@ export default function Home() {
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center" suppressHydrationWarning>
           <div className="flex items-center gap-2" suppressHydrationWarning>
-            {/* Logo placeholder - using text if image not available */}
-            <div className="h-10 w-10 bg-pawpaths-brown rounded-full flex items-center justify-center text-white font-bold text-xl" suppressHydrationWarning>
-              P
+            <div className="relative h-10 w-auto aspect-[4/1]">
+              <Image
+                src="/pplogo.svg"
+                alt="Pawpaths Logo"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
-            <span className="text-xl font-bold text-pawpaths-brown hidden sm:block">Pawpaths</span>
           </div>
 
           <div className="flex items-center gap-4">
