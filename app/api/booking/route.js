@@ -48,16 +48,21 @@ export async function POST(req) {
                 socketTimeout: 10000,
             });
 
-            const emailContent = generateEmailTemplate(booking);
-            const companyEmailContent = generateEmailTemplate(booking, 'company');
+            // Convert to plain object to ensure all virtuals/getters are available
+            const bookingObj = booking.toObject();
+
+            const emailContent = generateEmailTemplate(bookingObj);
+            const companyEmailContent = generateEmailTemplate(bookingObj, 'company');
+
+            console.log('Email content generated. Length:', emailContent.length);
 
             // Define email promise
             const sendEmailsPromise = async () => {
                 // 1. Send Customer Confirmation Email
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
-                    to: booking.customerInfo.email,
-                    subject: `Booking Confirmation - ${booking.bookingId} | Pawpaths`,
+                    to: bookingObj.customerInfo.email,
+                    subject: `Booking Confirmation - ${bookingObj.bookingId} | Pawpaths`,
                     html: emailContent,
                 });
 
@@ -65,7 +70,7 @@ export async function POST(req) {
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
                     to: process.env.EMAIL_USER,
-                    subject: `[NEW BOOKING] ${booking.bookingId} - ${booking.customerInfo.fullName}`,
+                    subject: `[NEW BOOKING] ${bookingObj.bookingId} - ${bookingObj.customerInfo.fullName}`,
                     html: companyEmailContent,
                 });
             };
