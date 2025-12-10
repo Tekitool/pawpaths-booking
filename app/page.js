@@ -7,10 +7,10 @@ export default function Home() {
     <main className="min-h-screen flex flex-col">
       {/* Header/Nav */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center" suppressHydrationWarning>
+          <div className="flex items-center gap-2" suppressHydrationWarning>
             {/* Logo placeholder - using text if image not available */}
-            <div className="h-10 w-10 bg-pawpaths-brown rounded-full flex items-center justify-center text-white font-bold text-xl">
+            <div className="h-10 w-10 bg-pawpaths-brown rounded-full flex items-center justify-center text-white font-bold text-xl" suppressHydrationWarning>
               P
             </div>
             <span className="text-xl font-bold text-pawpaths-brown hidden sm:block">Pawpaths</span>
@@ -28,7 +28,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-pawpaths-brown text-white py-16 md:py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pattern-dots"></div>
-        <div className="container mx-auto px-4 relative z-10 text-center">
+        <div className="container mx-auto px-4 relative z-10 text-center" suppressHydrationWarning>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
             Safe & Stress-Free <br />
             <span className="text-pawpaths-cream">Pet Relocation</span>
@@ -36,7 +36,7 @@ export default function Home() {
           <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto mb-10">
             We handle every detail of your pet's journey, ensuring they arrive safely and comfortably at their new home.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center" suppressHydrationWarning>
             <a href="#booking-form" className="bg-pawpaths-cream text-pawpaths-brown font-bold py-3 px-8 rounded-full hover:bg-white transition-colors shadow-lg">
               Book Now
             </a>
@@ -50,7 +50,7 @@ export default function Home() {
       {/* Booking Form Section */}
       <section id="booking-form" className="py-16 px-4 bg-gray-50 flex-grow">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12" suppressHydrationWarning>
             <h2 className="text-3xl font-bold text-pawpaths-brown mb-4">Start Your Booking</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Fill out the form below to request a quote or book a relocation service. Our team will review your details and get back to you shortly.
@@ -64,9 +64,9 @@ export default function Home() {
       {/* Features Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" suppressHydrationWarning>
             <div className="p-6 rounded-xl bg-gray-50">
-              <div className="w-16 h-16 bg-pawpaths-cream rounded-full flex items-center justify-center mx-auto mb-4 text-pawpaths-brown">
+              <div className="w-16 h-16 bg-pawpaths-cream rounded-full flex items-center justify-center mx-auto mb-4 text-pawpaths-brown" suppressHydrationWarning>
                 <MapPin size={32} />
               </div>
               <h3 className="text-xl font-bold text-pawpaths-brown mb-2">Global Network</h3>

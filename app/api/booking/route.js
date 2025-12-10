@@ -30,50 +30,56 @@ export async function POST(req) {
         // Save to database
         const booking = await Booking.create(bookingData);
 
-        // Send Email
+        // Send Email with Timeout
         try {
             console.log('Attempting to send email...');
-            console.log('SMTP Config:', {
-                host: process.env.EMAIL_HOST,
-                port: process.env.EMAIL_PORT,
-                user: process.env.EMAIL_USER,
-                // pass: '***' // Hide password
-            });
 
             const transporter = nodemailer.createTransport({
                 host: process.env.EMAIL_HOST,
                 port: process.env.EMAIL_PORT,
-                secure: false, // true for 465, false for other ports
+                secure: false,
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASSWORD,
                 },
+                // Add connection timeout
+                connectionTimeout: 5000, // 5 seconds
+                greetingTimeout: 5000,
+                socketTimeout: 10000,
             });
 
             const emailContent = generateEmailTemplate(booking);
-            console.log('Email content generated successfully');
-
-            // 1. Send Customer Confirmation Email
-            const infoCustomer = await transporter.sendMail({
-                from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
-                to: booking.customerInfo.email,
-                subject: `Booking Confirmation - ${booking.bookingId} | Pawpaths`,
-                html: emailContent,
-            });
-            console.log('Customer email sent:', infoCustomer.messageId);
-
-            // 2. Send Company Notification Email
             const companyEmailContent = generateEmailTemplate(booking, 'company');
 
-            const infoCompany = await transporter.sendMail({
-                from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
-                to: process.env.EMAIL_USER, // Send to company email
-                subject: `[NEW BOOKING] ${booking.bookingId} - ${booking.customerInfo.fullName}`,
-                html: companyEmailContent,
-            });
-            console.log('Company notification email sent:', infoCompany.messageId);
+            // Define email promise
+            const sendEmailsPromise = async () => {
+                // 1. Send Customer Confirmation Email
+                await transporter.sendMail({
+                    from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
+                    to: booking.customerInfo.email,
+                    subject: `Booking Confirmation - ${booking.bookingId} | Pawpaths`,
+                    html: emailContent,
+                });
+
+                // 2. Send Company Notification Email
+                await transporter.sendMail({
+                    from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
+                    to: process.env.EMAIL_USER,
+                    subject: `[NEW BOOKING] ${booking.bookingId} - ${booking.customerInfo.fullName}`,
+                    html: companyEmailContent,
+                });
+            };
+
+            // Race against a 10-second timeout
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Email sending timed out')), 10000)
+            );
+
+            await Promise.race([sendEmailsPromise(), timeoutPromise]);
+            console.log('Emails sent successfully');
+
         } catch (emailError) {
-            console.error('Email sending failed:', emailError);
+            console.error('Email sending failed (Non-blocking):', emailError.message);
             // Continue execution, don't fail the booking just because email failed
         }
 
