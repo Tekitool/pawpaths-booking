@@ -9,7 +9,7 @@ export default function Home() {
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center" suppressHydrationWarning>
           <div className="flex items-center gap-2" suppressHydrationWarning>
-            <div className="relative h-10 w-auto aspect-[4/1]">
+            <div className="relative h-10 w-40">
               <Image
                 src="/pplogo.svg"
                 alt="Pawpaths Logo"
