@@ -57,6 +57,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
                 doc.text(`From: ${bookingData.travelDetails.originAirport || ''}, ${bookingData.travelDetails.originCountry || ''}`, 110, 95);
                 doc.text(`To: ${bookingData.travelDetails.destinationAirport || ''}, ${bookingData.travelDetails.destinationCountry || ''}`, 110, 101);
                 doc.text(`Travel Date: ${bookingData.travelDetails.travelDate ? new Date(bookingData.travelDetails.travelDate).toLocaleDateString() : 'N/A'}`, 110, 107);
+                doc.text(`Client Traveling: ${bookingData.travelDetails.clientTravelingWithPet === 'yes' ? 'Yes' : 'No'}`, 110, 113);
             }
 
             // Section: Pets

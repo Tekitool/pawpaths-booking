@@ -17,6 +17,7 @@ export default function BookingForm() {
             destinationCountry: '',
             destinationAirport: '',
             travelDate: '',
+            clientTravelingWithPet: '',
         },
         pets: [{
             petNumber: 1,
@@ -125,6 +126,9 @@ export default function BookingForm() {
         } else if (new Date(formData.travelDetails.travelDate) < new Date()) {
             newErrors.travel_travelDate = 'Travel date must be in the future';
         }
+        if (!formData.travelDetails.clientTravelingWithPet) {
+            newErrors.travel_clientTravelingWithPet = 'Please select yes or no';
+        }
 
         // Pets
         formData.pets.forEach((pet, index) => {
@@ -191,6 +195,7 @@ export default function BookingForm() {
                 destinationCountry: '',
                 destinationAirport: '',
                 travelDate: '',
+                clientTravelingWithPet: '',
             },
             pets: [{
                 petNumber: 1,
@@ -322,6 +327,35 @@ export default function BookingForm() {
                                 className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_travelDate ? 'border-red-500' : 'border-gray-300'}`}
                             />
                             {errors.travel_travelDate && <p className="text-red-500 text-xs mt-1">{errors.travel_travelDate}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Traveling with your pet? *</label>
+                            <div className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 flex gap-6 ${errors.travel_clientTravelingWithPet ? 'border-red-500' : 'border-gray-300'}`}>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="clientTravelingWithPet"
+                                        value="yes"
+                                        checked={formData.travelDetails.clientTravelingWithPet === 'yes'}
+                                        onChange={(e) => handleTravelChange('clientTravelingWithPet', e.target.value)}
+                                        className="w-4 h-4 text-pawpaths-brown focus:ring-pawpaths-brown"
+                                    />
+                                    <span className="text-gray-700">Yes</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="clientTravelingWithPet"
+                                        value="no"
+                                        checked={formData.travelDetails.clientTravelingWithPet === 'no'}
+                                        onChange={(e) => handleTravelChange('clientTravelingWithPet', e.target.value)}
+                                        className="w-4 h-4 text-pawpaths-brown focus:ring-pawpaths-brown"
+                                    />
+                                    <span className="text-gray-700">No</span>
+                                </label>
+                            </div>
+                            {errors.travel_clientTravelingWithPet && <p className="text-red-500 text-xs mt-1">{errors.travel_clientTravelingWithPet}</p>}
                         </div>
                     </div>
                 </div>
