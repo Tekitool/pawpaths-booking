@@ -120,22 +120,27 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail size={16} />
-                  <a href="mailto:bookings@pawpaths.com" className="hover:text-white">bookings@pawpaths.com</a>
+                  <a href="mailto:bookings@pawpathsae.com" className="hover:text-white">bookings@pawpathsae.com</a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <MapPin size={16} className="mt-1 flex-shrink-0" />
+                  <span>Office No. 204, Arjumand Building,<br />Dubai Investment Park 1, Jebel Ali, Dubai</span>
                 </li>
               </ul>
             </div>
             <div>
               <h3 className="text-xl font-bold mb-4">Quick Links</h3>
               <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white">Home</a></li>
+                <li><a href="https://pawpathsae.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white">Home</a></li>
                 <li><a href="#booking-form" className="hover:text-white">Book Now</a></li>
-                <li><a href="#" className="hover:text-white">Services</a></li>
-                <li><a href="#" className="hover:text-white">About Us</a></li>
+                <li><a href="https://pawpathsae.com/services" target="_blank" rel="noopener noreferrer" className="hover:text-white">Services</a></li>
+                <li><a href="https://pawpathsae.com/aboutus" target="_blank" rel="noopener noreferrer" className="hover:text-white">About Us</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-white/20 pt-8 text-center text-gray-400 text-sm">
             <p>&copy; {new Date().getFullYear()} Pawpaths Pets Relocation Services. All rights reserved.</p>
+            <p className="mt-2">Developed by <a href="https://tekitool.com" target="_blank" rel="noopener noreferrer" className="text-pawpaths-cream hover:text-white transition-colors">Tekitool</a></p>
           </div>
         </div>
       </footer>

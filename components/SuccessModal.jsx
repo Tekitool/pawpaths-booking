@@ -102,7 +102,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
             doc.setFontSize(9);
             doc.setTextColor(100);
             doc.text('Pawpaths Pets Relocation Services', 105, pageHeight - 18, { align: 'center' });
-            doc.text('+971 58 694 7755 | bookings@pawpaths.com', 105, pageHeight - 12, { align: 'center' });
+            doc.text('+971 58 694 7755 | bookings@pawpathsae.com', 105, pageHeight - 12, { align: 'center' });
 
             doc.save(`Pawpaths-Booking-${bookingData.bookingId}.pdf`);
         } catch (error) {

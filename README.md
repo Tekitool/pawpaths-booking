@@ -50,7 +50,7 @@ A comprehensive booking system for Pawpaths Pets Relocation Services, built with
     EMAIL_PORT=587
     EMAIL_USER=your-email@gmail.com
     EMAIL_PASSWORD=your-app-password
-    EMAIL_FROM=bookings@pawpaths.com
+    EMAIL_FROM=booking@pawpathsae.com
     COMPANY_PHONE=+971586947755
     COMPANY_NAME=Pawpaths Pets Relocation Services
     WHATSAPP_NUMBER=971586947755
