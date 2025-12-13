@@ -7,7 +7,11 @@ export const metadata = {
   title: "Pawpaths Pets Relocation Services | Book Your Pet's Travel",
   description: "Professional pet relocation services. Book your pet's safe journey with Pawpaths. International pet transport specialists.",
   icons: {
-    icon: "/ppicon.svg",
+    icon: [
+      { url: "/ppicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
 };
 
