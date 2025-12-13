@@ -6,6 +6,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "Pawpaths Pets Relocation Services | Book Your Pet's Travel",
   description: "Professional pet relocation services. Book your pet's safe journey with Pawpaths. International pet transport specialists.",
+  icons: {
+    icon: "/ppicon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
