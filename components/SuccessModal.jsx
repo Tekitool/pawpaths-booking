@@ -34,7 +34,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
             // Booking ID & Date
             doc.setFontSize(10);
             doc.text(`Booking ID: ${bookingData.bookingId}`, 14, 65);
-            doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 70);
+            doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 14, 70);
 
             // Section: Customer & Travel Info
             doc.setFontSize(14);
@@ -56,7 +56,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
             if (bookingData.travelDetails) {
                 doc.text(`From: ${bookingData.travelDetails.originAirport || ''}, ${bookingData.travelDetails.originCountry || ''}`, 110, 95);
                 doc.text(`To: ${bookingData.travelDetails.destinationAirport || ''}, ${bookingData.travelDetails.destinationCountry || ''}`, 110, 101);
-                doc.text(`Travel Date: ${bookingData.travelDetails.travelDate ? new Date(bookingData.travelDetails.travelDate).toLocaleDateString() : 'N/A'}`, 110, 107);
+                doc.text(`Travel Date: ${bookingData.travelDetails.travelDate ? new Date(bookingData.travelDetails.travelDate).toLocaleDateString('en-GB') : 'N/A'}`, 110, 107);
                 doc.text(`Client Traveling: ${bookingData.travelDetails.clientTravelingWithPet === 'yes' ? 'Yes' : 'No'}`, 110, 113);
             }
 

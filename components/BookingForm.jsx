@@ -231,7 +231,7 @@ export default function BookingForm() {
                                 type="text"
                                 value={formData.customerInfo.fullName}
                                 onChange={(e) => handleCustomerChange('fullName', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_fullName ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_fullName ? 'border-red-500' : 'border-[#c68e53]'}`}
                                 placeholder="John Doe"
                             />
                             {errors.customer_fullName && <p className="text-red-500 text-xs mt-1">{errors.customer_fullName}</p>}
@@ -243,7 +243,7 @@ export default function BookingForm() {
                                 type="email"
                                 value={formData.customerInfo.email}
                                 onChange={(e) => handleCustomerChange('email', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_email ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_email ? 'border-red-500' : 'border-[#c68e53]'}`}
                                 placeholder="john@example.com"
                             />
                             {errors.customer_email && <p className="text-red-500 text-xs mt-1">{errors.customer_email}</p>}
@@ -255,7 +255,7 @@ export default function BookingForm() {
                                 type="tel"
                                 value={formData.customerInfo.phone}
                                 onChange={(e) => handleCustomerChange('phone', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_phone ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_phone ? 'border-red-500' : 'border-[#c68e53]'}`}
                                 placeholder="+971 50 123 4567"
                             />
                             {errors.customer_phone && <p className="text-red-500 text-xs mt-1">{errors.customer_phone}</p>}
@@ -272,7 +272,7 @@ export default function BookingForm() {
                             <select
                                 value={formData.travelDetails.originCountry}
                                 onChange={(e) => handleTravelChange('originCountry', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_originCountry ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_originCountry ? 'border-red-500' : 'border-[#c68e53]'}`}
                             >
                                 <option value="">Select Country</option>
                                 {countries.map(c => <option key={c} value={c}>{c}</option>)}
@@ -286,7 +286,7 @@ export default function BookingForm() {
                                 type="text"
                                 value={formData.travelDetails.originAirport}
                                 onChange={(e) => handleTravelChange('originAirport', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_originAirport ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_originAirport ? 'border-red-500' : 'border-[#c68e53]'}`}
                                 placeholder="e.g. DXB"
                             />
                             {errors.travel_originAirport && <p className="text-red-500 text-xs mt-1">{errors.travel_originAirport}</p>}
@@ -297,7 +297,7 @@ export default function BookingForm() {
                             <select
                                 value={formData.travelDetails.destinationCountry}
                                 onChange={(e) => handleTravelChange('destinationCountry', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_destinationCountry ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_destinationCountry ? 'border-red-500' : 'border-[#c68e53]'}`}
                             >
                                 <option value="">Select Country</option>
                                 {countries.map(c => <option key={c} value={c}>{c}</option>)}
@@ -311,7 +311,7 @@ export default function BookingForm() {
                                 type="text"
                                 value={formData.travelDetails.destinationAirport}
                                 onChange={(e) => handleTravelChange('destinationAirport', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_destinationAirport ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_destinationAirport ? 'border-red-500' : 'border-[#c68e53]'}`}
                                 placeholder="e.g. LHR"
                             />
                             {errors.travel_destinationAirport && <p className="text-red-500 text-xs mt-1">{errors.travel_destinationAirport}</p>}
@@ -324,14 +324,14 @@ export default function BookingForm() {
                                 min={new Date().toISOString().split('T')[0]}
                                 value={formData.travelDetails.travelDate}
                                 onChange={(e) => handleTravelChange('travelDate', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_travelDate ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_travelDate ? 'border-red-500' : 'border-[#c68e53]'}`}
                             />
                             {errors.travel_travelDate && <p className="text-red-500 text-xs mt-1">{errors.travel_travelDate}</p>}
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Traveling with your pet? *</label>
-                            <div className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 flex gap-6 ${errors.travel_clientTravelingWithPet ? 'border-red-500' : 'border-gray-300'}`}>
+                            <div className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 flex gap-6 ${errors.travel_clientTravelingWithPet ? 'border-red-500' : 'border-[#c68e53]'}`}>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="radio"
@@ -403,7 +403,7 @@ export default function BookingForm() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-pawpaths-brown hover:bg-[#3d2815] text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full bg-pawpaths-brown hover:bg-[#2a1a0a] text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {loading ? (
                             <>

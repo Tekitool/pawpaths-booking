@@ -42,7 +42,7 @@ export default function PetDetailsSection({ petNumber, petData, onChange, onRemo
                     <select
                         value={petData.type}
                         onChange={(e) => handleChange('type', e.target.value)}
-                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.type ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.type ? 'border-red-500' : 'border-[#c68e53]'}`}
                     >
                         <option value="">Select Type</option>
                         <option value="Dog">Dog</option>
@@ -58,7 +58,7 @@ export default function PetDetailsSection({ petNumber, petData, onChange, onRemo
                         value={petData.breed}
                         onChange={(e) => handleChange('breed', e.target.value)}
                         disabled={!petData.type}
-                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.breed ? 'border-red-500' : 'border-gray-300'} disabled:opacity-50`}
+                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.breed ? 'border-red-500' : 'border-[#c68e53]'} disabled:opacity-50`}
                     >
                         <option value="">Select Breed</option>
                         {breedOptions.map((breed) => (
@@ -75,7 +75,7 @@ export default function PetDetailsSection({ petNumber, petData, onChange, onRemo
                         type="text"
                         value={petData.name}
                         onChange={(e) => handleChange('name', e.target.value)}
-                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.name ? 'border-red-500' : 'border-[#c68e53]'}`}
                         placeholder="e.g. Max"
                     />
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -90,7 +90,7 @@ export default function PetDetailsSection({ petNumber, petData, onChange, onRemo
                         step="0.1"
                         value={petData.age}
                         onChange={(e) => handleChange('age', e.target.value)}
-                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.age ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.age ? 'border-red-500' : 'border-[#c68e53]'}`}
                         placeholder="e.g. 3"
                     />
                     {errors.age && <p className="text-red-500 text-xs mt-1">{errors.age}</p>}
@@ -105,7 +105,7 @@ export default function PetDetailsSection({ petNumber, petData, onChange, onRemo
                         step="0.1"
                         value={petData.weight}
                         onChange={(e) => handleChange('weight', e.target.value)}
-                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.weight ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full bg-pawpaths-cream border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.weight ? 'border-red-500' : 'border-[#c68e53]'}`}
                         placeholder="e.g. 12.5"
                     />
                     {errors.weight && <p className="text-red-500 text-xs mt-1">{errors.weight}</p>}
@@ -117,7 +117,7 @@ export default function PetDetailsSection({ petNumber, petData, onChange, onRemo
                     <textarea
                         value={petData.specialRequirements}
                         onChange={(e) => handleChange('specialRequirements', e.target.value)}
-                        className="w-full bg-pawpaths-cream border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none"
+                        className="w-full bg-pawpaths-cream border border-[#c68e53] rounded-lg px-3 py-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none"
                         rows="2"
                         placeholder="Any medical conditions or special needs..."
                     />
