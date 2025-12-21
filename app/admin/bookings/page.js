@@ -17,7 +17,13 @@ export default async function BookingsPage(props) {
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-2 md:mt-8 mb-6">
-                <SearchBar placeholder="Search bookings..." />
+                <Suspense fallback={
+                    <div className="block w-full rounded-lg border border-gray-200 py-[9px] pl-10 text-sm bg-gray-50">
+                        <span className="text-gray-400">Loading search...</span>
+                    </div>
+                }>
+                    <SearchBar placeholder="Search bookings..." />
+                </Suspense>
             </div>
 
             <Suspense fallback={<div>Loading...</div>}>
