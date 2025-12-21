@@ -275,7 +275,7 @@ export default function BookingForm() {
                                 className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_originCountry ? 'border-red-500' : 'border-[#c68e53]'}`}
                             >
                                 <option value="">Select Country</option>
-                                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                                {countries.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                             </select>
                             {errors.travel_originCountry && <p className="text-red-500 text-xs mt-1">{errors.travel_originCountry}</p>}
                         </div>
@@ -300,7 +300,7 @@ export default function BookingForm() {
                                 className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_destinationCountry ? 'border-red-500' : 'border-[#c68e53]'}`}
                             >
                                 <option value="">Select Country</option>
-                                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                                {countries.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                             </select>
                             {errors.travel_destinationCountry && <p className="text-red-500 text-xs mt-1">{errors.travel_destinationCountry}</p>}
                         </div>
