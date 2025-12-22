@@ -3,11 +3,14 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import bcrypt from 'bcryptjs';
 
-export async function GET() {
-    // Security: Prevent execution in production
-    if (process.env.NODE_ENV !== 'development') {
+export async function GET(request) {
+    const { searchParams } = new URL(request.url);
+    const secret = searchParams.get('secret');
+
+    // Security: Prevent execution in production unless secret is provided
+    if (process.env.NODE_ENV !== 'development' && secret !== 'pawpaths-secure-seed-2025') {
         return NextResponse.json(
-            { error: 'Forbidden: This route is only available in development mode.' },
+            { error: 'Forbidden: This route is only available in development mode or with a valid secret.' },
             { status: 403 }
         );
     }
