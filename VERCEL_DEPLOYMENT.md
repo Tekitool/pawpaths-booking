@@ -43,8 +43,11 @@ Since your project is not yet a Git repository, we need to initialize it.
     *   **Framework Preset**: Next.js (should be auto-detected).
     *   **Root Directory**: `./` (default).
 
+    *   **Root Directory**: `./` (default).
+
 4.  **Environment Variables (Crucial)**:
-    Expand the **Environment Variables** section and add the following from your `.env.local` file:
+    *   Once the project is created (or go to **Settings** tab -> **Environment Variables** on the left menu):
+    *   Add the following from your `.env.local` file:
 
     | Key | Value |
     | :--- | :--- |
