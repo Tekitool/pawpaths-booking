@@ -15,27 +15,46 @@ export async function POST(req) {
 
         const formData = await req.formData();
 
-        // Parse JSON fields
-        const travelDetails = JSON.parse(formData.get('travelDetails'));
-        const pets = JSON.parse(formData.get('pets'));
-        const services = JSON.parse(formData.get('services'));
-        const contactInfo = JSON.parse(formData.get('contactInfo'));
+        // Parse JSON fields with null checks
+        const travelDetailsRaw = formData.get('travelDetails');
+        const petsRaw = formData.get('pets');
+        const servicesRaw = formData.get('services');
+        const contactInfoRaw = formData.get('contactInfo');
+
+        console.log('Received FormData fields:', {
+            travelDetails: travelDetailsRaw ? 'present' : 'missing',
+            pets: petsRaw ? 'present' : 'missing',
+            services: servicesRaw ? 'present' : 'missing',
+            contactInfo: contactInfoRaw ? 'present' : 'missing'
+        });
+
+        if (!travelDetailsRaw || !petsRaw || !contactInfoRaw) {
+            return NextResponse.json({
+                success: false,
+                message: 'Missing required form fields',
+                details: {
+                    travelDetails: !!travelDetailsRaw,
+                    pets: !!petsRaw,
+                    contactInfo: !!contactInfoRaw
+                }
+            }, { status: 400 });
+        }
+
+        const travelDetails = JSON.parse(travelDetailsRaw);
+        const pets = JSON.parse(petsRaw);
+        const services = JSON.parse(servicesRaw || '[]');
+        const contactInfo = JSON.parse(contactInfoRaw);
 
         // Handle file uploads
         const uploadedDocuments = [];
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-
-        // Ensure upload directory exists
-        try {
-            await mkdir(uploadDir, { recursive: true });
-        } catch (err) {
-            console.error('Error creating upload directory:', err);
-        }
 
         const fileFields = ['passport', 'vaccination', 'rabies'];
         const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
         const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
         const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
+
+        // Import storage service dynamically to avoid issues if not fully set up
+        const { uploadFile } = await import('@/lib/storage-service');
 
         for (const field of fileFields) {
             const file = formData.get(field);
@@ -59,20 +78,23 @@ export async function POST(req) {
                     }, { status: 400 });
                 }
 
-                // File is valid, proceed with upload
-                const bytes = await file.arrayBuffer();
-                const buffer = Buffer.from(bytes);
+                // File is valid, proceed with upload using storage service
+                try {
+                    const { url } = await uploadFile(file, 'uploads');
 
-                const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-                const filePath = path.join(uploadDir, fileName);
-
-                await writeFile(filePath, buffer);
-
-                uploadedDocuments.push({
-                    type: field,
-                    name: file.name,
-                    url: `/uploads/${fileName}`
-                });
+                    uploadedDocuments.push({
+                        type: field,
+                        name: file.name,
+                        url: url
+                    });
+                } catch (uploadError) {
+                    console.error(`Failed to upload ${field}:`, uploadError);
+                    return NextResponse.json({
+                        success: false,
+                        message: `Failed to upload ${file.name}. Please try again.`,
+                        error: 'UPLOAD_FAILED'
+                    }, { status: 500 });
+                }
             }
         }
 
@@ -85,6 +107,9 @@ export async function POST(req) {
                 fullName: contactInfo.fullName,
                 email: contactInfo.email,
                 phone: contactInfo.phone,
+                address: {
+                    city: contactInfo.city || ''
+                },
                 documents: uploadedDocuments
             },
             travel: {
@@ -100,7 +125,12 @@ export async function POST(req) {
                 travelingWithPet: travelDetails.travelingWithPet || false,
                 numberOfPets: pets.length
             },
-            pets: pets,
+            pets: pets.map(pet => ({
+                ...pet,
+                gender: pet.gender === '' ? undefined : pet.gender, // Handle empty gender for enum validation
+                age: Number(pet.age),
+                weight: Number(pet.weight)
+            })),
             services: {
                 selected: (services || []).map(serviceId => {
                     const SERVICES = require('@/lib/constants/services').SERVICES;
@@ -154,21 +184,31 @@ export async function POST(req) {
 
             // Define email promise
             const sendEmailsPromise = async () => {
+                // Get customer info with fallback for both formats
+                const customerEmail = bookingObj.customer?.email || bookingObj.customerInfo?.email;
+                const customerName = bookingObj.customer?.fullName || bookingObj.customerInfo?.fullName;
+
+                if (!customerEmail) {
+                    throw new Error('Customer email not found in booking');
+                }
+
                 // 1. Send Customer Confirmation Email
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
-                    to: bookingObj.customerInfo.email,
+                    to: customerEmail,
                     subject: `Booking Confirmation - ${bookingObj.bookingId} | Pawpaths`,
                     html: emailContent,
                 });
+                console.log(`Customer email sent to: ${customerEmail}`);
 
                 // 2. Send Company Notification Email
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
                     to: process.env.EMAIL_USER,
-                    subject: `[NEW BOOKING] ${bookingObj.bookingId} - ${bookingObj.customerInfo.fullName}`,
+                    subject: `[NEW BOOKING] ${bookingObj.bookingId} - ${customerName || 'Customer'}`,
                     html: companyEmailContent,
                 });
+                console.log(`Company email sent to: ${process.env.EMAIL_USER}`);
             };
 
             // Race against a 10-second timeout
@@ -199,10 +239,22 @@ export async function POST(req) {
 
     } catch (error) {
         console.error('Booking submission error:', error);
+
+        // Handle Mongoose Validation Errors
+        if (error.name === 'ValidationError') {
+            const validationErrors = Object.values(error.errors).map(err => err.message);
+            return NextResponse.json({
+                success: false,
+                message: 'Validation Error',
+                errors: validationErrors
+            }, { status: 400 });
+        }
+
         return NextResponse.json({
             success: false,
             message: 'Internal Server Error',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }, { status: 500 });
     }
 }

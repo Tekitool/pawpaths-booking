@@ -45,7 +45,7 @@ export default function Home() {
             <span className="text-pawpaths-cream">Pet Relocation</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto mb-10">
-            We handle every detail of your pet's journey, ensuring they arrive safely and comfortably at their new home.
+            We handle every detail of your pet&apos;s journey, ensuring they arrive safely and comfortably at their new home.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center" suppressHydrationWarning>
             <a href="#booking-form" className="bg-pawpaths-cream text-pawpaths-brown font-bold py-3 px-8 rounded-full hover:bg-white transition-colors shadow-lg">

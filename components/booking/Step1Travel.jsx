@@ -22,19 +22,22 @@ export default function Step1Travel() {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-primary">Travel Details</h2>
-                <p className="text-gray-600">Tell us about your journey</p>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center mb-10">
+                <h2 className="text-3xl font-bold text-primary tracking-tight">Travel Details</h2>
+                <p className="text-gray-500 mt-2">Tell us about your journey</p>
             </div>
-            <div className="border border-[#4d341a] rounded-xl p-6 bg-white">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Origin Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary font-medium">
-                            <MapPin size={20} />
-                            <h3>Origin</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Origin Section - Glass Card */}
+                <div className="bg-gradient-to-br from-[#ebf8ff] to-[#dcf3ff] backdrop-blur-xl border-[0.5px] border-[#8ddfff] shadow-[0_8px_30px_rgba(141,223,255,0.2)] rounded-3xl p-6 hover:shadow-[0_12px_40px_rgba(141,223,255,0.3)] transition-all duration-300 group">
+                    <div className="flex items-center gap-3 text-primary font-bold text-lg mb-6 pb-4 border-b border-gray-100">
+                        <div className="p-2 bg-[#dcf3ff] rounded-xl text-[#3b9dff] group-hover:scale-110 transition-transform duration-300">
+                            <MapPin size={22} />
                         </div>
+                        <h3>Origin</h3>
+                    </div>
+                    <div className="space-y-5">
                         <Select
                             id="originCountry"
                             name="originCountry"
@@ -42,6 +45,7 @@ export default function Step1Travel() {
                             value={travelDetails.originCountry || ''}
                             onChange={handleChange}
                             options={COUNTRIES}
+                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
                         />
                         <Input
                             id="originAirport"
@@ -50,15 +54,20 @@ export default function Step1Travel() {
                             value={travelDetails.originAirport || ''}
                             onChange={handleChange}
                             placeholder="e.g. Dubai (DXB)"
+                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
                         />
                     </div>
+                </div>
 
-                    {/* Destination Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary font-medium">
-                            <Plane size={20} className="rotate-90" />
-                            <h3>Destination</h3>
+                {/* Destination Section - Glass Card */}
+                <div className="bg-gradient-to-br from-[#f3ffeb] to-[#eaffdc] backdrop-blur-xl border-[0.5px] border-[#c8ffa4] shadow-[0_8px_30px_rgba(200,255,164,0.2)] rounded-3xl p-6 hover:shadow-[0_12px_40px_rgba(200,255,164,0.3)] transition-all duration-300 group">
+                    <div className="flex items-center gap-3 text-primary font-bold text-lg mb-6 pb-4 border-b border-gray-100">
+                        <div className="p-2 bg-[#eaffdc] rounded-xl text-[#6bc44a] group-hover:scale-110 transition-transform duration-300">
+                            <Plane size={22} className="rotate-90" />
                         </div>
+                        <h3>Destination</h3>
+                    </div>
+                    <div className="space-y-5">
                         <Select
                             id="destinationCountry"
                             name="destinationCountry"
@@ -66,6 +75,7 @@ export default function Step1Travel() {
                             value={travelDetails.destinationCountry || ''}
                             onChange={handleChange}
                             options={COUNTRIES}
+                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
                         />
                         <Input
                             id="destinationAirport"
@@ -74,17 +84,20 @@ export default function Step1Travel() {
                             value={travelDetails.destinationAirport || ''}
                             onChange={handleChange}
                             placeholder="e.g. London (LHR)"
+                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
                         />
                     </div>
                 </div>
 
-                {/* Travel Date */}
-                <div className="pt-6 mt-6 border-t border-[#4d341a]/10">
-                    <div className="flex items-center gap-2 text-primary font-medium mb-4">
-                        <Calendar size={20} />
+                {/* Travel Date - Full Width Glass Card */}
+                <div className="md:col-span-2 bg-gradient-to-br from-[#f8f5ff] to-[#f1ebff] backdrop-blur-xl border-[0.5px] border-[#e7e0fc] shadow-[0_8px_30px_rgba(231,224,252,0.2)] rounded-3xl p-6 hover:shadow-[0_12px_40px_rgba(231,224,252,0.3)] transition-all duration-300 group">
+                    <div className="flex items-center gap-3 text-primary font-bold text-lg mb-6 pb-4 border-b border-gray-100">
+                        <div className="p-2 bg-[#f1ebff] rounded-xl text-[#9b7edb] group-hover:scale-110 transition-transform duration-300">
+                            <Calendar size={22} />
+                        </div>
                         <h3>Travel Date</h3>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <Input
                             id="travelDate"
                             name="travelDate"
@@ -93,18 +106,25 @@ export default function Step1Travel() {
                             value={travelDetails.travelDate || ''}
                             onChange={handleChange}
                             min={new Date().toISOString().split('T')[0]}
+                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
                         />
 
-                        <div className="flex items-center h-full pt-6">
-                            <label className="flex items-center gap-3 cursor-pointer group select-none">
-                                <input
-                                    type="checkbox"
-                                    name="travelingWithPet"
-                                    checked={!!travelDetails.travelingWithPet}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 rounded border-[#4d341a] text-[#4d341a] focus:ring-[#4d341a]"
-                                />
-                                <span className="text-body-large text-on-surface group-hover:text-primary transition-colors">
+                        <div className="flex items-center h-full pt-2">
+                            <label className="flex items-center gap-4 cursor-pointer group/check select-none p-4 rounded-2xl bg-white/50 border border-transparent hover:border-pawpaths-brown/20 hover:bg-white/80 transition-all duration-300 w-full">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        name="travelingWithPet"
+                                        checked={!!travelDetails.travelingWithPet}
+                                        onChange={handleChange}
+                                        className="peer sr-only"
+                                    />
+                                    <div className="w-6 h-6 rounded-lg border-2 border-gray-300 bg-white peer-checked:border-[#ea4d2c] peer-checked:bg-[#ea4d2c] transition-all duration-300 flex items-center justify-center"></div>
+                                    <svg className="w-4 h-4 text-white absolute top-1 left-1 opacity-0 peer-checked:opacity-100 transition-opacity duration-300 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <span className="text-gray-700 font-medium group-hover/check:text-primary transition-colors">
                                     I am traveling with my pet
                                 </span>
                             </label>

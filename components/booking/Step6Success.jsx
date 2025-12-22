@@ -56,7 +56,7 @@ export default function Step6Success() {
                 <div className="space-y-2">
                     <h2 className="text-3xl font-bold text-primary">Booking Successful!</h2>
                     <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                        Thank you for choosing Pawpaths. Your pet's journey has been tentatively scheduled.
+                        Thank you for choosing Pawpaths. Your pet&apos;s journey has been tentatively scheduled.
                         We have sent a confirmation email to <span className="font-semibold text-primary">{contactInfo?.email}</span>.
                     </p>
                 </div>

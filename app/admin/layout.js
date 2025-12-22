@@ -1,52 +1,54 @@
 import Link from 'next/link';
-import { LayoutDashboard, FileText, Users, Settings, LogOut } from 'lucide-react';
-import { signOut } from '@/auth';
+import Image from 'next/image';
+import { LayoutDashboard, FileText, Users, Settings } from 'lucide-react';
+import { auth } from '@/auth';
+import AdminHeader from '@/components/admin/AdminHeader';
 
-export default function AdminLayout({ children }) {
+export default async function AdminLayout({ children }) {
+    const session = await auth();
+
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-[#f9f7e5]">
             {/* Sidebar */}
-            <aside className="w-64 bg-pawpaths-brown text-white hidden md:flex flex-col">
-                <div className="p-6">
-                    <h1 className="text-2xl font-bold text-pawpaths-cream">Pawpaths Admin</h1>
+            <aside className="w-72 bg-[#f9f7e5] border-r border-white/50 hidden md:flex flex-col shadow-2xl shadow-pawpaths-brown/5 z-50">
+                <div className="p-8 flex justify-start pl-8">
+                    <div className="relative h-12 w-40">
+                        <Image
+                            src="/pplogo.svg"
+                            alt="Pawpaths Logo"
+                            fill
+                            className="object-contain"
+                            priority
+                        />
+                    </div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2">
-                    <Link href="/admin/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-                        <LayoutDashboard size={20} />
-                        <span>Dashboard</span>
-                    </Link>
-                    <Link href="/admin/bookings" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-                        <FileText size={20} />
-                        <span>Bookings</span>
-                    </Link>
-                    <Link href="/admin/users" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-                        <Users size={20} />
-                        <span>Users</span>
-                    </Link>
-                    <Link href="/admin/settings" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-                        <Settings size={20} />
-                        <span>Settings</span>
-                    </Link>
+                <nav className="flex-1 px-6 space-y-3">
+                    {[
+                        { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                        { href: '/admin/bookings', icon: FileText, label: 'Bookings' },
+                        { href: '/admin/users', icon: Users, label: 'Users' },
+                        { href: '/admin/settings', icon: Settings, label: 'Settings' },
+                    ].map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-white text-pawpaths-brown hover:shadow-[5px_5px_10px_#d9bf8c,-5px_-5px_10px_#ffffbe] transition-all duration-300 group font-bold"
+                        >
+                            <item.icon size={22} className="group-hover:scale-110 transition-transform text-pawpaths-brown" />
+                            <span>{item.label}</span>
+                        </Link>
+                    ))}
                 </nav>
-
-                <div className="p-4 border-t border-white/10">
-                    <form action={async () => {
-                        'use server';
-                        await signOut();
-                    }}>
-                        <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-red-500/20 text-red-200 hover:text-red-100 transition-colors">
-                            <LogOut size={20} />
-                            <span>Sign Out</span>
-                        </button>
-                    </form>
-                </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto p-8">
-                {children}
-            </main>
+            <div className="flex-1 flex flex-col h-screen overflow-hidden">
+                <AdminHeader user={session?.user} />
+                <main className="flex-1 overflow-y-auto p-8 bg-gray-50/50 rounded-tl-[40px] border-t border-l border-white/60 shadow-[inset_0_4px_20px_rgba(0,0,0,0.02)]">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }

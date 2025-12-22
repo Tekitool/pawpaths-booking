@@ -2,35 +2,59 @@ import SearchBar from '@/components/admin/SearchBar';
 import BookingTable from '@/components/admin/BookingTable';
 import { getBookings } from '@/lib/actions/booking-actions';
 import { Suspense } from 'react';
+import YearFilter from '@/components/admin/YearFilter';
+import MonthFilter from '@/components/admin/MonthFilter';
 
 export default async function BookingsPage(props) {
     const searchParams = await props.searchParams;
     const query = searchParams?.query || '';
-    const currentPage = Number(searchParams?.page) || 1;
+    const page = Number(searchParams?.page) || 1;
+    const year = searchParams?.year || '';
+    const month = searchParams?.month || '';
 
-    const { bookings, totalPages } = await getBookings(query, currentPage);
+    const { bookings, totalPages } = await getBookings(query, page, year, month);
 
     return (
-        <div className="w-full">
-            <div className="flex w-full items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold text-gray-800">Bookings</h1>
+        <div className="min-h-screen bg-gray-50/50 p-8 space-y-8">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Bookings</h1>
+                    <p className="text-gray-500 mt-1">Manage all your pet relocation requests</p>
+                </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-2 md:mt-8 mb-6">
-                <Suspense fallback={
-                    <div className="block w-full rounded-lg border border-gray-200 py-[9px] pl-10 text-sm bg-gray-50">
-                        <span className="text-gray-400">Loading search...</span>
+            {/* Filters Bar - Bento Style */}
+            <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-4">
+                <div className="flex-1 w-full">
+                    <Suspense fallback={
+                        <div className="block w-full rounded-2xl border border-gray-200 py-3 pl-10 text-sm bg-gray-50 animate-pulse">
+                            <span className="text-gray-400">Loading search...</span>
+                        </div>
+                    }>
+                        <SearchBar placeholder="Search by Customer, Pet, Route, ID..." />
+                    </Suspense>
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="w-40">
+                        <Suspense fallback={null}>
+                            <YearFilter />
+                        </Suspense>
                     </div>
-                }>
-                    <SearchBar placeholder="Search bookings..." />
+                    <div className="w-40">
+                        <Suspense fallback={null}>
+                            <MonthFilter />
+                        </Suspense>
+                    </div>
+                </div>
+            </div>
+
+            {/* Table Container - Glassmorphism */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading bookings...</div>}>
+                    <BookingTable bookings={bookings} totalPages={totalPages} currentPage={page} />
                 </Suspense>
             </div>
-
-            <Suspense fallback={<div>Loading...</div>}>
-                <BookingTable bookings={bookings} totalPages={totalPages} currentPage={currentPage} />
-            </Suspense>
-
-            {/* Pagination could go here */}
         </div>
     );
 }

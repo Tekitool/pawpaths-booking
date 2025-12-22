@@ -24,6 +24,9 @@ const config = {
                 // Keep existing custom colors if any, or map them
                 'pawpaths-brown': '#4d341a',
                 'pawpaths-cream': '#fff2b1',
+                'creamy-white': '#FDF8F1',
+                'alice-blue': '#F0F4F8',
+                'mint-mist': '#F2F9F7',
             },
             borderRadius: {
                 'md3-xs': '4px',

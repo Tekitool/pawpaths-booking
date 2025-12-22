@@ -9,7 +9,7 @@ import LoadingSpinner from './LoadingSpinner';
 
 export default function BookingForm() {
     const [formData, setFormData] = useState({
-        customerInfo: { fullName: '', email: '', phone: '' },
+        customerInfo: { fullName: '', email: '', phone: '', city: '' },
         travelDetails: {
             numberOfPets: 1,
             originCountry: '',
@@ -225,7 +225,8 @@ export default function BookingForm() {
                 <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
                     <h2 className="text-2xl font-bold text-pawpaths-brown mb-6 border-b pb-2">Customer Information</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="md:col-span-2">
+                        {/* Row 1: Full Name + City */}
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                             <input
                                 type="text"
@@ -237,6 +238,19 @@ export default function BookingForm() {
                             {errors.customer_fullName && <p className="text-red-500 text-xs mt-1">{errors.customer_fullName}</p>}
                         </div>
 
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">City / Place *</label>
+                            <input
+                                type="text"
+                                value={formData.customerInfo.city}
+                                onChange={(e) => handleCustomerChange('city', e.target.value)}
+                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_city ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                placeholder="Dubai, Abu Dhabi, etc."
+                            />
+                            {errors.customer_city && <p className="text-red-500 text-xs mt-1">{errors.customer_city}</p>}
+                        </div>
+
+                        {/* Row 2: Email + Phone */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
                             <input

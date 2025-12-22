@@ -15,11 +15,15 @@ export const metadata = {
   },
 };
 
+import Providers from "@/components/Providers";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} bg-gray-50 min-h-screen`} suppressHydrationWarning>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
