@@ -100,7 +100,7 @@ export default function NewBookingPage() {
                     </div>
                 </div>
 
-                <div className="bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2.5rem] p-8 md:p-12 border border-white/50 relative overflow-hidden">
+                <div className="bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2.5rem] p-8 md:p-12 border border-white/50 relative overflow-hidden max-w-5xl mx-auto">
                     {/* Content Container */}
                     <div className="relative z-10">
                         {currentStep === 1 && <Step1Travel />}
