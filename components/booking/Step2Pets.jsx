@@ -6,16 +6,20 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { Plus, Trash2, Dog, Cat } from 'lucide-react';
-import { DOG_BREEDS, CAT_BREEDS } from '@/lib/constants/breeds';
+import { DOG_BREEDS, CAT_BREEDS, BIRD_BREEDS, OTHER_PET_BREEDS } from '@/lib/constants/breeds';
 
 const PET_TYPES = [
     { value: 'Dog', label: 'Dog' },
     { value: 'Cat', label: 'Cat' },
+    { value: 'Bird', label: 'Bird' },
+    { value: 'Other', label: 'Other' },
 ];
 
 const GENDERS = [
     { value: 'Male', label: 'Male' },
     { value: 'Female', label: 'Female' },
+    { value: 'Desexed', label: 'Desexed' },
+    { value: 'Unknown', label: 'Unknown' },
 ];
 
 const AGE_UNITS = [
@@ -66,7 +70,16 @@ export default function Step2Pets() {
     };
 
     const getBreeds = (type) => {
-        return type === 'Cat' ? CAT_BREEDS : DOG_BREEDS;
+        switch (type) {
+            case 'Cat':
+                return CAT_BREEDS;
+            case 'Bird':
+                return BIRD_BREEDS;
+            case 'Other':
+                return OTHER_PET_BREEDS;
+            default:
+                return DOG_BREEDS;
+        }
     };
 
     return (
