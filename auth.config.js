@@ -36,6 +36,8 @@ export const authConfig = {
         session({ session, token }) {
             if (token.role) {
                 session.user.role = token.role;
+                session.user.id = token.id; // Also good to have ID
+                session.user.avatar = token.avatar; // Pass avatar to session
             }
             return session;
         },
@@ -43,6 +45,8 @@ export const authConfig = {
             if (user) {
                 console.log('JWT Callback - User logged in:', user.email);
                 token.role = user.role;
+                token.id = user._id; // Store ID in token
+                token.avatar = user.avatar; // Store avatar in token
             }
             return token;
         }

@@ -40,15 +40,13 @@ export default function AdminHeader({ user }) {
                     {/* Name removed from here as requested */}
 
                     <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:shadow-lg transition-shadow bg-white">
-                        <Image
+                        <img
                             src={avatarSrc}
                             alt="User Avatar"
-                            fill
-                            className="object-cover"
-                            unoptimized
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                                 // Fallback to UI Avatars if local image fails
-                                e.target.src = `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=random`;
+                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;
                             }}
                         />
                     </div>

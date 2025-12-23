@@ -275,13 +275,11 @@ export default function UsersPage() {
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
                                             <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg shadow-pawpaths-brown/20 group-hover:scale-110 transition-transform duration-300">
-                                                <Image
-                                                    src={user.avatar}
+                                                <img
+                                                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
                                                     alt={user.name}
-                                                    fill
-                                                    className="object-cover"
-                                                    unoptimized
-                                                    onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random` }} // Fallback
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random` }} // Fallback
                                                 />
                                             </div>
                                             <div>
@@ -352,12 +350,10 @@ export default function UsersPage() {
                             <div className="flex justify-center mb-4">
                                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-gray-100 shadow-md group cursor-pointer">
                                     {avatarPreview ? (
-                                        <Image
+                                        <img
                                             src={avatarPreview}
                                             alt="Preview"
-                                            fill
-                                            className="object-cover"
-                                            unoptimized
+                                            className="w-full h-full object-cover"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
