@@ -1,52 +1,46 @@
 'use client';
 
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { CalendarRange } from 'lucide-react';
+import { Filter } from 'lucide-react';
 
-export default function YearFilter() {
+const TYPES = [
+    { label: 'All Types', value: 'All' },
+    { label: 'EX-A', value: 'EX-A' },
+    { label: 'EX-U', value: 'EX-U' },
+    { label: 'IM-A', value: 'IM-A' },
+    { label: 'IM-U', value: 'IM-U' },
+    { label: 'LOCL', value: 'LOCL' },
+];
+
+export default function TypeFilter() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
 
-    const currentYear = searchParams.get('year') || '';
+    const currentType = searchParams.get('type') || 'All';
 
-    const handleYearChange = (term) => {
+    const handleTypeChange = (type) => {
         const params = new URLSearchParams(searchParams);
-        params.set('page', '1');
-        if (term) {
-            params.set('year', term);
+        if (type === 'All') {
+            params.delete('type');
         } else {
-            params.delete('year');
+            params.set('type', type);
         }
+        params.set('page', '1'); // Reset to first page
         replace(`${pathname}?${params.toString()}`);
     };
 
-    const getYearOptions = () => {
-        const today = new Date();
-        const current = today.getFullYear();
-        const years = [];
-
-        // 2 upcoming years, current, 2 previous years (Descending)
-        for (let i = 2; i >= -2; i--) {
-            years.push(current + i);
-        }
-        return years;
-    };
-
-    const years = getYearOptions();
-
     return (
         <div className="relative">
-            <CalendarRange className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <Filter className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 pointer-events-none" />
             <select
                 className="appearance-none block w-full rounded-lg border border-gray-200 py-[9px] pl-10 pr-8 text-sm outline-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none bg-white text-gray-700 cursor-pointer hover:border-gray-300 transition-colors"
-                onChange={(e) => handleYearChange(e.target.value)}
-                value={currentYear}
+                onChange={(e) => handleTypeChange(e.target.value)}
+                value={currentType}
             >
-                <option value="">All Years</option>
-                {years.map((year) => (
-                    <option key={year} value={year}>
-                        {year}
+                {TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>
+                        {type.label}
                     </option>
                 ))}
             </select>

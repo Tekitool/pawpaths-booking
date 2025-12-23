@@ -59,6 +59,38 @@ export default function BookingTable({ bookings, totalPages, currentPage }) {
         return 'bg-yellow-100 text-yellow-800';
     };
 
+    const getTravelTypeBadge = (typeCode) => {
+        if (!typeCode) return null;
+        const code = typeCode.toUpperCase();
+
+        if (code.startsWith('EX')) {
+            return (
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold border border-[#F26522]/20 bg-[#FFF9F5] text-[#F26522] whitespace-nowrap">
+                    {code}
+                </span>
+            );
+        }
+        if (code.startsWith('IM')) {
+            return (
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold border border-[#243B53]/20 bg-[#F0F4F8] text-[#243B53] whitespace-nowrap">
+                    {code}
+                </span>
+            );
+        }
+        if (code === 'LOCL') {
+            return (
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold border border-[#8A63D2]/20 bg-[#F8F5FF] text-[#8A63D2] whitespace-nowrap">
+                    {code}
+                </span>
+            );
+        }
+        return (
+            <span className="px-2.5 py-1 rounded-md text-[10px] font-bold border border-gray-200 bg-gray-50 text-gray-600 whitespace-nowrap">
+                {code}
+            </span>
+        );
+    };
+
     return (
         <div className="w-full">
             <div className="overflow-x-auto">
@@ -70,6 +102,7 @@ export default function BookingTable({ bookings, totalPages, currentPage }) {
                             <th className="px-6 py-4 font-bold text-gray-600 text-xs uppercase tracking-wider w-32">Pet</th>
                             <th className="px-6 py-4 font-bold text-gray-600 text-xs uppercase tracking-wider w-56">Route</th>
                             <th className="px-6 py-4 font-bold text-gray-600 text-xs uppercase tracking-wider w-32">Date</th>
+                            <th className="px-6 py-4 font-bold text-gray-600 text-xs uppercase tracking-wider w-28 whitespace-nowrap">TYPE</th>
                             <th className="px-6 py-4 font-bold text-gray-600 text-xs uppercase tracking-wider w-24">Mode</th>
                             <th className="px-6 py-4 font-bold text-gray-600 text-xs uppercase tracking-wider w-32">Status</th>
                         </tr>
@@ -210,6 +243,9 @@ export default function BookingTable({ bookings, totalPages, currentPage }) {
                                         </div>
                                         <span className="text-xs font-medium">{new Date(booking.travelDetails.travelDate).toLocaleDateString()}</span>
                                     </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    {getTravelTypeBadge(booking.customerType?.type_code)}
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${booking.travelDetails.travelingWithPet

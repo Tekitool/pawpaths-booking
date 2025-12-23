@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { LayoutDashboard, FileText, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Settings, Box } from 'lucide-react';
 import { auth } from '@/auth';
 import AdminHeader from '@/components/admin/AdminHeader';
 
@@ -27,6 +27,7 @@ export default async function AdminLayout({ children }) {
                     {[
                         { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
                         { href: '/admin/bookings', icon: FileText, label: 'Bookings' },
+                        { href: '/admin/services', icon: Box, label: 'Services' },
                         { href: '/admin/users', icon: Users, label: 'Users' },
                         { href: '/admin/settings', icon: Settings, label: 'Settings' },
                     ].map((item) => (

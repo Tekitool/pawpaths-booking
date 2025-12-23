@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Step1Travel from '@/components/booking/Step1Travel';
 import Step2Pets from '@/components/booking/Step2Pets';
 import Step3Services from '@/components/booking/Step3Services';
 import Step4Documents from '@/components/booking/Step4Documents';
 import Step5Review from '@/components/booking/Step5Review';
 import Step6Success from '@/components/booking/Step6Success';
+import ServiceLimitationModal from '@/components/booking/ServiceLimitationModal';
 import useBookingStore from '@/lib/store/booking-store';
 import Button from '@/components/ui/Button';
 import { ArrowLeft, RotateCcw, ArrowRight, Check } from 'lucide-react';
@@ -14,10 +15,34 @@ import { ArrowLeft, RotateCcw, ArrowRight, Check } from 'lucide-react';
 import BookingHeader from '@/components/booking/BookingHeader';
 
 export default function NewBookingPage() {
-    const { currentStep, nextStep, prevStep, resetForm } = useBookingStore();
+    const { currentStep, nextStep, prevStep, resetForm, formData } = useBookingStore();
     const step5Ref = useRef(null);
+    const [isLimitationModalOpen, setIsLimitationModalOpen] = useState(false);
+
+    const validateRoute = () => {
+        const { originCountry, destinationCountry } = formData.travelDetails;
+
+        // Helper to check for UAE
+        const isUAE = (country) => {
+            const c = (country || '').toLowerCase();
+            return c === 'ae' || c === 'uae' || c.includes('united arab emirates');
+        };
+
+        const isOriginUAE = isUAE(originCountry);
+        const isDestUAE = isUAE(destinationCountry);
+
+        // Valid if either origin OR destination is UAE
+        return isOriginUAE || isDestUAE;
+    };
 
     const handleContinue = () => {
+        if (currentStep === 1) {
+            if (!validateRoute()) {
+                setIsLimitationModalOpen(true);
+                return;
+            }
+        }
+
         if (currentStep === 5 && step5Ref.current) {
             // On step 5, trigger the submit handler
             step5Ref.current.handleSubmit();
@@ -28,6 +53,10 @@ export default function NewBookingPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+            <ServiceLimitationModal
+                isOpen={isLimitationModalOpen}
+                onClose={() => setIsLimitationModalOpen(false)}
+            />
             <BookingHeader />
 
             <div className="py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">

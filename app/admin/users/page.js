@@ -280,6 +280,7 @@ export default function UsersPage() {
                                                     alt={user.name}
                                                     fill
                                                     className="object-cover"
+                                                    unoptimized
                                                     onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${user.name}&background=random` }} // Fallback
                                                 />
                                             </div>
@@ -356,6 +357,7 @@ export default function UsersPage() {
                                             alt="Preview"
                                             fill
                                             className="object-cover"
+                                            unoptimized
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">

@@ -27,7 +27,8 @@ export default function AdminHeader({ user }) {
     };
 
     // Construct local avatar path if not provided
-    const avatarSrc = user?.avatar || `/users/${user?.name?.split(' ')[0].toLowerCase()}.jpg`;
+    // Use UI Avatars as default if no avatar provided
+    const avatarSrc = user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;
 
     return (
         <header className="bg-[#f9f7e5] h-20 px-8 flex items-center justify-end shadow-sm border-b border-white/50 sticky top-0 z-40">
@@ -44,6 +45,7 @@ export default function AdminHeader({ user }) {
                             alt="User Avatar"
                             fill
                             className="object-cover"
+                            unoptimized
                             onError={(e) => {
                                 // Fallback to UI Avatars if local image fails
                                 e.target.src = `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=random`;

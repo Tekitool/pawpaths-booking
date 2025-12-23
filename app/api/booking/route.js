@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Booking from '@/lib/models/Booking';
+import CustomerType from '@/lib/models/CustomerType';
 import { generateEmailTemplate } from '@/lib/utils/emailTemplate';
 import { generateWhatsAppMessage, generateWhatsAppLink } from '@/lib/utils/whatsappMessage';
 import { validateBookingData } from '@/lib/utils/validation';
@@ -101,9 +102,35 @@ export async function POST(req) {
         // Calculate total weight
         const totalWeight = pets.reduce((acc, pet) => acc + Number(pet.weight), 0);
 
+        // --- Auto-Detect Customer Type ---
+        let customerTypeCode = 'LOCL'; // Default
+        const originCountry = travelDetails.originCountry;
+        const destinationCountry = travelDetails.destinationCountry;
+        const isTravelingWithPet = travelDetails.travelingWithPet;
+
+        // Check for UAE (case-insensitive)
+        const isOriginUAE = originCountry?.toLowerCase().includes('united arab emirates') || originCountry?.toLowerCase() === 'uae';
+        const isDestUAE = destinationCountry?.toLowerCase().includes('united arab emirates') || destinationCountry?.toLowerCase() === 'uae';
+
+        if (isOriginUAE && isDestUAE) {
+            customerTypeCode = 'LOCL';
+        } else if (isOriginUAE && !isDestUAE) {
+            // Export
+            customerTypeCode = isTravelingWithPet ? 'EX-A' : 'EX-U';
+        } else if (!isOriginUAE && isDestUAE) {
+            // Import
+            customerTypeCode = isTravelingWithPet ? 'IM-A' : 'IM-U';
+        }
+        // Note: For Overseas -> Overseas, we might default to LOCL or handle differently, but requirements didn't specify. 
+        // Keeping default LOCL or maybe we should log it. For now, following the main 5 types.
+
+        // Fetch the CustomerType ObjectId
+        const customerTypeDoc = await CustomerType.findOne({ type_code: customerTypeCode });
+
         // Transform data to match Booking model schema
         const bookingData = {
             customer: {
+                customerType: customerTypeDoc?._id,
                 fullName: contactInfo.fullName,
                 email: contactInfo.email,
                 phone: contactInfo.phone,
