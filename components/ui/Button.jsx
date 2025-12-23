@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 const variants = {
-    filled: 'bg-primary text-on-primary hover:shadow-level-1 hover:bg-opacity-90',
+    filled: 'bg-primary text-white hover:shadow-level-1 hover:bg-opacity-90',
     tonal: 'bg-secondary-container text-on-secondary-container hover:shadow-level-1 hover:bg-opacity-80',
     outlined: 'border border-outline text-primary hover:bg-surface-variant hover:bg-opacity-10',
     text: 'text-primary hover:bg-surface-variant hover:bg-opacity-10',

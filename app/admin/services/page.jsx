@@ -164,7 +164,7 @@ export default function ServicesPage() {
                     <h1 className="text-3xl font-bold text-gray-900">Service Management</h1>
                     <p className="text-gray-500 mt-1">Manage available services and pricing</p>
                 </div>
-                <Button onClick={() => handleOpenModal()} className="bg-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all">
+                <Button onClick={() => handleOpenModal()} className="bg-[#4d341a] text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:bg-[#3a2612]">
                     <Plus size={20} className="mr-2" /> Add Service
                 </Button>
             </div>
@@ -309,27 +309,61 @@ export default function ServicesPage() {
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Applicable Customer Types</label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {customerTypes.map(type => (
-                                        <div
-                                            key={type._id}
-                                            onClick={() => toggleCustomerType(type._id)}
-                                            className={`
-                                                cursor-pointer px-4 py-3 rounded-xl border text-sm font-bold transition-all
-                                                ${formData.customerTypes.includes(type._id)
-                                                    ? 'bg-primary/10 border-primary text-primary'
-                                                    : 'bg-white border-gray-200 text-gray-500 hover:border-primary/50'
-                                                }
-                                            `}
-                                        >
-                                            {type.type_code}
-                                        </div>
-                                    ))}
+                                    {customerTypes.map(type => {
+                                        const isSelected = formData.customerTypes.includes(type._id);
+                                        const code = type.type_code.toUpperCase();
+
+                                        let styles = '';
+                                        if (code.startsWith('EX')) { // Orange
+                                            styles = isSelected
+                                                ? 'bg-[#F26522] text-white border-[#F26522] shadow-md shadow-orange-200'
+                                                : 'bg-[#FFF9F5] text-[#F26522] border-[#F26522]/20 hover:border-[#F26522] hover:bg-[#fff0e6]';
+                                        } else if (code.startsWith('IM')) { // Blue
+                                            styles = isSelected
+                                                ? 'bg-[#243B53] text-white border-[#243B53] shadow-md shadow-blue-200'
+                                                : 'bg-[#F0F4F8] text-[#243B53] border-[#243B53]/20 hover:border-[#243B53] hover:bg-[#e1eaf5]';
+                                        } else if (code === 'LOCL') { // Purple
+                                            styles = isSelected
+                                                ? 'bg-[#8A63D2] text-white border-[#8A63D2] shadow-md shadow-purple-200'
+                                                : 'bg-[#F8F5FF] text-[#8A63D2] border-[#8A63D2]/20 hover:border-[#8A63D2] hover:bg-[#f3eeff]';
+                                        } else {
+                                            styles = isSelected
+                                                ? 'bg-gray-800 text-white border-gray-800'
+                                                : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400';
+                                        }
+
+                                        return (
+                                            <div
+                                                key={type._id}
+                                                onClick={() => toggleCustomerType(type._id)}
+                                                className={`
+                                                    cursor-pointer px-4 py-3 rounded-xl border text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2
+                                                    ${styles}
+                                                `}
+                                            >
+                                                {isSelected && <Check size={14} strokeWidth={3} />}
+                                                {type.type_code}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
                             <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                                <Button type="button" variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
-                                <Button type="submit" className="bg-primary text-white">Save Service</Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setShowModal(false)}
+                                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="bg-[#4d341a] text-white hover:bg-[#3a2612] shadow-md"
+                                >
+                                    Save Service
+                                </Button>
                             </div>
                         </form>
                     </div>
