@@ -1,17 +1,25 @@
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
     try {
-        // Check DB connection
-        const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+        const supabase = await createClient();
+
+        // Check DB connection by making a lightweight query
+        const { error } = await supabase.from('species').select('count', { count: 'exact', head: true });
+
+        const dbStatus = error ? 'disconnected' : 'connected';
+
+        if (error) {
+            console.error('Health Check DB Error:', error);
+        }
 
         return NextResponse.json({
-            status: 'ok',
+            status: error ? 'error' : 'ok',
             timestamp: new Date().toISOString(),
             database: dbStatus,
             environment: process.env.NODE_ENV
-        }, { status: 200 });
+        }, { status: error ? 500 : 200 });
     } catch (error) {
         return NextResponse.json({
             status: 'error',

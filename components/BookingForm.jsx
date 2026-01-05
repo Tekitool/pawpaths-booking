@@ -223,129 +223,129 @@ export default function BookingForm() {
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Customer Information */}
                 <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-                    <h2 className="text-2xl font-bold text-pawpaths-brown mb-6 border-b pb-2">Customer Information</h2>
+                    <h2 className="text-brand-color-01 mb-6 border-b pb-2">Customer Information</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Row 1: Full Name + City */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Full Name *</label>
                             <input
                                 type="text"
                                 value={formData.customerInfo.fullName}
                                 onChange={(e) => handleCustomerChange('fullName', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_fullName ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.customer_fullName ? 'border-system-color-01' : 'border-brand-color-02'}`}
                                 placeholder="John Doe"
                             />
-                            {errors.customer_fullName && <p className="text-red-500 text-xs mt-1">{errors.customer_fullName}</p>}
+                            {errors.customer_fullName && <p className="text-system-color-01 text-xs mt-1">{errors.customer_fullName}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">City / Place *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">City / Place *</label>
                             <input
                                 type="text"
                                 value={formData.customerInfo.city}
                                 onChange={(e) => handleCustomerChange('city', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_city ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.customer_city ? 'border-system-color-01' : 'border-brand-color-02'}`}
                                 placeholder="Dubai, Abu Dhabi, etc."
                             />
-                            {errors.customer_city && <p className="text-red-500 text-xs mt-1">{errors.customer_city}</p>}
+                            {errors.customer_city && <p className="text-system-color-01 text-xs mt-1">{errors.customer_city}</p>}
                         </div>
 
                         {/* Row 2: Email + Phone */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Email Address *</label>
                             <input
                                 type="email"
                                 value={formData.customerInfo.email}
                                 onChange={(e) => handleCustomerChange('email', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_email ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.customer_email ? 'border-system-color-01' : 'border-brand-color-02'}`}
                                 placeholder="john@example.com"
                             />
-                            {errors.customer_email && <p className="text-red-500 text-xs mt-1">{errors.customer_email}</p>}
+                            {errors.customer_email && <p className="text-system-color-01 text-xs mt-1">{errors.customer_email}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Phone Number *</label>
                             <input
                                 type="tel"
                                 value={formData.customerInfo.phone}
                                 onChange={(e) => handleCustomerChange('phone', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.customer_phone ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.customer_phone ? 'border-system-color-01' : 'border-brand-color-02'}`}
                                 placeholder="+971 50 123 4567"
                             />
-                            {errors.customer_phone && <p className="text-red-500 text-xs mt-1">{errors.customer_phone}</p>}
+                            {errors.customer_phone && <p className="text-system-color-01 text-xs mt-1">{errors.customer_phone}</p>}
                         </div>
                     </div>
                 </div>
 
                 {/* Travel Details */}
                 <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-                    <h2 className="text-2xl font-bold text-pawpaths-brown mb-6 border-b pb-2">Travel Details</h2>
+                    <h2 className="text-brand-color-01 mb-6 border-b pb-2">Travel Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Origin Country *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Origin Country *</label>
                             <select
                                 value={formData.travelDetails.originCountry}
                                 onChange={(e) => handleTravelChange('originCountry', e.target.value)}
-                                className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_originCountry ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.travel_originCountry ? 'border-system-color-01' : 'border-brand-color-02'}`}
                             >
                                 <option value="">Select Country</option>
                                 {countries.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                             </select>
-                            {errors.travel_originCountry && <p className="text-red-500 text-xs mt-1">{errors.travel_originCountry}</p>}
+                            {errors.travel_originCountry && <p className="text-system-color-01 text-xs mt-1">{errors.travel_originCountry}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Origin Airport *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Origin Airport *</label>
                             <input
                                 type="text"
                                 value={formData.travelDetails.originAirport}
                                 onChange={(e) => handleTravelChange('originAirport', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_originAirport ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.travel_originAirport ? 'border-system-color-01' : 'border-brand-color-02'}`}
                                 placeholder="e.g. DXB"
                             />
-                            {errors.travel_originAirport && <p className="text-red-500 text-xs mt-1">{errors.travel_originAirport}</p>}
+                            {errors.travel_originAirport && <p className="text-system-color-01 text-xs mt-1">{errors.travel_originAirport}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Destination Country *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Destination Country *</label>
                             <select
                                 value={formData.travelDetails.destinationCountry}
                                 onChange={(e) => handleTravelChange('destinationCountry', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_destinationCountry ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.travel_destinationCountry ? 'border-system-color-01' : 'border-brand-color-02'}`}
                             >
                                 <option value="">Select Country</option>
                                 {countries.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                             </select>
-                            {errors.travel_destinationCountry && <p className="text-red-500 text-xs mt-1">{errors.travel_destinationCountry}</p>}
+                            {errors.travel_destinationCountry && <p className="text-system-color-01 text-xs mt-1">{errors.travel_destinationCountry}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Destination Airport *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Destination Airport *</label>
                             <input
                                 type="text"
                                 value={formData.travelDetails.destinationAirport}
                                 onChange={(e) => handleTravelChange('destinationAirport', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_destinationAirport ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.travel_destinationAirport ? 'border-system-color-01' : 'border-brand-color-02'}`}
                                 placeholder="e.g. LHR"
                             />
-                            {errors.travel_destinationAirport && <p className="text-red-500 text-xs mt-1">{errors.travel_destinationAirport}</p>}
+                            {errors.travel_destinationAirport && <p className="text-system-color-01 text-xs mt-1">{errors.travel_destinationAirport}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Travel Date *</label>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Travel Date *</label>
                             <input
                                 type="date"
                                 min={new Date().toISOString().split('T')[0]}
                                 value={formData.travelDetails.travelDate}
                                 onChange={(e) => handleTravelChange('travelDate', e.target.value)}
-                                className={`w-full bg-pawpaths-cream border rounded-lg px-4 py-3 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none ${errors.travel_travelDate ? 'border-red-500' : 'border-[#c68e53]'}`}
+                                className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none ${errors.travel_travelDate ? 'border-system-color-01' : 'border-brand-color-02'}`}
                             />
-                            {errors.travel_travelDate && <p className="text-red-500 text-xs mt-1">{errors.travel_travelDate}</p>}
+                            {errors.travel_travelDate && <p className="text-system-color-01 text-xs mt-1">{errors.travel_travelDate}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Traveling with your pet? *</label>
-                            <div className={`w-full bg-[#fff2b1] border rounded-lg px-4 py-3 flex gap-6 ${errors.travel_clientTravelingWithPet ? 'border-red-500' : 'border-[#c68e53]'}`}>
+                            <label className="block text-sm font-medium text-brand-text-02 mb-1">Traveling with your pet? *</label>
+                            <div className={`w-full bg-brand-color-02 border rounded-lg px-4 py-3 flex gap-6 ${errors.travel_clientTravelingWithPet ? 'border-system-color-01' : 'border-brand-color-02'}`}>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="radio"
@@ -353,9 +353,9 @@ export default function BookingForm() {
                                         value="yes"
                                         checked={formData.travelDetails.clientTravelingWithPet === 'yes'}
                                         onChange={(e) => handleTravelChange('clientTravelingWithPet', e.target.value)}
-                                        className="w-4 h-4 text-pawpaths-brown focus:ring-pawpaths-brown"
+                                        className="w-4 h-4 text-brand-color-01 focus:ring-brand-color-01"
                                     />
-                                    <span className="text-gray-700">Yes</span>
+                                    <span className="text-brand-text-02">Yes</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -364,19 +364,19 @@ export default function BookingForm() {
                                         value="no"
                                         checked={formData.travelDetails.clientTravelingWithPet === 'no'}
                                         onChange={(e) => handleTravelChange('clientTravelingWithPet', e.target.value)}
-                                        className="w-4 h-4 text-pawpaths-brown focus:ring-pawpaths-brown"
+                                        className="w-4 h-4 text-brand-color-01 focus:ring-brand-color-01"
                                     />
-                                    <span className="text-gray-700">No</span>
+                                    <span className="text-brand-text-02">No</span>
                                 </label>
                             </div>
-                            {errors.travel_clientTravelingWithPet && <p className="text-red-500 text-xs mt-1">{errors.travel_clientTravelingWithPet}</p>}
+                            {errors.travel_clientTravelingWithPet && <p className="text-system-color-01 text-xs mt-1">{errors.travel_clientTravelingWithPet}</p>}
                         </div>
                     </div>
                 </div>
 
                 {/* Pet Details */}
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold text-pawpaths-brown mb-2 px-1">Pet Details</h2>
+                    <h2 className="text-brand-color-01 mb-2 px-1">Pet Details</h2>
                     {formData.pets.map((pet, index) => (
                         <PetDetailsSection
                             key={index}
@@ -398,7 +398,7 @@ export default function BookingForm() {
                         <button
                             type="button"
                             onClick={addPet}
-                            className="flex items-center gap-2 text-pawpaths-brown font-semibold hover:text-[#3d2815] transition-colors px-1"
+                            className="flex items-center gap-2 text-brand-color-01 font-semibold hover:text-brand-color-01/80 transition-colors px-1"
                         >
                             <Plus size={20} />
                             Add Another Pet
@@ -409,7 +409,7 @@ export default function BookingForm() {
                 {/* Submit Button */}
                 <div className="pt-4">
                     {submitError && (
-                        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4 text-center">
+                        <div className="bg-error/10 text-error p-4 rounded-lg mb-4 text-center">
                             {submitError}
                         </div>
                     )}
@@ -417,7 +417,7 @@ export default function BookingForm() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-pawpaths-brown hover:bg-[#2a1a0a] text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full bg-brand-color-01 hover:bg-brand-color-01/90 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {loading ? (
                             <>
@@ -431,8 +431,8 @@ export default function BookingForm() {
                             </>
                         )}
                     </button>
-                    <p className="text-center text-gray-500 text-sm mt-4">
-                        By submitting this form, you agree to our <a href="#" className="text-pawpaths-brown hover:underline">terms and conditions</a> and <a href="#" className="text-pawpaths-brown hover:underline">privacy policy</a>.
+                    <p className="text-center text-brand-text-02/80 text-sm mt-4">
+                        By submitting this form, you agree to our <a href="#" className="text-brand-color-01 hover:underline">terms and conditions</a> and <a href="#" className="text-brand-color-01 hover:underline">privacy policy</a>.
                     </p>
                 </div>
             </form>

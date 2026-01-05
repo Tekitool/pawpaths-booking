@@ -1,19 +1,12 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Booking from '@/lib/models/Booking';
-import CustomerType from '@/lib/models/CustomerType';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { generateEmailTemplate } from '@/lib/utils/emailTemplate';
 import { generateWhatsAppMessage, generateWhatsAppLink } from '@/lib/utils/whatsappMessage';
-import { validateBookingData } from '@/lib/utils/validation';
 import nodemailer from 'nodemailer';
-
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { SERVICES } from '@/lib/constants/services';
 
 export async function POST(req) {
     try {
-        await dbConnect();
-
         const formData = await req.formData();
 
         // Parse JSON fields with null checks
@@ -48,13 +41,12 @@ export async function POST(req) {
 
         // Handle file uploads
         const uploadedDocuments = [];
-
         const fileFields = ['passport', 'vaccination', 'rabies'];
         const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
         const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
         const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
 
-        // Import storage service dynamically to avoid issues if not fully set up
+        // Import storage service dynamically
         const { uploadFile } = await import('@/lib/storage-service');
 
         for (const field of fileFields) {
@@ -79,10 +71,9 @@ export async function POST(req) {
                     }, { status: 400 });
                 }
 
-                // File is valid, proceed with upload using storage service
+                // File is valid, proceed with upload
                 try {
                     const { url } = await uploadFile(file, 'uploads');
-
                     uploadedDocuments.push({
                         type: field,
                         name: file.name,
@@ -108,80 +99,169 @@ export async function POST(req) {
         const destinationCountry = travelDetails.destinationCountry;
         const isTravelingWithPet = travelDetails.travelingWithPet;
 
-        // Check for UAE (case-insensitive)
         const isOriginUAE = originCountry?.toLowerCase().includes('united arab emirates') || originCountry?.toLowerCase() === 'uae';
         const isDestUAE = destinationCountry?.toLowerCase().includes('united arab emirates') || destinationCountry?.toLowerCase() === 'uae';
 
         if (isOriginUAE && isDestUAE) {
             customerTypeCode = 'LOCL';
         } else if (isOriginUAE && !isDestUAE) {
-            // Export
             customerTypeCode = isTravelingWithPet ? 'EX-A' : 'EX-U';
         } else if (!isOriginUAE && isDestUAE) {
-            // Import
             customerTypeCode = isTravelingWithPet ? 'IM-A' : 'IM-U';
         }
-        // Note: For Overseas -> Overseas, we might default to LOCL or handle differently, but requirements didn't specify. 
-        // Keeping default LOCL or maybe we should log it. For now, following the main 5 types.
 
-        // Fetch the CustomerType ObjectId
-        const customerTypeDoc = await CustomerType.findOne({ type_code: customerTypeCode });
+        // Map to Supabase Enum
+        let serviceTypeEnum = 'local';
+        if (customerTypeCode.startsWith('EX')) serviceTypeEnum = 'export';
+        if (customerTypeCode.startsWith('IM')) serviceTypeEnum = 'import';
+        if (customerTypeCode === 'TRANSIT') serviceTypeEnum = 'transit';
 
-        // Transform data to match Booking model schema
-        const bookingData = {
+        // --- Supabase Transaction ---
+
+        // 1. Find or Create Customer Entity
+        let customerId;
+        const { data: existingCustomer, error: findError } = await supabaseAdmin
+            .from('entities')
+            .select('id')
+            .eq('contact_info->>email', contactInfo.email)
+            .single();
+
+        if (existingCustomer) {
+            customerId = existingCustomer.id;
+        } else {
+            const { data: newCustomer, error: createError } = await supabaseAdmin
+                .from('entities')
+                .insert({
+                    display_name: contactInfo.fullName,
+                    is_client: true,
+                    contact_info: {
+                        email: contactInfo.email,
+                        phone: contactInfo.phone,
+                        address: contactInfo.city
+                    },
+                    kyc_documents: uploadedDocuments // Storing docs here for now
+                })
+                .select()
+                .single();
+
+            if (createError) {
+                console.error('Create Customer Error:', createError);
+                throw new Error('Failed to create customer record');
+            }
+            customerId = newCustomer.id;
+        }
+
+        // 2. Create Booking
+        const { data: booking, error: bookingError } = await supabaseAdmin
+            .from('bookings')
+            .insert({
+                customer_id: customerId,
+                status: 'enquiry', // Default status
+                service_type: serviceTypeEnum,
+                scheduled_departure_date: new Date(travelDetails.travelDate),
+                origin_raw: {
+                    country: travelDetails.originCountry,
+                    airport: travelDetails.originAirport
+                },
+                destination_raw: {
+                    country: travelDetails.destinationCountry,
+                    airport: travelDetails.destinationAirport
+                },
+                transport_mode: travelDetails.transportMode,
+                number_of_pets: pets.length,
+                traveling_with_pet: travelDetails.travelingWithPet,
+                customer_contact_snapshot: contactInfo
+            })
+            .select()
+            .single();
+
+        if (bookingError) {
+            console.error('Create Booking Error:', bookingError);
+            throw new Error('Failed to create booking record');
+        }
+
+        // 3. Create Pets and Link
+        for (const pet of pets) {
+            // Create Pet
+            const { data: newPet, error: petError } = await supabaseAdmin
+                .from('pets')
+                .insert({
+                    owner_id: customerId,
+                    name: pet.name,
+                    species_id: parseInt(pet.species) || parseInt(pet.species_id) || null,
+                    breed_id: parseInt(pet.breed) || parseInt(pet.breed_id) || null,
+                    gender: pet.gender === 'Male' ? 'male' : (pet.gender === 'Female' ? 'female' : null),
+                    weight_kg: Number(pet.weight),
+                    age_years: Number(pet.age),
+                })
+                .select()
+                .single();
+
+            if (!petError && newPet) {
+                // Link to Booking
+                await supabaseAdmin
+                    .from('booking_pets')
+                    .insert({
+                        booking_id: booking.id,
+                        pet_id: newPet.id,
+                        recorded_weight_kg: Number(pet.weight)
+                    });
+            } else {
+                console.warn('Failed to create pet:', petError);
+            }
+        }
+
+        // 4. Link Services
+        for (const serviceId of services) {
+            // We need the UUID of the service from service_catalog.
+            // The form sends service IDs (which might be UUIDs or legacy IDs).
+            // If they are UUIDs, we can insert directly.
+            // If not, we might fail. Assuming they are UUIDs from the new service catalog.
+            await supabaseAdmin
+                .from('booking_services')
+                .insert({
+                    booking_id: booking.id,
+                    service_id: serviceId,
+                    quantity: 1,
+                    unit_price: 0 // Fetch price? Or set 0 for enquiry.
+                });
+        }
+
+        // --- Construct Legacy Object for Email/WhatsApp ---
+        const bookingObj = {
+            bookingId: booking.booking_number,
             customer: {
-                customerType: customerTypeDoc?._id,
                 fullName: contactInfo.fullName,
                 email: contactInfo.email,
                 phone: contactInfo.phone,
-                address: {
-                    city: contactInfo.city || ''
-                },
-                documents: uploadedDocuments
             },
             travel: {
                 origin: {
                     country: travelDetails.originCountry,
-                    airport: travelDetails.originAirport,
+                    airport: travelDetails.originAirport
                 },
                 destination: {
                     country: travelDetails.destinationCountry,
-                    airport: travelDetails.destinationAirport,
+                    airport: travelDetails.destinationAirport
                 },
                 departureDate: new Date(travelDetails.travelDate),
-                travelingWithPet: travelDetails.travelingWithPet || false,
-                numberOfPets: pets.length
+                travelingWithPet: travelDetails.travelingWithPet,
+                numberOfPets: pets.length,
+                transportMode: travelDetails.transportMode
             },
-            pets: pets.map(pet => ({
-                ...pet,
-                gender: pet.gender === '' ? undefined : pet.gender, // Handle empty gender for enum validation
-                age: Number(pet.age),
-                weight: Number(pet.weight)
+            pets: pets.map(p => ({
+                name: p.name,
+                breed: p.breed,
+                type: p.species,
+                weight: p.weight
             })),
             services: {
-                selected: (services || []).map(serviceId => {
-                    const SERVICES = require('@/lib/constants/services').SERVICES;
-                    const service = SERVICES.find(s => s.id === serviceId);
-                    return service ? {
-                        serviceId: service.id,
-                        name: service.title,
-                        description: service.description,
-                        price: service.basePrice
-                    } : null;
-                }).filter(Boolean)
-            },
-            // Additional fields for compatibility
-            customerInfo: {
-                fullName: contactInfo.fullName,
-                email: contactInfo.email,
-                phone: contactInfo.phone,
-            },
-            travelDetails: travelDetails,
-            totalWeight
+                selected: services.map(sId => {
+                    const s = SERVICES.find(srv => srv.id === sId);
+                    return s ? { name: s.title } : { name: 'Unknown Service' };
+                })
+            }
         };
-
-        // Save to database
-        const booking = await Booking.create(bookingData);
 
         // Send Email with Timeout
         try {
@@ -195,50 +275,35 @@ export async function POST(req) {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASSWORD,
                 },
-                // Add connection timeout
-                connectionTimeout: 5000, // 5 seconds
+                connectionTimeout: 5000,
                 greetingTimeout: 5000,
                 socketTimeout: 10000,
             });
 
-            // Convert to plain object to ensure all virtuals/getters are available
-            const bookingObj = booking.toObject();
-
             const emailContent = generateEmailTemplate(bookingObj);
             const companyEmailContent = generateEmailTemplate(bookingObj, 'company');
 
-            console.log('Email content generated. Length:', emailContent.length);
-
-            // Define email promise
             const sendEmailsPromise = async () => {
-                // Get customer info with fallback for both formats
-                const customerEmail = bookingObj.customer?.email || bookingObj.customerInfo?.email;
-                const customerName = bookingObj.customer?.fullName || bookingObj.customerInfo?.fullName;
+                const customerEmail = bookingObj.customer.email;
+                const customerName = bookingObj.customer.fullName;
 
-                if (!customerEmail) {
-                    throw new Error('Customer email not found in booking');
-                }
+                if (!customerEmail) throw new Error('Customer email not found');
 
-                // 1. Send Customer Confirmation Email
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
                     to: customerEmail,
                     subject: `Booking Confirmation - ${bookingObj.bookingId} | Pawpaths`,
                     html: emailContent,
                 });
-                console.log(`Customer email sent to: ${customerEmail}`);
 
-                // 2. Send Company Notification Email
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
                     to: process.env.EMAIL_USER,
-                    subject: `[NEW BOOKING] ${bookingObj.bookingId} - ${customerName || 'Customer'}`,
+                    subject: `[NEW BOOKING] ${bookingObj.bookingId} - ${customerName}`,
                     html: companyEmailContent,
                 });
-                console.log(`Company email sent to: ${process.env.EMAIL_USER}`);
             };
 
-            // Race against a 10-second timeout
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Email sending timed out')), 10000)
             );
@@ -248,17 +313,16 @@ export async function POST(req) {
 
         } catch (emailError) {
             console.error('Email sending failed (Non-blocking):', emailError.message);
-            // Continue execution, don't fail the booking just because email failed
         }
 
         // Generate WhatsApp Link
-        const whatsappMessage = generateWhatsAppMessage(booking);
+        const whatsappMessage = generateWhatsAppMessage(bookingObj); // Pass the constructed object
         const whatsappLink = generateWhatsAppLink(whatsappMessage);
 
         return NextResponse.json({
             success: true,
-            bookingId: booking.bookingId,
-            booking: booking, // Return full booking object
+            bookingId: booking.booking_number,
+            booking: bookingObj,
             message: 'Booking confirmed successfully',
             whatsappLink,
             whatsappMessage
@@ -266,17 +330,6 @@ export async function POST(req) {
 
     } catch (error) {
         console.error('Booking submission error:', error);
-
-        // Handle Mongoose Validation Errors
-        if (error.name === 'ValidationError') {
-            const validationErrors = Object.values(error.errors).map(err => err.message);
-            return NextResponse.json({
-                success: false,
-                message: 'Validation Error',
-                errors: validationErrors
-            }, { status: 400 });
-        }
-
         return NextResponse.json({
             success: false,
             message: 'Internal Server Error',

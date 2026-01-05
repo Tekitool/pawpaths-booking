@@ -1,18 +1,178 @@
 @import "tailwindcss";
 
-@theme {
-  --color-pawpaths-brown: #4d341a;
-  --color-pawpaths-cream: #fff2b1;
-  --color-pawpaths-text: #000000;
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Level 1 */
+  h1 {
+    font-size: 1.75rem;
+    /* 28px */
+    line-height: 2.25rem;
+    /* 36px */
+    font-weight: 700;
+  }
+
+  /* Level 2 */
+  h2 {
+    font-size: 1.5rem;
+    /* 24px */
+    line-height: 2rem;
+    /* 32px */
+    font-weight: 600;
+  }
+
+  /* Level 3 */
+  h3 {
+    font-size: 1.25rem;
+    /* 20px */
+    line-height: 1.75rem;
+    /* 28px */
+    font-weight: 600;
+  }
+
+  /* Level 4 */
+  h4 {
+    font-size: 1.125rem;
+    /* 18px */
+    line-height: 1.75rem;
+    /* 28px */
+    font-weight: 600;
+  }
+
+  /* Level 5 */
+  h5 {
+    font-size: 1rem;
+    /* 16px */
+    line-height: 1.5rem;
+    /* 24px */
+    font-weight: 600;
+  }
+
+  /* Level 6 */
+  h6 {
+    font-size: 0.875rem;
+    /* 14px */
+    line-height: 1.25rem;
+    /* 20px */
+    font-weight: 600;
+    @apply text-brand-text-02;
+    /* Muted color for smallest heading */
+  }
 }
 
-/* Custom utilities if needed, but v4 handles most via @theme */
-@utility container {
+@theme {
+  --color-brand-color-01: oklch(32.1% 0.079 68.3);
+  --color-brand-color-02: oklch(94.8% 0.10 96.4);
+  --color-brand-color-03: oklch(69.8% 0.21 42.6);
+  --color-brand-color-04: oklch(81% 0.17 82);
+  --color-accent: oklch(69.8% 0.21 42.6);
+
+  --color-brand-secondary: oklch(44.8% 0.05 68.3);
+  --color-system-color-01: oklch(48.5% 0.21 28.6);
+  --color-system-color-02: oklch(41.6% 0.16 142.1);
+  --color-system-color-03: oklch(58.6% 0.23 265.5);
+
+  --color-status-error: oklch(48.5% 0.21 28.6);
+  --color-status-success: oklch(41.6% 0.16 142.1);
+  --color-status-info: oklch(58.6% 0.23 265.5);
+  --color-status-warning: oklch(67.5% 0.18 78.4);
+
+  --color-brand-text-02: oklch(48.4% 0.04 263.4);
+  --color-brand-text-03: oklch(48.8% 0.27 290.4);
+
+  --color-surface-warm: oklch(98.5% 0.02 85.0);
+  --color-surface-cool: oklch(96.8% 0.02 245.0);
+  --color-surface-fresh: oklch(97.2% 0.02 175.0);
+
+  --color-surface-pearl: oklch(98.9% 0.005 180.0);
+  --color-surface-silk: oklch(97.5% 0.008 45.0);
+  --color-surface-peach: oklch(97.4% 0.013 55.0);
+  --color-surface-mint: oklch(97.6% 0.010 160.0);
+  --color-surface-sky: oklch(97.3% 0.010 235.0);
+  --color-surface-ivory: oklch(98.5% 0.008 85.0);
+}
+
+:root {
+  /* --- Brand Identity (OKLCH) --- */
+  --brand-color-01: 32.1% 0.079 68.3;
+  --brand-color-02: 94.8% 0.10 96.4;
+  --brand-color-03: 69.8% 0.21 42.6;
+  --brand-color-04: 81% 0.17 82;
+  --brand-secondary: 44.8% 0.05 68.3;
+
+  /* --- System Colors (Primitives) --- */
+  --system-color-01: 48.5% 0.21 28.6;
+  /* Red */
+  --system-color-02: 41.6% 0.16 142.1;
+  /* Green */
+  --system-color-03: 58.6% 0.23 265.5;
+  /* Blue */
+
+  /* --- Status Colors --- */
+  --status-error: 48.5% 0.21 28.6;
+  --status-success: 41.6% 0.16 142.1;
+  --status-info: 58.6% 0.23 265.5;
+  --status-warning: 67.5% 0.18 78.4;
+
+  /* --- Functional & Text --- */
+  --brand-text-02: 48.4% 0.04 263.4;
+  /* Neutral/Gray */
+  --brand-text-03: 48.8% 0.27 290.4;
+  /* Purple/Highlight */
+
+  /* --- Surface System --- */
+  --surface-warm: 98.5% 0.02 85.0;
+  --surface-cool: 96.8% 0.02 245.0;
+  --surface-fresh: 97.2% 0.02 175.0;
+
+  /* Premium Light Surfaces (Retina/OLED Optimized) */
+  --surface-pearl: 98.9% 0.005 180.0;
+  --surface-silk: 97.5% 0.008 45.0;
+  --surface-peach: 97.4% 0.013 55.0;
+  --surface-mint: 97.6% 0.010 160.0;
+  --surface-sky: 97.3% 0.010 235.0;
+  --surface-ivory: 98.5% 0.008 85.0;
+
+  /* --- Gradients --- */
+  --gradient-brand-soft: linear-gradient(135deg, oklch(var(--brand-color-01) / 0.08) 0%, oklch(var(--brand-color-02) / 0.3) 100%);
+  --gradient-surface-light: linear-gradient(to bottom, #ffffff 0%, oklch(var(--surface-cool) / 0.5) 100%);
+  --gradient-card-warm: linear-gradient(to bottom right, oklch(var(--surface-warm)), oklch(var(--brand-color-02) / 0.3));
+  --gradient-card-cool: linear-gradient(to bottom right, oklch(var(--surface-cool)), oklch(var(--status-info) / 0.1));
+  --gradient-card-fresh: linear-gradient(to bottom right, oklch(var(--surface-fresh)), oklch(var(--status-success) / 0.1));
+  --gradient-card-neutral: linear-gradient(to bottom right, #ffffff, oklch(var(--brand-text-02) / 0.05));
+
+  /* --- Shadows --- */
+  --shadow-glow-accent: 0 4px 20px -4px oklch(var(--accent) / 0.3);
+  --shadow-glow-success: 0 4px 20px -4px oklch(var(--status-success) / 0.3);
+  --shadow-glow-error: 0 4px 20px -4px oklch(var(--status-error) / 0.3);
+  --shadow-glow-info: 0 4px 20px -4px oklch(var(--status-info) / 0.3);
+
+  /* Stats Grid - Color Specific Tokens */
+  --gradient-stats-blue: linear-gradient(to right, rgba(239, 246, 255, 0.8), rgba(238, 242, 255, 0.8));
+  --border-stats-blue: #dbeafe;
+
+  --gradient-stats-orange: linear-gradient(to right, rgba(255, 247, 237, 0.8), rgba(255, 251, 235, 0.8));
+  --border-stats-orange: #ffedd5;
+
+  --gradient-stats-purple: linear-gradient(to right, rgba(250, 245, 255, 0.8), rgba(253, 244, 255, 0.8));
+  --border-stats-purple: #f3e8ff;
+
+  --gradient-stats-emerald: linear-gradient(to right, rgba(236, 253, 245, 0.8), rgba(240, 253, 250, 0.8));
+  --border-stats-emerald: #d1fae5;
+}
+
+/* Custom utilities */
+@utility container-custom {
   margin-inline: auto;
   padding-inline: 2rem;
 }
 
 /* Custom radio button styling */
-input[type="radio"] {
-  accent-color: #4d341a;
+/* FIXED: Uses the variable, not the hardcoded number */
+@layer base {
+  input[type="radio"] {
+    accent-color: oklch(var(--brand-color-01));
+  }
 }

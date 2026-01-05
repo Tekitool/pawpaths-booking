@@ -1,0 +1,226 @@
+'use client';
+
+import React, { useRef, useState } from 'react';
+import Step1Travel from '@/components/booking/Step1Travel';
+import Step2Pets from '@/components/booking/Step2Pets';
+import Step3Services from '@/components/booking/Step3Services';
+import Step4Documents from '@/components/booking/Step4Documents';
+import Step5Review from '@/components/booking/Step5Review';
+import Step6Success from '@/components/booking/Step6Success';
+import ServiceLimitationModal from '@/components/booking/ServiceLimitationModal';
+import ValidationFailureModal from '@/components/booking/ValidationFailureModal';
+import useBookingStore from '@/lib/store/booking-store';
+import Button from '@/components/ui/Button';
+import { ArrowLeft, RotateCcw, ArrowRight, Check } from 'lucide-react';
+import BookingHeader from '@/components/booking/BookingHeader';
+import ElegantFooter from '@/components/ui/ElegantFooter';
+
+export default function BookingWizard({ speciesList, breedsList, genderOptions = [], countriesList = [] }) {
+    const { currentStep, nextStep, prevStep, setStep, resetForm, formData } = useBookingStore();
+    const step5Ref = useRef(null);
+    const [isLimitationModalOpen, setIsLimitationModalOpen] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({});
+    const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+
+    const validateRoute = () => {
+        const { originCountry, destinationCountry } = formData.travelDetails;
+
+        // Helper to check for UAE
+        const isUAE = (country) => {
+            const c = (country || '').toLowerCase();
+            return c === 'ae' || c === 'uae' || c.includes('united arab emirates');
+        };
+
+        const isOriginUAE = isUAE(originCountry);
+        const isDestUAE = isUAE(destinationCountry);
+
+        // Valid if either origin OR destination is UAE
+        return isOriginUAE || isDestUAE;
+    };
+
+    const handleContinue = () => {
+        if (currentStep === 1) {
+            // 1. Validate Route Limitation (UAE Check)
+            if (!validateRoute()) {
+                setIsLimitationModalOpen(true);
+                return;
+            }
+
+            // 2. Validate Empty Fields
+            const { originAirport, destinationAirport } = formData.travelDetails;
+            const errors = {};
+
+            if (!originAirport || !originAirport.trim()) {
+                errors.originAirport = "Please enter the Origin City or Airport.";
+            }
+            if (!destinationAirport || !destinationAirport.trim()) {
+                errors.destinationAirport = "Please enter the Destination City or Airport.";
+            }
+
+            if (Object.keys(errors).length > 0) {
+                setValidationErrors(errors);
+                setIsValidationModalOpen(true);
+                return;
+            }
+        }
+
+        if (currentStep === 5 && step5Ref.current) {
+            // On step 5, trigger the submit handler
+            step5Ref.current.handleSubmit();
+        } else {
+            nextStep();
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+            <ServiceLimitationModal
+                isOpen={isLimitationModalOpen}
+                onClose={() => setIsLimitationModalOpen(false)}
+            />
+            <ValidationFailureModal
+                isOpen={isValidationModalOpen}
+                onClose={() => setIsValidationModalOpen(false)}
+                errors={validationErrors}
+            />
+            <BookingHeader />
+
+            <div className="py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+                {/* Background Blobs */}
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-color-01/5 rounded-full blur-3xl -z-10 animate-pulse"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10 animate-pulse delay-1000"></div>
+
+                <div className="max-w-4xl mx-auto">
+                    <div className="mb-12 text-center relative">
+                        <h1 className="text-accent tracking-tight mb-3">Start Your Relocation Enquiry</h1>
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-brand-text-02/20 shadow-sm text-sm font-medium text-brand-text-02">
+                            <span className="w-2 h-2 rounded-full bg-brand-color-01 animate-pulse"></span>
+                            Step {currentStep} of 5
+                        </div>
+                    </div>
+
+                    {/* Premium Progress Bar */}
+                    <div className="relative mb-16 px-4">
+                        {/* Progress Bar Container */}
+                        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),0_8px_32px_rgba(0,0,0,0.2)] p-1.5 relative h-5 w-full z-0">
+                            {/* Track Background (Dark) */}
+                            <div className="absolute inset-0 bg-gray-900/10 rounded-full"></div>
+
+                            {/* Progress Fill */}
+                            <div
+                                className="h-full rounded-full relative transition-all duration-700 ease-out shadow-[0_2px_8px_rgba(255,107,107,0.4)] bg-gradient-to-r from-red-500 via-orange-400 via-amber-300 to-yellow-50"
+                                style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
+                            >
+                                {/* Inner Glow */}
+                                <div className="absolute top-0 left-0 w-full h-[1px] bg-white/60 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+                            </div>
+                        </div>
+
+                        {/* Steps Overlay */}
+                        <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 px-4 flex justify-between pointer-events-none z-10">
+                            {[1, 2, 3, 4, 5].map((step) => (
+                                <div key={step} className="flex flex-col items-center relative group">
+                                    {/* Step Circle */}
+                                    <button
+                                        onClick={() => setStep(step)}
+                                        className={`
+                                            w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-500 relative
+                                            backdrop-blur-md shadow-lg pointer-events-auto cursor-pointer
+                                            hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80 hover:text-accent
+                                            ${step <= currentStep
+                                                ? 'bg-accent border-accent/50 text-white shadow-[0_0_20px_rgba(249,115,22,0.6)] scale-110'
+                                                : 'bg-white/40 border-white/40 text-brand-text-02'
+                                            }
+                                        `}
+                                        aria-label={`Go to step ${step}`}
+                                    >
+                                        {/* Glossy Effect */}
+                                        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/50 to-transparent rounded-t-full"></div>
+                                        {step}
+                                    </button>
+
+                                    {/* Label */}
+                                    <button
+                                        onClick={() => setStep(step)}
+                                        className={`text-xs font-bold uppercase tracking-wider absolute -bottom-8 w-32 text-center transition-colors duration-300 pointer-events-auto cursor-pointer hover:text-accent ${step === currentStep
+                                            ? 'text-accent'
+                                            : step < currentStep
+                                                ? 'text-brand-color-01'
+                                                : 'text-brand-text-02/60'
+                                            }`}
+                                    >
+                                        {step === 1 && 'Travel'}
+                                        {step === 2 && 'Pets'}
+                                        {step === 3 && 'Services'}
+                                        {step === 4 && 'Docs'}
+                                        {step === 5 && 'Review'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white/60 backdrop-blur-xl shadow-level-1 rounded-[2.5rem] p-8 md:p-12 border border-white/50 relative overflow-hidden max-w-5xl mx-auto">
+                    {/* Content Container */}
+                    <div className="relative z-10">
+                        {currentStep === 1 && <Step1Travel countriesList={countriesList} />}
+                        {currentStep === 2 && <Step2Pets speciesList={speciesList} breedsList={breedsList} genderOptions={genderOptions} />}
+                        {currentStep === 3 && <Step3Services />}
+                        {currentStep === 4 && <Step4Documents />}
+                        {currentStep === 5 && <Step5Review ref={step5Ref} speciesList={speciesList} breedsList={breedsList} />}
+                        {currentStep === 6 && <Step6Success speciesList={speciesList} breedsList={breedsList} />}
+
+                        {/* Navigation Buttons */}
+                        {currentStep < 6 && (
+                            <div className="mt-12 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-8 border-t border-brand-color-03">
+                                <Button
+                                    variant="text"
+                                    onClick={prevStep}
+                                    disabled={currentStep === 1}
+                                    className={`
+                                            order-2 sm:order-1
+                                            px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300
+                                            bg-gradient-to-br from-gray-600/90 to-gray-700/90 backdrop-blur-xl border border-white/30
+                                            shadow-[0_4px_20px_rgba(107,114,128,0.2)]
+                                            hover:bg-gradient-to-br hover:from-gray-500/90 hover:to-gray-600/90 hover:shadow-[0_8px_30px_rgba(107,114,128,0.3)] hover:scale-[1.02] active:scale-95
+                                            ${currentStep === 1 ? 'opacity-0 pointer-events-none' : ''}
+                                        `}
+                                >
+                                    <ArrowLeft size={20} className="mr-2" />
+                                    Back
+                                </Button>
+
+                                <Button
+                                    variant="text"
+                                    onClick={resetForm}
+                                    className="order-3 sm:order-2 sm:ml-auto px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300 bg-gradient-to-br from-orange-400/90 to-orange-500/90 backdrop-blur-xl border border-white/30 shadow-[0_4px_20px_rgba(249,115,22,0.2)] hover:shadow-[0_8px_30px_rgba(249,115,22,0.3)] hover:scale-[1.02] active:scale-95"
+                                >
+                                    <RotateCcw size={20} className="mr-2" />
+                                    Reset
+                                </Button>
+                                <Button
+                                    onClick={handleContinue}
+                                    className={`
+                                        order-1 sm:order-3 px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300 backdrop-blur-xl border border-white/30 hover:scale-[1.02] active:scale-95
+                                        ${currentStep === 5
+                                            ? 'bg-gradient-to-br from-emerald-500/90 to-emerald-600/90 shadow-[0_4px_20px_rgba(16,185,129,0.2)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.3)]'
+                                            : 'bg-gradient-to-br from-blue-500/90 to-blue-600/90 shadow-[0_4px_20px_rgba(59,130,246,0.2)] hover:shadow-[0_8px_30px_rgba(59,130,246,0.3)]'
+                                        }
+                                    `}
+                                >
+                                    {currentStep === 5 ? (
+                                        <><Check size={20} className="mr-2" />Submit Enquiry</>
+                                    ) : (
+                                        <><ArrowRight size={20} className="mr-2" />Continue</>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <ElegantFooter />
+        </div >
+    );
+}

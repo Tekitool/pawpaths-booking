@@ -1,0 +1,75 @@
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse } from 'next/server'
+
+export async function middleware(request) {
+    console.log('Middleware start: ' + request.nextUrl.pathname)
+    let response = NextResponse.next({
+        request: {
+            headers: request.headers,
+        },
+    })
+
+    /*
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+            cookies: {
+                getAll() {
+                    return request.cookies.getAll()
+                },
+                setAll(cookiesToSet) {
+                    console.log('setAll called', cookiesToSet.length)
+                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+                    response = NextResponse.next({
+                        request: {
+                            headers: request.headers,
+                        },
+                    })
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        response.cookies.set(name, value, options)
+                    )
+                },
+            },
+        }
+    )
+
+    console.log('Calling getUser')
+    const { data: { user }, error } = await supabase.auth.getUser()
+    console.log('getUser result:', user ? 'User found' : 'No user', error ? error.message : 'No error')
+    */
+    const user = null; // Simulate no user
+
+    const path = request.nextUrl.pathname
+
+    // 2. DEFINE PROTECTED ROUTES
+    // The Dashboard is at the root "/"
+    const isDashboardRoute = path === '/' || path.startsWith('/dashboard')
+
+    // 3. SECURITY LOGIC
+
+    // CASE A: User is NOT logged in and tries to access Dashboard
+    if (!user && isDashboardRoute) {
+        console.log('Redirecting to login')
+        const loginUrl = request.nextUrl.clone()
+        loginUrl.pathname = '/login'
+        return NextResponse.redirect(loginUrl)
+    }
+
+    // CASE B: User IS logged in and tries to access Login page (Redirect to Dash)
+    if (user && path.startsWith('/login')) {
+        console.log('Redirecting to dashboard')
+        const dashUrl = request.nextUrl.clone()
+        dashUrl.pathname = '/'
+        return NextResponse.redirect(dashUrl)
+    }
+
+    console.log('Returning response')
+    return response
+}
+
+export const config = {
+    matcher: [
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    ],
+}

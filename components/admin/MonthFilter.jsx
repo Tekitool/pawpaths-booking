@@ -38,9 +38,9 @@ export default function MonthFilter() {
 
     return (
         <div className="relative">
-            <CalendarDays className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <CalendarDays className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-brand-text-02/80 pointer-events-none" />
             <select
-                className="appearance-none block w-full rounded-lg border border-gray-200 py-[9px] pl-10 pr-8 text-sm outline-2 focus:ring-2 focus:ring-pawpaths-brown focus:outline-none bg-white text-gray-700 cursor-pointer hover:border-gray-300 transition-colors"
+                className="appearance-none block w-full rounded-lg border border-brand-text-02/20 py-[9px] pl-10 pr-8 text-sm outline-2 focus:ring-2 focus:ring-brand-color-01 focus:outline-none bg-white text-brand-text-02 cursor-pointer hover:border-brand-text-02/20 transition-colors"
                 onChange={(e) => handleMonthChange(e.target.value)}
                 value={currentMonth}
             >
@@ -52,7 +52,7 @@ export default function MonthFilter() {
                 ))}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 text-brand-text-02/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
             </div>

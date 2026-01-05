@@ -5,15 +5,7 @@ import useBookingStore from '@/lib/store/booking-store';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Plus, Trash2, Dog, Cat } from 'lucide-react';
-import { DOG_BREEDS, CAT_BREEDS, BIRD_BREEDS, OTHER_PET_BREEDS } from '@/lib/constants/breeds';
-
-const PET_TYPES = [
-    { value: 'Dog', label: 'Dog' },
-    { value: 'Cat', label: 'Cat' },
-    { value: 'Bird', label: 'Bird' },
-    { value: 'Other', label: 'Other' },
-];
+import { Plus, Trash2 } from 'lucide-react';
 
 const GENDERS = [
     { value: 'Male', label: 'Male' },
@@ -27,7 +19,7 @@ const AGE_UNITS = [
     { value: 'months', label: 'Months' },
 ];
 
-export default function Step2Pets() {
+export default function Step2Pets({ speciesList = [], breedsList = [], genderOptions = [] }) {
     const { formData, addPet, removePet, updatePet } = useBookingStore();
     const { pets } = formData;
     const initialized = useRef(false);
@@ -37,9 +29,9 @@ export default function Step2Pets() {
         if (!initialized.current && pets.length === 0) {
             initialized.current = true;
             addPet({
-                type: 'Dog',
+                species_id: '',
+                breed_id: '',
                 name: '',
-                breed: '',
                 age: '',
                 ageUnit: 'years',
                 weight: '',
@@ -49,9 +41,11 @@ export default function Step2Pets() {
     }, [pets.length, addPet]);
 
     const handlePetChange = (index, field, value) => {
-        // If type changes, reset breed
-        if (field === 'type') {
-            updatePet(index, { [field]: value, breed: '' });
+        // If species changes, reset breed
+        if (field === 'species_id') {
+            updatePet(index, { [field]: parseInt(value) || '', breed_id: '' });
+        } else if (field === 'breed_id') {
+            updatePet(index, { [field]: parseInt(value) || '' });
         } else {
             updatePet(index, { [field]: value });
         }
@@ -59,9 +53,9 @@ export default function Step2Pets() {
 
     const handleAddPet = () => {
         addPet({
-            type: 'Dog',
+            species_id: '',
+            breed_id: '',
             name: '',
-            breed: '',
             age: '',
             ageUnit: 'years',
             weight: '',
@@ -69,31 +63,35 @@ export default function Step2Pets() {
         });
     };
 
-    const getBreeds = (type) => {
-        switch (type) {
-            case 'Cat':
-                return CAT_BREEDS;
-            case 'Bird':
-                return BIRD_BREEDS;
-            case 'Other':
-                return OTHER_PET_BREEDS;
-            default:
-                return DOG_BREEDS;
-        }
+    const getSpeciesOptions = () => {
+        return speciesList.map(s => ({
+            value: s.id,
+            label: s.name
+        }));
+    };
+
+    const getBreedOptions = (speciesId) => {
+        if (!speciesId) return [];
+        return breedsList
+            .filter(b => b.species_id === parseInt(speciesId))
+            .map(b => ({
+                value: b.id,
+                label: b.name
+            }));
     };
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-10">
-                <h2 className="text-3xl font-bold text-primary tracking-tight">Pet Information</h2>
-                <p className="text-gray-500 mt-2">Tell us about your furry friends</p>
+                <h2 className="text-brand-color-01 tracking-tight">Pet Information</h2>
+                <p className="text-brand-text-02/80 mt-2">Tell us about your furry friends</p>
             </div>
             <div className="space-y-8">
                 {pets.map((pet, index) => (
-                    <div key={index} className="bg-gradient-to-br from-[#fffdee] to-[#fffbd9] backdrop-blur-xl border-[0.5px] border-[#fff7c0] shadow-[0_4px_20px_rgba(255,247,192,0.3)] rounded-3xl p-6 md:p-8 relative hover:shadow-[0_8px_30px_rgba(255,247,192,0.4)] transition-all duration-300 group">
-                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-                            <div className="flex items-center gap-3 text-primary font-bold text-lg">
-                                <span className="bg-primary/10 text-primary w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm">
+                    <div key={index} className="bg-brand-color-02/20 backdrop-blur-xl border-[0.5px] border-brand-color-02/50 shadow-glow-accent rounded-3xl p-6 md:p-8 relative hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group">
+                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-text-02/20">
+                            <div className="flex items-center gap-3 text-brand-color-01 font-bold text-lg">
+                                <span className="bg-brand-color-02 text-brand-color-01 w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm border border-brand-color-04">
                                     {index + 1}
                                 </span>
                                 <h3>Pet {index + 1}</h3>
@@ -101,7 +99,7 @@ export default function Step2Pets() {
                             {pets.length > 1 && (
                                 <button
                                     onClick={() => removePet(index)}
-                                    className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all duration-300"
+                                    className="text-system-color-01 hover:text-error hover:bg-error/10 p-2 rounded-xl transition-all duration-300"
                                     title="Remove Pet"
                                 >
                                     <Trash2 size={20} />
@@ -112,20 +110,21 @@ export default function Step2Pets() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Row 1: Type & Breed */}
                             <Select
-                                id={`pet-${index}-type`}
+                                id={`pet-${index}-species`}
                                 label="Pet Type"
-                                value={pet.type || ''}
-                                onChange={(e) => handlePetChange(index, 'type', e.target.value)}
-                                options={PET_TYPES}
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                value={pet.species_id || ''}
+                                onChange={(e) => handlePetChange(index, 'species_id', e.target.value)}
+                                options={getSpeciesOptions()}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
                             <Select
                                 id={`pet-${index}-breed`}
                                 label="Breed"
-                                value={pet.breed || ''}
-                                onChange={(e) => handlePetChange(index, 'breed', e.target.value)}
-                                options={getBreeds(pet.type)}
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                value={pet.breed_id || ''}
+                                onChange={(e) => handlePetChange(index, 'breed_id', e.target.value)}
+                                options={getBreedOptions(pet.species_id)}
+                                disabled={!pet.species_id}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300 disabled:opacity-50"
                             />
 
                             {/* Row 2: Name & Gender */}
@@ -135,15 +134,15 @@ export default function Step2Pets() {
                                 value={pet.name || ''}
                                 onChange={(e) => handlePetChange(index, 'name', e.target.value)}
                                 placeholder="e.g. Max"
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
                             <Select
                                 id={`pet-${index}-gender`}
                                 label="Gender"
                                 value={pet.gender || ''}
                                 onChange={(e) => handlePetChange(index, 'gender', e.target.value)}
-                                options={GENDERS}
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                options={genderOptions.length > 0 ? genderOptions : GENDERS}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
 
                             {/* Row 3: Age & Weight */}
@@ -156,7 +155,7 @@ export default function Step2Pets() {
                                     max="99"
                                     value={pet.age || ''}
                                     onChange={(e) => handlePetChange(index, 'age', e.target.value)}
-                                    className="flex-1 bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                    className="flex-1 bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                                 />
                                 <Select
                                     id={`pet-${index}-ageUnit`}
@@ -164,7 +163,7 @@ export default function Step2Pets() {
                                     value={pet.ageUnit || 'years'}
                                     onChange={(e) => handlePetChange(index, 'ageUnit', e.target.value)}
                                     options={AGE_UNITS}
-                                    className="w-32 bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                    className="w-32 bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                                 />
                             </div>
                             <Input
@@ -176,17 +175,17 @@ export default function Step2Pets() {
                                 value={pet.weight || ''}
                                 onChange={(e) => handlePetChange(index, 'weight', e.target.value)}
                                 placeholder="e.g. 25"
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
 
                             {/* Row 4: Special Requirements */}
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Special Requirements (Optional)</label>
+                                <label className="block text-sm font-medium text-brand-text-02 mb-2">Special Requirements (Optional)</label>
                                 <textarea
                                     value={pet.specialRequirements || ''}
                                     onChange={(e) => handlePetChange(index, 'specialRequirements', e.target.value)}
-                                    className="w-full bg-white/50 border border-gray-200/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:outline-none focus:bg-white transition-all duration-300 resize-none"
-                                    rows="3"
+                                    className="w-full bg-white/50 border border-brand-text-02/20/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-color-01 focus:outline-none focus:bg-white transition-all duration-300 resize-none"
+                                    rows="1"
                                     placeholder="Any medical conditions or special needs..."
                                 />
                             </div>
@@ -198,10 +197,10 @@ export default function Step2Pets() {
             <Button
                 variant="tonal"
                 onClick={handleAddPet}
-                className="w-full py-4 rounded-2xl border-2 border-dashed border-primary/30 bg-white/30 hover:bg-primary/5 hover:border-primary text-primary transition-all duration-300 group"
+                className="w-full py-4 rounded-2xl border-2 border-dashed border-brand-color-01/30 bg-white/30 hover:bg-brand-color-01/5 hover:border-brand-color-01 text-brand-color-01 transition-all duration-300 group"
             >
                 <div className="flex items-center justify-center gap-2">
-                    <div className="p-1 rounded-full bg-primary/10 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                    <div className="p-1 rounded-full bg-brand-color-01/10 group-hover:bg-brand-color-01 group-hover:text-white transition-colors duration-300">
                         <Plus size={18} />
                     </div>
                     <span className="font-semibold">Add Another Pet</span>

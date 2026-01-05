@@ -2,12 +2,14 @@
 
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import useBookingStore from '@/lib/store/booking-store';
-import { SERVICES } from '@/lib/constants/services';
 import { COUNTRIES } from '@/lib/constants/countries';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, Phone, CreditCard } from 'lucide-react';
+import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, Phone, CreditCard, Plane, PlaneLanding, PlaneTakeoff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { submitEnquiry } from '@/app/booking/actions';
+import { toast } from '@/hooks/use-toast';
+import ValidationFailureModal from './ValidationFailureModal';
 
 const Step5Review = forwardRef((props, ref) => {
     const router = useRouter();
@@ -16,10 +18,29 @@ const Step5Review = forwardRef((props, ref) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [showError, setShowError] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({});
+    const [showValidationModal, setShowValidationModal] = useState(false);
+
+    const { speciesList = [], breedsList = [] } = props;
 
     // Helper to get label from value
-    const getCountryLabel = (code) => COUNTRIES.find(c => c.value === code)?.label || code;
-    const getServiceDetails = (id) => SERVICES.find(s => s.id === id);
+    const getCountryLabel = (code) => {
+        if (code === 'GB') return 'United Kingdom';
+        return COUNTRIES.find(c => c.value === code)?.label || code;
+    };
+    const getServiceDetails = (id) => (formData.servicesData || []).find(s => s.id === id);
+
+    const getSpeciesName = (id) => {
+        if (!id) return 'Unknown';
+        const species = speciesList.find(s => s.id === id);
+        return species ? species.name : 'Unknown';
+    };
+
+    const getBreedName = (id) => {
+        if (!id) return 'Unknown';
+        const breed = breedsList.find(b => b.id === id);
+        return breed ? breed.name : 'Unknown';
+    };
 
     // Handle Contact Info Change
     const handleContactChange = (e) => {
@@ -33,54 +54,118 @@ const Step5Review = forwardRef((props, ref) => {
     const calculateTotal = () => {
         let total = 0;
         const petCount = Math.max(1, pets.length);
-        (services || []).forEach(serviceId => {
-            const service = getServiceDetails(serviceId);
-            if (service) total += service.basePrice * petCount;
+        (formData.servicesData || []).forEach(service => {
+            if (service) total += Number(service.baseCost) * petCount;
         });
         return total;
     };
 
+
+    // Helper to determine customer type code (Same as Step 3)
+    const getCustomerTypeCode = () => {
+        const originCountry = (travelDetails.originCountry || '').toLowerCase();
+        const destinationCountry = (travelDetails.destinationCountry || '').toLowerCase();
+
+        const isOriginUAE = originCountry === 'ae' || originCountry.includes('united arab emirates') || originCountry === 'uae';
+        const isDestUAE = destinationCountry === 'ae' || destinationCountry.includes('united arab emirates') || destinationCountry === 'uae';
+
+        if (isOriginUAE && isDestUAE) return 'LOCL';
+        if (isOriginUAE && !isDestUAE) return 'EXP';
+        if (!isOriginUAE && isDestUAE) return 'IMP';
+        if (!isOriginUAE && !isDestUAE) return 'TRANSIT';
+        return 'LOCL';
+    };
+
+    const getCustomerTypeDetails = (code) => {
+        const types = {
+            'EXP': { label: 'Export', color: 'bg-accent/15 text-orange-700 border-accent/50', title: 'International Export Services' },
+            'IMP': { label: 'Import', color: 'bg-info/10 text-info border-info/30', title: 'International Import Services' },
+            'LOCL': { label: 'Local Move', color: 'bg-brand-text-03/10 text-brand-text-03 border-brand-text-03/30', title: 'Domestic Relocation Services' },
+            'TRANSIT': { label: 'Transit', color: 'bg-success/15 text-success border-success/30', title: 'Transit Services' }
+        };
+        return types[code] || types['LOCL'];
+    };
+
+    const typeCode = getCustomerTypeCode();
+    const typeDetails = getCustomerTypeDetails(typeCode);
+    const transportModeLabel = travelDetails.transportMode ? travelDetails.transportMode.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Manifest Cargo';
+
+    // Dynamic Tag Text Logic
+    const getTagText = () => {
+        if (typeCode === 'LOCL') {
+            return `${typeDetails.title} - Pawpaths Pet Taxi`;
+        }
+        return `${typeDetails.title} - ${transportModeLabel}`;
+    };
+
     const handleSubmit = async () => {
-        if (!contactInfo?.fullName || !contactInfo?.email || !contactInfo?.phone) {
-            setShowError(true);
+        // Basic client-side check
+        if (!contactInfo?.fullName || !contactInfo?.email || !contactInfo?.phone || !contactInfo?.city) {
+            setValidationErrors({
+                "Contact Info": ["Please fill in all required contact details (Name, City/Place, Phone, and Email)."]
+            });
+            setShowValidationModal(true);
             return;
         }
 
         setIsSubmitting(true);
+        setValidationErrors({}); // Clear previous errors
+        console.log('Step5Review: Submitting enquiry...', formData);
 
         try {
-            const formDataToSubmit = new FormData();
-
-            // Append basic info
-            formDataToSubmit.append('travelDetails', JSON.stringify(travelDetails));
-            formDataToSubmit.append('pets', JSON.stringify(pets));
-            formDataToSubmit.append('services', JSON.stringify(services));
-            formDataToSubmit.append('contactInfo', JSON.stringify(contactInfo));
-
-            // Append files
-            if (formData.documents) {
-                if (formData.documents.passport) formDataToSubmit.append('passport', formData.documents.passport);
-                if (formData.documents.vaccination) formDataToSubmit.append('vaccination', formData.documents.vaccination);
-                if (formData.documents.rabies) formDataToSubmit.append('rabies', formData.documents.rabies);
-                if (formData.documents.petPhoto) formDataToSubmit.append('petPhoto', formData.documents.petPhoto);
-            }
-
-            const response = await fetch('/api/booking', {
-                method: 'POST',
-                body: formDataToSubmit,
-            });
-
-            const result = await response.json();
+            // Call Server Action directly
+            const result = await submitEnquiry(formData);
+            console.log('Step5Review: Submission result:', result);
 
             if (result.success) {
+                // Save reference to store for Step 6
+                if (useBookingStore.getState().setBookingReference) {
+                    useBookingStore.getState().setBookingReference(result.bookingReference);
+                }
+
+                // Update pets in store with names so Step 6 can display them
+                const updatedPets = pets.map(pet => ({
+                    ...pet,
+                    speciesName: getSpeciesName(pet.species_id),
+                    breedName: getBreedName(pet.breed_id)
+                }));
+
+                useBookingStore.setState(state => ({
+                    formData: {
+                        ...state.formData,
+                        pets: updatedPets
+                    }
+                }));
+
+                toast({
+                    variant: "success",
+                    title: "Enquiry Submitted!",
+                    description: `Booking Reference: ${result.bookingReference}`,
+                });
                 // Move to Success Step (Step 6)
                 setStep(6);
             } else {
-                alert(result.message || 'Something went wrong. Please try again.');
+                // Validation or Server Error
+                if (result.errors) {
+                    console.log('Step5Review: Validation failed, showing modal with errors:', result.errors);
+                    setValidationErrors(result.errors);
+                    setShowValidationModal(true);
+                } else {
+                    console.error('Step5Review: Submission failed with message:', result.message);
+                    toast({
+                        variant: "error",
+                        title: "Submission Failed",
+                        description: result.message || 'Something went wrong. Please try again.',
+                    });
+                }
             }
         } catch (error) {
-            console.error('Submission error:', error);
-            alert('Failed to submit booking. Please check your connection.');
+            console.error('Step5Review: Submission error (catch):', error);
+            toast({
+                variant: "error",
+                title: "Network Error",
+                description: "Failed to submit booking. Please check your connection.",
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -94,8 +179,8 @@ const Step5Review = forwardRef((props, ref) => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto">
             <div className="text-center mb-10">
-                <h2 className="text-3xl font-bold text-primary tracking-tight mb-2">Review & Confirm</h2>
-                <p className="text-gray-500">Finalize your booking details below</p>
+                <h2 className="text-brand-color-01 tracking-tight mb-2">Review & Confirm</h2>
+                <p className="text-brand-text-02/80">Finalize your booking details below</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -103,9 +188,9 @@ const Step5Review = forwardRef((props, ref) => {
                 <div className="lg:col-span-12 space-y-8">
 
                     {/* Customer Details Section - Full Width */}
-                    <section className="bg-gradient-to-br from-[#fff0f5] to-[#ffe8f1] backdrop-blur-xl border-[0.5px] border-[#ffc4e0] shadow-[0_4px_20px_rgba(255,196,224,0.3)] rounded-3xl p-8 hover:shadow-[0_8px_30px_rgba(255,196,224,0.4)] transition-all duration-300 group">
-                        <h3 className="text-xl font-bold text-primary mb-8 flex items-center gap-4 border-b border-gray-100 pb-4">
-                            <div className="p-3 bg-primary/10 rounded-2xl text-primary group-hover:scale-110 transition-transform duration-300">
+                    <section className="bg-brand-color-02/20 backdrop-blur-xl border-[0.5px] border-brand-color-02/50 shadow-glow-accent rounded-3xl p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group">
+                        <h3 className="text-accent mb-6 flex items-center gap-4 border-b border-brand-text-02/20 pb-4">
+                            <div className="p-3 bg-accent/10 border border-accent/30 rounded-2xl text-accent group-hover:scale-110 transition-transform duration-300">
                                 <User size={22} />
                             </div>
                             Customer Information
@@ -119,8 +204,8 @@ const Step5Review = forwardRef((props, ref) => {
                                 value={contactInfo?.fullName || ''}
                                 onChange={handleContactChange}
                                 placeholder="e.g. John Doe"
-                                icon={<User size={18} className="text-primary" />}
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                icon={<User size={18} className="text-brand-color-01" />}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
                             <Input
                                 id="city"
@@ -130,8 +215,8 @@ const Step5Review = forwardRef((props, ref) => {
                                 value={contactInfo?.city || ''}
                                 onChange={handleContactChange}
                                 placeholder="Dubai, Abu Dhabi, etc."
-                                icon={<MapPin size={18} className="text-primary" />}
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                icon={<MapPin size={18} className="text-brand-color-01" />}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
                             {/* Row 2: Phone + Email */}
                             <Input
@@ -142,8 +227,8 @@ const Step5Review = forwardRef((props, ref) => {
                                 value={contactInfo?.phone || ''}
                                 onChange={handleContactChange}
                                 placeholder="e.g. +971 50 123 4567"
-                                icon={<Phone size={18} className="text-primary" />}
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                icon={<Phone size={18} className="text-brand-color-01" />}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
                             <Input
                                 id="email"
@@ -153,184 +238,155 @@ const Step5Review = forwardRef((props, ref) => {
                                 value={contactInfo?.email || ''}
                                 onChange={handleContactChange}
                                 placeholder="e.g. john@example.com"
-                                icon={<Mail size={18} className="text-primary" />}
-                                className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                                icon={<Mail size={18} className="text-brand-color-01" />}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
                         </div>
                     </section>
                 </div>
             </div>
 
-            {/* Travel & Pet Details + Order Summary */}
+            {/* Travel & Pet Details Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Column: Travel & Pets (8 cols) */}
-                <div className="lg:col-span-8 space-y-8">
-
-                    {/* Travel Details Section */}
-                    <section className="bg-gradient-to-br from-[#ebf8ff] to-[#dcf3ff] backdrop-blur-xl border-[0.5px] border-[#8ddfff] shadow-[0_4px_20px_rgba(141,223,255,0.3)] rounded-3xl p-8 hover:shadow-[0_8px_30px_rgba(141,223,255,0.4)] transition-all duration-300 group">
-                        <h3 className="text-xl font-bold text-primary mb-8 flex items-center gap-4 border-b border-gray-100 pb-4">
-                            <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform duration-300">
-                                <MapPin size={22} />
-                            </div>
-                            Travel Itinerary
-                        </h3>
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white/40 p-8 rounded-2xl border border-white/60 shadow-inner">
-                            <div className="flex-1 text-center md:text-left">
-                                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Origin</p>
-                                <p className="text-xl font-bold text-gray-800">{getCountryLabel(travelDetails.originCountry)}</p>
-                                <p className="text-sm text-gray-500 mt-1 font-medium">{travelDetails.originAirport || 'Airport not specified'}</p>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center px-4 w-full md:w-auto">
-                                <div className="w-full md:w-32 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent relative my-4 md:my-0">
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow-sm border border-primary/10">
-                                        <Truck size={20} className="text-primary" />
-                                    </div>
-                                </div>
-                                <div className="mt-4 flex items-center gap-2 text-xs font-bold text-primary bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
-                                    <Calendar size={14} />
-                                    {travelDetails.travelDate || 'Date TBD'}
-                                </div>
-                            </div>
-
-                            <div className="flex-1 text-center md:text-right">
-                                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Destination</p>
-                                <p className="text-xl font-bold text-gray-800">{getCountryLabel(travelDetails.destinationCountry)}</p>
-                                <p className="text-sm text-gray-500 mt-1 font-medium">{travelDetails.destinationAirport || 'Airport not specified'}</p>
-                            </div>
+                {/* Travel Details Section */}
+                <section className="lg:col-span-7 bg-system-color-03/5 backdrop-blur-xl border-[0.5px] border-system-color-03/30 shadow-glow-info rounded-3xl p-6 hover:shadow-glow-info hover:shadow-lg transition-all duration-300 group h-full">
+                    <h3 className="text-blue-600 mb-6 flex items-center gap-4 border-b border-brand-text-02/20 pb-4">
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform duration-300">
+                            <MapPin size={22} />
                         </div>
-                    </section>
-
-                    {/* Pets Section */}
-                    <section className="bg-gradient-to-br from-[#fffdee] to-[#fffbd9] backdrop-blur-xl border-[0.5px] border-[#fff7c0] shadow-[0_4px_20px_rgba(255,247,192,0.3)] rounded-3xl p-8 hover:shadow-[0_8px_30px_rgba(255,247,192,0.4)] transition-all duration-300 group">
-                        <h3 className="text-xl font-bold text-primary mb-8 flex items-center gap-4 border-b border-gray-100 pb-4">
-                            <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:scale-110 transition-transform duration-300">
-                                <Dog size={22} />
-                            </div>
-                            Pet Profiles
-                        </h3>
-                        <div className="grid grid-cols-1 gap-4">
-                            {pets.map((pet, index) => (
-                                <div key={index} className="flex items-center p-5 rounded-2xl border border-white/60 bg-white/40 hover:bg-white/60 hover:shadow-md transition-all duration-300 group/pet">
-                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center font-bold text-xl mr-5 shadow-sm group-hover/pet:scale-110 transition-transform duration-300">
-                                        {index + 1}
-                                    </div>
-                                    <div className="flex-grow">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <p className="font-bold text-gray-800 text-lg">{pet.name || 'Unnamed Pet'}</p>
-                                            <span className="px-2 py-0.5 rounded-md bg-gray-100 text-xs font-bold text-gray-500 uppercase">{pet.type}</span>
-                                        </div>
-                                        <p className="text-sm font-medium text-gray-600 mb-2">
-                                            {pet.breed}
-                                        </p>
-                                        <div className="flex items-center gap-3 text-xs font-bold text-gray-500 bg-gray-50/50 w-fit px-3 py-1.5 rounded-lg border border-gray-100">
-                                            <span>{pet.gender}</span>
-                                            <span className="text-gray-300">|</span>
-                                            <span>{pet.age} {pet.ageUnit}</span>
-                                            <span className="text-gray-300">|</span>
-                                            <span>{pet.weight} kg</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </div>
-
-                {/* Right Column: Summary (4 cols) */}
-                <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-gradient-to-br from-[#f8f5ff] to-[#f1ebff] backdrop-blur-xl border-[0.5px] border-[#e7e0fc] shadow-[0_4px_20px_rgba(231,224,252,0.3)] rounded-3xl sticky top-6 overflow-hidden h-full">
-                        <div className="bg-[#f1ebff] p-6 text-[#6b4db8] relative overflow-hidden border-b border-[#e7e0fc]">
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
-                                <CreditCard size={80} />
-                            </div>
-                            <h3 className="text-xl font-bold flex items-center gap-3 relative z-10">
-                                <CreditCard size={24} /> Order Summary
-                            </h3>
+                        Travel Itinerary
+                    </h3>
+                    <div className="flex flex-col md:flex-row items-start justify-between gap-2 bg-white/40 p-4 rounded-2xl border border-blue-200 shadow-inner">
+                        <div className="flex-1 text-center md:text-left">
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Origin</p>
+                            <p className="text-base font-bold text-brand-text-02">{getCountryLabel(travelDetails.originCountry)}</p>
+                            <p className="text-sm text-brand-text-02/80 mt-1 font-medium">{travelDetails.originAirport || 'Airport not specified'}</p>
                         </div>
 
-                        <div className="p-6 space-y-6">
-                            {/* Services List */}
-                            <div>
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Selected Services</h4>
-                                <div className="space-y-4">
-                                    {(services || []).map(serviceId => {
-                                        const service = getServiceDetails(serviceId);
-                                        if (!service) return null;
-                                        return (
-                                            <div key={serviceId} className="flex justify-between items-start text-sm group">
-                                                <span className="text-gray-600 font-medium group-hover:text-primary transition-colors">{service.title}</span>
-                                                <span className="font-bold text-primary whitespace-nowrap ml-2">AED {service.basePrice.toLocaleString()}</span>
-                                            </div>
-                                        );
-                                    })}
-                                    {(!services || services.length === 0) && (
-                                        <p className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded-xl text-center border border-dashed border-gray-200">No additional services selected</p>
+                        <div className="flex flex-col items-center justify-start px-2 w-full md:w-auto pt-2">
+                            <div className="w-full md:w-24 h-[2px] bg-gradient-to-r from-transparent via-blue-200 to-transparent relative mb-2 mt-1">
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-pearl p-2 rounded-full shadow-sm border border-blue-200">
+                                    {((travelDetails.originCountry === 'AE' || travelDetails.originCountry === 'United Arab Emirates') &&
+                                        (travelDetails.destinationCountry === 'AE' || travelDetails.destinationCountry === 'United Arab Emirates')) ? (
+                                        <Truck size={24} className="text-blue-600" />
+                                    ) : (
+                                        (travelDetails.destinationCountry === 'AE' || travelDetails.destinationCountry === 'United Arab Emirates') ? (
+                                            <PlaneLanding size={24} className="text-blue-600" />
+                                        ) : (
+                                            <PlaneTakeoff size={24} className="text-blue-600" />
+                                        )
                                     )}
                                 </div>
                             </div>
-
-                            <div className="border-t border-dashed border-gray-200 my-4"></div>
-
-                            {/* Totals */}
-                            <div className="space-y-3">
-                                <div className="flex justify-between text-sm text-gray-600">
-                                    <span>Subtotal</span>
-                                    <span className="font-medium">AED {calculateTotal().toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between text-sm text-gray-600">
-                                    <span>Taxes & Fees (5%)</span>
-                                    <span className="font-medium">AED {(calculateTotal() * 0.05).toLocaleString()}</span>
-                                </div>
+                            <div className="mt-6 flex items-center gap-2 text-sm font-bold text-blue-600 bg-surface-pearl px-4 py-2 rounded-xl border border-blue-200 shadow-sm">
+                                <Calendar size={16} />
+                                {travelDetails.travelDate ? new Date(travelDetails.travelDate).toLocaleDateString('en-GB') : 'Date TBD'}
                             </div>
-
-                            <div className="bg-primary/5 -mx-6 px-6 py-6 mt-4 border-t border-primary/10">
-                                <div className="flex justify-between items-end">
-                                    <span className="text-sm font-bold text-gray-600 mb-1">Total Amount</span>
-                                    <span className="text-3xl font-bold text-primary tracking-tight">AED {(calculateTotal() * 1.05).toLocaleString()}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start gap-3 text-xs text-gray-500 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                <AlertCircle size={16} className="shrink-0 mt-0.5 text-primary" />
-                                <p className="leading-relaxed">By confirming, you agree to our Terms of Service. A confirmation email will be sent to <span className="font-bold text-gray-700">{contactInfo?.email || 'your email'}</span>.</p>
+                            <div className={`mt-1 text-[10px] font-semibold px-3 py-1 rounded-xl border text-center ${typeDetails.color.replace('bg-', 'bg-opacity-10 bg-').replace('text-', 'text-').replace('border-', 'border-')}`}>
+                                <div className="leading-tight">{typeDetails.title}</div>
+                                <div className="mt-0.5 opacity-90">- {typeCode === 'LOCL' ? 'Pawpaths Pet Taxi' : transportModeLabel}</div>
                             </div>
                         </div>
+
+                        <div className="flex-1 text-center md:text-right">
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Destination</p>
+                            <p className="text-base font-bold text-brand-text-02">{getCountryLabel(travelDetails.destinationCountry)}</p>
+                            <p className="text-sm text-brand-text-02/80 mt-1 font-medium">{travelDetails.destinationAirport || 'Airport not specified'}</p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Pets Section */}
+                <section className="lg:col-span-5 bg-brand-text-03/5 backdrop-blur-xl border-[0.5px] border-brand-text-03/20 shadow-glow-accent rounded-3xl p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group h-full">
+                    <h3 className="text-brand-text-03 mb-6 flex items-center gap-4 border-b border-brand-text-02/20 pb-4">
+                        <div className="p-3 bg-brand-text-03/10 border border-brand-text-03/30 rounded-2xl text-brand-text-03 group-hover:scale-110 transition-transform duration-300">
+                            <Dog size={22} />
+                        </div>
+                        Pet Profiles
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {pets.map((pet, index) => (
+                            <div key={index} className="flex items-center p-4 rounded-2xl border border-brand-text-03/30 bg-white/40 hover:bg-white/60 hover:shadow-md transition-all duration-300 group/pet">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-brand-text-03 flex items-center justify-center font-bold text-lg mr-4 shadow-sm group-hover/pet:scale-110 transition-transform duration-300 shrink-0">
+                                    {index + 1}
+                                </div>
+                                <div className="flex-grow min-w-0">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                        <p className="font-bold text-brand-text-02 text-base truncate">{pet.name || 'Unnamed Pet'}</p>
+                                        <span className="px-2 py-0.5 rounded-md bg-brand-text-02/10 text-[10px] font-bold text-brand-text-02/80 uppercase whitespace-nowrap">{getSpeciesName(pet.species_id)}</span>
+                                    </div>
+                                    <p className="text-xs font-medium text-brand-text-02 mb-2 truncate">
+                                        {getBreedName(pet.breed_id)}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-brand-text-02/80 bg-brand-text-02/5/50 w-fit px-2 py-1 rounded-lg border border-brand-text-02/20">
+                                        <span>{pet.gender}</span>
+                                        <span className="text-brand-text-02/60">|</span>
+                                        <span>{pet.age} {pet.ageUnit}</span>
+                                        <span className="text-brand-text-02/60">|</span>
+                                        <span>{pet.weight} kg</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            </div>
+
+            {/* Order Summary - Full Width */}
+            <div className="bg-brand-color-02/20 backdrop-blur-xl border-[0.5px] border-brand-color-02/50 shadow-glow-accent rounded-3xl overflow-hidden">
+                <div className="bg-brand-color-02/20 p-6 text-brand-color-01 relative overflow-hidden border-b border-brand-color-02/50">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <CreditCard size={80} />
+                    </div>
+                    <h3 className="flex items-center gap-3 relative z-10">
+                        <CreditCard size={24} /> Enquiry Summary
+                    </h3>
+                </div>
+
+                <div className="p-6 space-y-6">
+                    {/* Services List */}
+                    <div>
+                        <h4 className="text-brand-text-02/60 uppercase tracking-wider mb-4 text-xs">Selected Services</h4>
+                        <div className="space-y-0.5">
+                            {(() => {
+                                const validServices = (services || []).filter(id => getServiceDetails(id));
+
+                                if (validServices.length === 0) {
+                                    return (
+                                        <p className="text-sm text-brand-text-02/60 italic bg-brand-text-02/5 p-3 rounded-xl text-center border border-dashed border-brand-text-02/20">(No Services Selected)</p>
+                                    );
+                                }
+
+                                return validServices.map(serviceId => {
+                                    const service = getServiceDetails(serviceId);
+                                    return (
+                                        <div key={serviceId} className="flex items-center gap-2 p-1.5 rounded-lg bg-brand-color-02/5 border border-brand-color-02/10 text-brand-text-02 font-medium w-full hover:bg-brand-color-02 hover:border-brand-color-04 transition-colors">
+                                            <div className="p-1.5 bg-brand-color-02/10 rounded-lg text-brand-color-01">
+                                                <CheckCircle size={14} />
+                                            </div>
+                                            <span className="text-sm">{service.name}</span>
+                                        </div>
+                                    );
+                                });
+                            })()}
+                        </div>
+                    </div>
+
+                    {/* Agreement */}
+                    <div className="flex items-start gap-3 text-xs text-system-color-02 bg-success/15 p-4 rounded-xl border border-system-color-02">
+                        <CheckCircle size={16} className="shrink-0 mt-0.5 text-success" />
+                        <p className="leading-relaxed">
+                            By confirming, you agree to our <a href="https://pawpathsae.com/terms-of-service/" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-success">Terms of Service</a> and <a href="https://pawpathsae.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-success">privacy-policy</a>. A confirmation email will be sent to <span className="font-bold">{contactInfo?.email || 'your email'}</span>.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            {/* Error Modal */}
-            {
-                showError && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border border-red-100 relative animate-in zoom-in-95 duration-200">
-                            <button
-                                onClick={() => setShowError(false)}
-                                className="absolute top-4 right-4 p-2 bg-gray-50 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-                                    <AlertCircle size={32} />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">Missing Information</h3>
-                                <p className="text-gray-500 mb-6">
-                                    Please fill in all required contact details (Name, Phone, and Email) to proceed with your booking.
-                                </p>
-                                <Button
-                                    onClick={() => setShowError(false)}
-                                    className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold shadow-lg shadow-red-500/30 transition-all duration-300"
-                                >
-                                    Okay, I&apos;ll fix it
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <ValidationFailureModal
+                isOpen={showValidationModal}
+                onClose={() => setShowValidationModal(false)}
+                errors={validationErrors}
+            />
         </div >
     );
 });

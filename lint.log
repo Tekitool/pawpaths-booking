@@ -1,0 +1,266 @@
+
+> pawpaths-booking@0.1.0 lint
+> eslint
+
+
+C:\NEXT\Pawpath-Form\app\admin\settings\audit-logs\page.jsx
+  116:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  171:53  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\app\admin\users\page.js
+  290:49  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  365:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\app\tools\breed\page.tsx
+  134:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  213:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  245:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  266:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\app\tools\crate\page.tsx
+  22:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\NEXT\Pawpath-Form\app\tools\crate\page.tsx:22:13
+  20 |     useEffect(() => {
+  21 |         if (measurements.lengthA > 0 && measurements.elbowB > 0 && measurements.widthC > 0 && measurements.heightD > 0) {
+> 22 |             setResult(calculateCrateSize(measurements));
+     |             ^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |         } else {
+  24 |             setResult(null);
+  25 |         }  react-hooks/set-state-in-effect
+  48:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @next/next/no-img-element
+  72:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\app\tools\page.tsx
+  157:57  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  190:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\components\WhatsAppShareBtn.tsx
+  19:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\NEXT\Pawpath-Form\components\WhatsAppShareBtn.tsx:19:13
+  17 |     useEffect(() => {
+  18 |         if (typeof window !== 'undefined') {
+> 19 |             setCurrentUrl(window.location.href);
+     |             ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |         }
+  21 |     }, []);
+  22 |  react-hooks/set-state-in-effect
+
+C:\NEXT\Pawpath-Form\components\admin\AdminHeader.jsx
+  53:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\components\admin\settings\AuditLogFilters.jsx
+  18:13  error    Error: Cannot access variable before it is declared
+
+`updateFilters` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  16 |     useEffect(() => {
+  17 |         const timer = setTimeout(() => {
+> 18 |             updateFilters({ search });
+     |             ^^^^^^^^^^^^^ `updateFilters` accessed before it is declared
+  19 |         }, 500);
+  20 |         return () => clearTimeout(timer);
+  21 |     }, [search]);
+
+  21 |     }, [search]);
+  22 |
+> 23 |     const updateFilters = (updates) => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 24 |         const params = new URLSearchParams(searchParams.toString());
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 25 |
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 42 |         router.push(`/admin/settings/audit-logs?${params.toString()}`);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 43 |     };
+     | ^^^^^^^ `updateFilters` is declared here
+  44 |
+  45 |     return (
+  46 |         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-brand-text-02/10 flex flex-col md:flex-row gap-4">  react-hooks/immutability
+  21:8   warning  React Hook useEffect has a missing dependency: 'updateFilters'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+
+C:\NEXT\Pawpath-Form\components\booking\Step3Services.jsx
+  33:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  31 |                 icon: s.icon || 'Box'
+  32 |             }));
+> 33 |             setAvailableServices(mappedServices);
+     |             ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |
+  35 |             // Auto-select mandatory services logic
+  36 |             const mandatoryIds = mappedServices.filter(s => s.isMandatory).map(s => s.id);  react-hooks/set-state-in-effect
+  48:8   warning  React Hook useEffect has a missing dependency: 'selectedServices'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+
+C:\NEXT\Pawpath-Form\components\booking\Step4Documents.jsx
+  113:8  warning  React Hook useEffect has missing dependencies: 'formData.enquiry_session_id' and 'setFormData'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\NEXT\Pawpath-Form\components\dashboard\CurrentDate.jsx
+  9:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+   7 |
+   8 |     useEffect(() => {
+>  9 |         setDateString(new Date().toLocaleDateString('en-GB', {
+     |         ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  10 |             weekday: 'long',
+  11 |             day: 'numeric',
+  12 |             month: 'long',  react-hooks/set-state-in-effect
+
+C:\NEXT\Pawpath-Form\components\enquiry\EnquiryForm.jsx
+  132:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  215:40  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+C:\NEXT\Pawpath-Form\components\layouts\AdminLayout.jsx
+  14:25  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  12 |     useEffect(() => {
+  13 |         const savedState = localStorage.getItem('adminSidebarCollapsed');
+> 14 |         if (savedState) setIsCollapsed(JSON.parse(savedState));
+     |                         ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  15 |     }, []);
+  16 |
+  17 |     const toggleSidebar = () => {  react-hooks/set-state-in-effect
+
+C:\NEXT\Pawpath-Form\components\master-data\CountryManagerModal.jsx
+  43:13  error  Error: Cannot access variable before it is declared
+
+`fetchCountries` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  41 |     useEffect(() => {
+  42 |         if (isOpen) {
+> 43 |             fetchCountries();
+     |             ^^^^^^^^^^^^^^ `fetchCountries` accessed before it is declared
+  44 |         }
+  45 |     }, [isOpen]);
+  46 |
+
+  45 |     }, [isOpen]);
+  46 |
+> 47 |     const fetchCountries = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 48 |         setLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 49 |         const data = await getCountries();
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 50 |         setCountries(data);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 51 |         setLoading(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 52 |     };
+     | ^^^^^^^ `fetchCountries` is declared here
+  53 |
+  54 |     const handleSave = async () => {
+  55 |         if (!formData.id || !formData.name || !formData.iso_code) {  react-hooks/immutability
+
+C:\NEXT\Pawpath-Form\components\master-data\TaxonomyManagerModal.jsx
+  33:13  error  Error: Cannot access variable before it is declared
+
+`fetchSpecies` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  31 |     useEffect(() => {
+  32 |         if (isOpen) {
+> 33 |             fetchSpecies();
+     |             ^^^^^^^^^^^^ `fetchSpecies` accessed before it is declared
+  34 |         }
+  35 |     }, [isOpen]);
+  36 |
+
+  43 |     }, [selectedSpecies]);
+  44 |
+> 45 |     const fetchSpecies = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 46 |         setLoadingSpecies(true);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 47 |         const data = await getSpecies();
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 48 |         setSpeciesList(data);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 49 |         setLoadingSpecies(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 50 |     };
+     | ^^^^^^^ `fetchSpecies` is declared here
+  51 |
+  52 |     const fetchBreeds = async (speciesId) => {
+  53 |         setLoadingBreeds(true);                                                                                    react-hooks/immutability
+  39:13  error  Error: Cannot access variable before it is declared
+
+`fetchBreeds` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  37 |     useEffect(() => {
+  38 |         if (selectedSpecies) {
+> 39 |             fetchBreeds(selectedSpecies.id);
+     |             ^^^^^^^^^^^ `fetchBreeds` accessed before it is declared
+  40 |         } else {
+  41 |             setBreedsList([]);
+  42 |         }
+
+  50 |     };
+  51 |
+> 52 |     const fetchBreeds = async (speciesId) => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 53 |         setLoadingBreeds(true);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 54 |         const data = await getBreeds(speciesId);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 55 |         setBreedsList(data);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 56 |         setLoadingBreeds(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 57 |     };
+     | ^^^^^^^ `fetchBreeds` is declared here
+  58 |
+  59 |     const handleAddSpecies = async () => {
+  60 |         if (!newSpeciesName) return toast.error("Name is required");  react-hooks/immutability
+
+C:\NEXT\Pawpath-Form\components\summary\SummaryHeader.jsx
+  11:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\components\tools\CrateCalculatorDialog.tsx
+  56:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\components\tools\CrateCalculatorForm.tsx
+  33:53  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\NEXT\Pawpath-Form\components\tools\ToolComingSoon.tsx
+  77:27  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  77:95  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\NEXT\Pawpath-Form\components\ui\Avatar.jsx
+  28:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\NEXT\Pawpath-Form\components\ui\ElegantFooter.jsx
+  83:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 34 problems (14 errors, 20 warnings)
+

@@ -22,8 +22,29 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cmqccuszskcawmjupqjn.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/admin/bookings',
+        destination: '/admin/relocations',
+        permanent: true,
+      },
+      {
+        source: '/admin/bookings/:id',
+        destination: '/admin/relocations/:id',
+        permanent: true,
+      },
+    ];
+  },
+
 };
 
 export default nextConfig;

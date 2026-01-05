@@ -4,11 +4,11 @@ import React from 'react';
 import useBookingStore from '@/lib/store/booking-store';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { Plane, MapPin, Calendar } from 'lucide-react';
+import { Plane, MapPin, Calendar, PlaneTakeoff } from 'lucide-react';
 
 import { COUNTRIES } from '@/lib/constants/countries';
 
-export default function Step1Travel() {
+export default function Step1Travel({ countriesList = [] }) {
     const { formData, updateTravelDetails } = useBookingStore();
     const { travelDetails } = formData;
 
@@ -21,19 +21,65 @@ export default function Step1Travel() {
         });
     };
 
+    // Sort Countries: UAE first, then others alphabetically
+    const sortedCountries = React.useMemo(() => {
+        if (!countriesList.length) return COUNTRIES;
+
+        const uae = countriesList.find(c => c.iso_code === 'AE');
+        const others = countriesList.filter(c => c.iso_code !== 'AE').sort((a, b) => a.name.localeCompare(b.name));
+
+        return uae ? [uae, ...others] : others;
+    }, [countriesList]);
+
+    const countryOptions = sortedCountries.map(c => ({ value: c.iso_code, label: c.name }));
+
+    // Determine Transport Mode Options
+    // Determine Transport Mode Options
+    const transportOptions = React.useMemo(() => {
+        const origin = (travelDetails.originCountry || '').toLowerCase();
+        const dest = (travelDetails.destinationCountry || '').toLowerCase();
+
+        const isOriginUAE = origin === 'ae' || origin === 'uae';
+        const isDestUAE = dest === 'ae' || dest === 'uae';
+        const isLocal = isOriginUAE && isDestUAE;
+
+        if (isLocal) {
+            return [
+                { value: 'ground_transport', label: 'Ground Transport (Road)' },
+            ];
+        }
+
+        return [
+            { value: 'in_cabin', label: 'In Cabin (Accompanied)' },
+            { value: 'excess_baggage', label: 'Excess Baggage (Accompanied)' },
+            { value: 'manifest_cargo', label: 'Manifest Cargo (Unaccompanied)' },
+            { value: 'private_charter', label: 'Private Charter (VIP)' },
+        ];
+    }, [travelDetails.originCountry, travelDetails.destinationCountry]);
+
+    // Auto-select valid transport mode
+    React.useEffect(() => {
+        const currentMode = travelDetails.transportMode;
+        const isValid = transportOptions.some(opt => opt.value === currentMode);
+
+        if (!isValid && transportOptions.length > 0) {
+            updateTravelDetails({ transportMode: transportOptions[0].value });
+        }
+    }, [transportOptions, travelDetails.transportMode, updateTravelDetails]);
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-10">
-                <h2 className="text-3xl font-bold text-primary tracking-tight">Travel Details</h2>
-                <p className="text-gray-500 mt-2">Tell us about your journey</p>
+                <h2 className="text-brand-color-01 tracking-tight">Travel Details</h2>
+                <p className="text-brand-text-02/80 mt-2">Tell us about your journey</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Origin Section - Glass Card */}
-                <div className="bg-gradient-to-br from-[#ebf8ff] to-[#dcf3ff] backdrop-blur-xl border-[0.5px] border-[#8ddfff] shadow-[0_8px_30px_rgba(141,223,255,0.2)] rounded-3xl p-6 hover:shadow-[0_12px_40px_rgba(141,223,255,0.3)] transition-all duration-300 group">
-                    <div className="flex items-center gap-3 text-primary font-bold text-lg mb-6 pb-4 border-b border-gray-100">
-                        <div className="p-2 bg-[#dcf3ff] rounded-xl text-[#3b9dff] group-hover:scale-110 transition-transform duration-300">
-                            <MapPin size={22} />
+                <div className="bg-system-color-03/5 backdrop-blur-xl border-[0.5px] border-system-color-03/30 shadow-glow-info rounded-3xl p-6 hover:shadow-glow-info hover:shadow-lg transition-all duration-300 group">
+                    <div className="flex items-center gap-3 text-system-color-03 font-bold text-lg mb-6 pb-4 border-b border-brand-text-02/20">
+                        <div className="p-2 bg-system-color-03/10 rounded-xl text-system-color-03 group-hover:scale-110 transition-transform duration-300">
+                            <PlaneTakeoff size={22} />
                         </div>
                         <h3>Origin</h3>
                     </div>
@@ -44,8 +90,8 @@ export default function Step1Travel() {
                             label="Country"
                             value={travelDetails.originCountry || ''}
                             onChange={handleChange}
-                            options={COUNTRIES}
-                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                            options={countryOptions}
+                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                         />
                         <Input
                             id="originAirport"
@@ -54,16 +100,16 @@ export default function Step1Travel() {
                             value={travelDetails.originAirport || ''}
                             onChange={handleChange}
                             placeholder="e.g. Dubai (DXB)"
-                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                         />
                     </div>
                 </div>
 
                 {/* Destination Section - Glass Card */}
-                <div className="bg-gradient-to-br from-[#f3ffeb] to-[#eaffdc] backdrop-blur-xl border-[0.5px] border-[#c8ffa4] shadow-[0_8px_30px_rgba(200,255,164,0.2)] rounded-3xl p-6 hover:shadow-[0_12px_40px_rgba(200,255,164,0.3)] transition-all duration-300 group">
-                    <div className="flex items-center gap-3 text-primary font-bold text-lg mb-6 pb-4 border-b border-gray-100">
-                        <div className="p-2 bg-[#eaffdc] rounded-xl text-[#6bc44a] group-hover:scale-110 transition-transform duration-300">
-                            <Plane size={22} className="rotate-90" />
+                <div className="bg-system-color-02/5 backdrop-blur-xl border-[0.5px] border-system-color-02/30 shadow-glow-success rounded-3xl p-6 hover:shadow-glow-success hover:shadow-lg transition-all duration-300 group">
+                    <div className="flex items-center gap-3 text-system-color-02 font-bold text-lg mb-6 pb-4 border-b border-brand-text-02/20">
+                        <div className="p-2 bg-system-color-02/10 rounded-xl text-system-color-02 group-hover:scale-110 transition-transform duration-300">
+                            <MapPin size={22} />
                         </div>
                         <h3>Destination</h3>
                     </div>
@@ -74,8 +120,8 @@ export default function Step1Travel() {
                             label="Country"
                             value={travelDetails.destinationCountry || ''}
                             onChange={handleChange}
-                            options={COUNTRIES}
-                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                            options={countryOptions}
+                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                         />
                         <Input
                             id="destinationAirport"
@@ -84,15 +130,15 @@ export default function Step1Travel() {
                             value={travelDetails.destinationAirport || ''}
                             onChange={handleChange}
                             placeholder="e.g. London (LHR)"
-                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                         />
                     </div>
                 </div>
 
                 {/* Travel Date - Full Width Glass Card */}
-                <div className="md:col-span-2 bg-gradient-to-br from-[#f8f5ff] to-[#f1ebff] backdrop-blur-xl border-[0.5px] border-[#e7e0fc] shadow-[0_8px_30px_rgba(231,224,252,0.2)] rounded-3xl p-6 hover:shadow-[0_12px_40px_rgba(231,224,252,0.3)] transition-all duration-300 group">
-                    <div className="flex items-center gap-3 text-primary font-bold text-lg mb-6 pb-4 border-b border-gray-100">
-                        <div className="p-2 bg-[#f1ebff] rounded-xl text-[#9b7edb] group-hover:scale-110 transition-transform duration-300">
+                <div className="md:col-span-2 bg-brand-text-03/5 backdrop-blur-xl border-[0.5px] border-brand-text-03/20 shadow-glow-accent rounded-3xl p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group">
+                    <div className="flex items-center gap-3 text-brand-text-03 font-bold text-lg mb-6 pb-4 border-b border-brand-text-02/20">
+                        <div className="p-2 bg-brand-text-03/10 rounded-xl text-brand-text-03 group-hover:scale-110 transition-transform duration-300">
                             <Calendar size={22} />
                         </div>
                         <h3>Travel Date</h3>
@@ -106,28 +152,19 @@ export default function Step1Travel() {
                             value={travelDetails.travelDate || ''}
                             onChange={handleChange}
                             min={new Date().toISOString().split('T')[0]}
-                            className="bg-white/50 border-gray-200/50 focus:bg-white transition-all duration-300"
+                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                         />
 
                         <div className="flex items-center h-full pt-2">
-                            <label className="flex items-center gap-4 cursor-pointer group/check select-none p-4 rounded-2xl bg-white/50 border border-transparent hover:border-pawpaths-brown/20 hover:bg-white/80 transition-all duration-300 w-full">
-                                <div className="relative">
-                                    <input
-                                        type="checkbox"
-                                        name="travelingWithPet"
-                                        checked={!!travelDetails.travelingWithPet}
-                                        onChange={handleChange}
-                                        className="peer sr-only"
-                                    />
-                                    <div className="w-6 h-6 rounded-lg border-2 border-gray-300 bg-white peer-checked:border-[#ea4d2c] peer-checked:bg-[#ea4d2c] transition-all duration-300 flex items-center justify-center"></div>
-                                    <svg className="w-4 h-4 text-white absolute top-1 left-1 opacity-0 peer-checked:opacity-100 transition-opacity duration-300 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span className="text-gray-700 font-medium group-hover/check:text-primary transition-colors">
-                                    I am traveling with my pet
-                                </span>
-                            </label>
+                            <Select
+                                id="transportMode"
+                                name="transportMode"
+                                label="How is the pet traveling?"
+                                value={travelDetails.transportMode || (transportOptions[0]?.value)}
+                                onChange={handleChange}
+                                options={transportOptions}
+                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300 w-full"
+                            />
                         </div>
                     </div>
                 </div>

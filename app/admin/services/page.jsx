@@ -1,28 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, Check, AlertCircle } from 'lucide-react';
+import { Plus, Search, AlertCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import ServicesTable from '@/components/admin/ServicesTable';
+import { useRouter } from 'next/navigation';
+import SecurityModal from '@/components/ui/SecurityModal';
+import { toast } from 'sonner';
+import { getCategories } from '@/lib/actions/service-actions';
 
 export default function ServicesPage() {
+    const router = useRouter();
     const [services, setServices] = useState([]);
-    const [customerTypes, setCustomerTypes] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showModal, setShowModal] = useState(false);
-    const [editingService, setEditingService] = useState(null);
+    const [filterCategory, setFilterCategory] = useState('all');
+    const [filterMandatory, setFilterMandatory] = useState('all'); // 'all', 'mandatory', 'optional'
+    const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'active', 'inactive'
 
-    // Form State
-    const [formData, setFormData] = useState({
-        name: '',
-        shortDescription: '',
-        longDescription: '',
-        requirements: '',
-        baseCost: '',
-        isMandatory: false,
-        customerTypes: []
-    });
+    const [deleteIds, setDeleteIds] = useState([]);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -30,44 +28,18 @@ export default function ServicesPage() {
 
     const fetchData = async () => {
         try {
-            const [servicesRes, typesRes] = await Promise.all([
-                fetch('/api/services?status=active'),
-                fetch('/api/seed-customer-types') // Using seed route to get types for now, ideally a dedicated GET /api/customer-types
+            const [servicesResponse, categoriesData] = await Promise.all([
+                fetch('/api/services'),
+                getCategories()
             ]);
 
-            // Note: seed-customer-types actually seeds, but we can use a dedicated fetch if available. 
-            // Since we don't have a dedicated GET /api/customer-types that returns list, 
-            // I'll assume I need to fetch them. 
-            // Actually, let's just fetch services first. The customer types are embedded in service logic usually, 
-            // but for the dropdown I need the list.
-            // I'll quickly create a helper to get types or just hardcode the known types for the UI if API is missing.
-            // Wait, I can use the seed route response if it returns data, or just fetch from DB.
-            // Let's rely on services for now and maybe fetch types properly.
+            const servicesData = await servicesResponse.json();
+            const rawData = servicesData.data || [];
+            // Deduplicate by ID to ensure unique keys
+            const uniqueServices = Array.from(new Map(rawData.map(item => [item.id || item._id, item])).values());
 
-            // Correction: I should create a GET /api/customer-types endpoint or use the seed one if it returns current types.
-            // The seed route returns "success" but not the list usually.
-            // Let's assume I can get them or I'll just hardcode the 5 known types for the UI to save time, 
-            // as they are static in the system (EX-A, etc).
-
-            const servicesData = await servicesRes.json();
-            setServices(servicesData.data || []);
-
-            // Hardcoded types for now to ensure UI works without extra API work
-            setCustomerTypes([
-                { _id: '6949d4c3828198c16e9c7b05', type_code: 'EX-A', description: 'Export Accompanied' },
-                { _id: '6949d4c4828198c16e9c7b06', type_code: 'EX-U', description: 'Export Unaccompanied' },
-                { _id: '6949d4c4828198c16e9c7b07', type_code: 'IM-A', description: 'Import Accompanied' },
-                { _id: '6949d4c4828198c16e9c7b08', type_code: 'IM-U', description: 'Import Unaccompanied' },
-                { _id: '6949d4c4828198c16e9c7b09', type_code: 'LOCL', description: 'Local Move' }
-            ]);
-
-            // Ideally fetch these real IDs from the service data or a new endpoint.
-            // I'll fetch the services and extract unique customer types from them if possible, 
-            // or better, I'll just use the IDs I know are in the seed script for now.
-            // *Self-correction*: The IDs in my hardcoded list above are from the seed script output I saw earlier! 
-            // (See Step 761 output: customerTypes array has IDs).
-            // I will use those IDs.
-
+            setServices(uniqueServices);
+            setCategories(categoriesData || []);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -75,300 +47,234 @@ export default function ServicesPage() {
         }
     };
 
-    const handleOpenModal = (service = null) => {
-        if (service) {
-            setEditingService(service);
-            setFormData({
-                name: service.name,
-                shortDescription: service.shortDescription,
-                longDescription: service.longDescription,
-                requirements: service.requirements,
-                baseCost: service.baseCost,
-                isMandatory: service.isMandatory,
-                customerTypes: service.customerTypes || []
-            });
-        } else {
-            setEditingService(null);
-            setFormData({
-                name: '',
-                shortDescription: '',
-                longDescription: '',
-                requirements: '',
-                baseCost: '',
-                isMandatory: false,
-                customerTypes: []
-            });
-        }
-        setShowModal(true);
+
+
+    const handleDeleteRequest = (ids) => {
+        setDeleteIds(ids);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const executeDelete = async (reason) => {
+        if (deleteIds.length === 0) return;
+        setIsDeleting(true);
         try {
-            const url = editingService ? `/api/services/${editingService._id}` : '/api/services';
-            const method = editingService ? 'PUT' : 'POST';
+            // Execute deletes in parallel
+            await Promise.all(deleteIds.map(id =>
+                fetch(`/api/services/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ audit_reason: reason })
+                })
+            ));
 
-            // For now, since I didn't create the dynamic [id] route yet, 
-            // I'll handle POST only or update the route.
-            // Wait, I only created GET/POST in /api/services/route.js.
-            // I need to create /api/services/[id]/route.js for PUT/DELETE.
-            // For this step, I'll assume I'll create it next.
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-
-            if (response.ok) {
-                setShowModal(false);
-                await fetchData(); // Ensure data is refreshed before closing/loading state change
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to save service:', errorData);
-                alert(`Failed to save service: ${errorData.message || 'Unknown error'}`);
-            }
-        } catch (error) {
-            console.error('Error saving:', error);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this service?')) return;
-        try {
-            await fetch(`/api/services/${id}`, { method: 'DELETE' });
+            toast.success(`Successfully deleted ${deleteIds.length} service(s)`);
             fetchData();
+            setDeleteIds([]);
         } catch (error) {
             console.error('Error deleting:', error);
+            toast.error('Failed to delete services');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
-    const toggleCustomerType = (typeId) => {
-        setFormData(prev => {
-            const types = prev.customerTypes.includes(typeId)
-                ? prev.customerTypes.filter(t => t !== typeId)
-                : [...prev.customerTypes, typeId];
-            return { ...prev, customerTypes: types };
-        });
+    const handleToggleStatus = async (id, currentStatus) => {
+        const newStatus = !currentStatus;
+
+        // Optimistic update
+        setServices(prev => prev.map(s =>
+            (s.id === id || s._id === id) ? { ...s, is_active: newStatus } : s
+        ));
+
+        try {
+            const response = await fetch(`/api/services/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isActive: newStatus })
+            });
+
+            if (!response.ok) throw new Error('Failed to update status');
+            toast.success(newStatus ? 'Service activated' : 'Service archived');
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to update status');
+            fetchData(); // Revert on error
+        }
     };
 
-    const filteredServices = services.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.shortDescription.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleArchive = async (ids) => {
+        try {
+            await Promise.all(ids.map(id =>
+                fetch(`/api/services/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isActive: false })
+                })
+            ));
+            toast.success(`Archived ${ids.length} service(s)`);
+            fetchData();
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to archive services');
+        }
+    };
+
+    // --- Data Transformation ---
+    const filteredServices = Array.isArray(services) ? services.filter(s => {
+        // Search filter
+        const matchesSearch = (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (s.short_description || s.shortDescription || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        // Category filter
+        const matchesCategory = filterCategory === 'all' ? true : s.category_id === Number(filterCategory);
+
+        // Mandatory filter
+        const isMandatory = s.is_mandatory || s.isMandatory || false;
+        const matchesMandatory = filterMandatory === 'all' ? true :
+            filterMandatory === 'mandatory' ? isMandatory : !isMandatory;
+
+        // Status filter
+        const isActive = s.is_active !== undefined ? s.is_active : (s.status === 'active');
+        const matchesStatus = filterStatus === 'all' ? true :
+            filterStatus === 'active' ? isActive : !isActive;
+
+        return matchesSearch && matchesCategory && matchesMandatory && matchesStatus;
+    }) : [];
+
+    const uniqueFilteredServices = Array.from(new Map(filteredServices.map(s => [s.id || s._id, s])).values());
+
+    const tableData = uniqueFilteredServices.map(s => ({
+        id: s.id || s._id,
+        name: s.name || 'Unnamed Service',
+        description: s.short_description || s.shortDescription || '',
+        cost: Number(s.base_cost || s.baseCost || 0),
+        price: Number(s.base_price || s.basePrice || 0),
+        isMandatory: s.is_mandatory || s.isMandatory || false,
+        isActive: s.is_active !== undefined ? s.is_active : (s.status === 'active'),
+        category: s.category?.name || 'Uncategorized'
+    }));
 
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Service Management</h1>
-                    <p className="text-gray-500 mt-1">Manage available services and pricing</p>
+                    <h1 className="text-gray-900">Services</h1>
+                    <p className="text-sm text-brand-text-02/80 mt-1">View all available services</p>
                 </div>
-                <Button onClick={() => handleOpenModal()} className="bg-[#4d341a] text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:bg-[#3a2612]">
-                    <Plus size={20} className="mr-2" /> Add Service
+                <Button onClick={() => router.push('/admin/services/new')} className="bg-brand-color-03 text-white px-4 py-2 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all hover:bg-brand-color-03/90 text-sm">
+                    <Plus size={16} className="mr-2" /> Add Service
                 </Button>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                    type="text"
-                    placeholder="Search services..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-gray-100 shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                />
-            </div>
+            {/* Search & Filters */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                {/* Search */}
+                <div className="relative lg:col-span-6">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text-02/60" size={16} />
+                    <input
+                        type="text"
+                        placeholder="Search services..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2.5 bg-white rounded-xl border border-brand-text-02/20 shadow-sm focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all text-sm"
+                    />
+                </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-gray-50/50 border-b border-gray-100">
-                        <tr>
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Service Name</th>
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Cost (AED)</th>
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Mandatory</th>
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                            <th className="text-right py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                        {loading ? (
-                            <tr><td colSpan="5" className="text-center py-8 text-gray-500">Loading...</td></tr>
-                        ) : filteredServices.map(service => (
-                            <tr key={service._id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="py-4 px-6">
-                                    <div className="font-bold text-gray-900">{service.name}</div>
-                                    <div className="text-xs text-gray-500 truncate max-w-xs">{service.shortDescription}</div>
-                                </td>
-                                <td className="py-4 px-6 font-medium text-gray-700">{service.baseCost.toLocaleString()}</td>
-                                <td className="py-4 px-6">
-                                    {service.isMandatory ? (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            Yes
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            No
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="py-4 px-6">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${service.status === 'active' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {service.status}
-                                    </span>
-                                </td>
-                                <td className="py-4 px-6 text-right space-x-2">
-                                    <button onClick={() => handleOpenModal(service)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-primary transition-colors">
-                                        <Edit2 size={18} />
-                                    </button>
-                                    <button onClick={() => handleDelete(service._id)} className="p-2 hover:bg-red-50 rounded-lg text-gray-500 hover:text-red-500 transition-colors">
-                                        <Trash2 size={18} />
-                                    </button>
-                                </td>
-                            </tr>
+                {/* Filter by Category */}
+                <div className="relative lg:col-span-2">
+                    <select
+                        value={filterCategory}
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white rounded-xl border border-brand-text-02/20 shadow-sm focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all appearance-none cursor-pointer font-medium text-brand-text-02 text-sm"
+                    >
+                        <option value="all">All Categories</option>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">{editingService ? 'Edit Service' : 'New Service'}</h2>
-                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
-                                <Input
-                                    label="Service Name"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    required
-                                />
-                                <Input
-                                    label="Base Cost (AED)"
-                                    type="number"
-                                    value={formData.baseCost}
-                                    onChange={e => setFormData({ ...formData, baseCost: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Short Description</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                    value={formData.shortDescription}
-                                    onChange={e => setFormData({ ...formData, shortDescription: e.target.value })}
-                                    maxLength={150}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Long Description</label>
-                                <textarea
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-32"
-                                    value={formData.longDescription}
-                                    onChange={e => setFormData({ ...formData, longDescription: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Requirements</label>
-                                <textarea
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-24"
-                                    value={formData.requirements}
-                                    onChange={e => setFormData({ ...formData, requirements: e.target.value })}
-                                    placeholder="e.g. Vaccination Card, Passport"
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.isMandatory}
-                                        onChange={e => setFormData({ ...formData, isMandatory: e.target.checked })}
-                                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
-                                    />
-                                    <span className="font-medium text-gray-700">Is Mandatory?</span>
-                                </label>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Applicable Customer Types</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {customerTypes.map(type => {
-                                        const isSelected = formData.customerTypes.includes(type._id);
-                                        const code = type.type_code.toUpperCase();
-
-                                        let styles = '';
-                                        if (code.startsWith('EX')) { // Orange
-                                            styles = isSelected
-                                                ? 'bg-[#F26522] text-white border-[#F26522] shadow-md shadow-orange-200'
-                                                : 'bg-[#FFF9F5] text-[#F26522] border-[#F26522]/20 hover:border-[#F26522] hover:bg-[#fff0e6]';
-                                        } else if (code.startsWith('IM')) { // Blue
-                                            styles = isSelected
-                                                ? 'bg-[#243B53] text-white border-[#243B53] shadow-md shadow-blue-200'
-                                                : 'bg-[#F0F4F8] text-[#243B53] border-[#243B53]/20 hover:border-[#243B53] hover:bg-[#e1eaf5]';
-                                        } else if (code === 'LOCL') { // Purple
-                                            styles = isSelected
-                                                ? 'bg-[#8A63D2] text-white border-[#8A63D2] shadow-md shadow-purple-200'
-                                                : 'bg-[#F8F5FF] text-[#8A63D2] border-[#8A63D2]/20 hover:border-[#8A63D2] hover:bg-[#f3eeff]';
-                                        } else {
-                                            styles = isSelected
-                                                ? 'bg-gray-800 text-white border-gray-800'
-                                                : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400';
-                                        }
-
-                                        return (
-                                            <div
-                                                key={type._id}
-                                                onClick={() => toggleCustomerType(type._id)}
-                                                className={`
-                                                    cursor-pointer px-4 py-3 rounded-xl border text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2
-                                                    ${styles}
-                                                `}
-                                            >
-                                                {isSelected && <Check size={14} strokeWidth={3} />}
-                                                {type.type_code}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setShowModal(false)}
-                                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    className="bg-[#4d341a] text-white hover:bg-[#3a2612] shadow-md"
-                                >
-                                    Save Service
-                                </Button>
-                            </div>
-                        </form>
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-brand-text-02/60">
+                        <svg width="10" height="6" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
                     </div>
                 </div>
+
+                {/* Filter by Mandatory */}
+                <div className="relative lg:col-span-2">
+                    <select
+                        value={filterMandatory}
+                        onChange={(e) => setFilterMandatory(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white rounded-xl border border-brand-text-02/20 shadow-sm focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all appearance-none cursor-pointer font-medium text-brand-text-02 text-sm"
+                    >
+                        <option value="all">All Types</option>
+                        <option value="mandatory">Mandatory Only</option>
+                        <option value="optional">Optional Only</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-brand-text-02/60">
+                        <svg width="10" height="6" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Filter by Status */}
+                <div className="relative lg:col-span-2">
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white rounded-xl border border-brand-text-02/20 shadow-sm focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all appearance-none cursor-pointer font-medium text-brand-text-02 text-sm"
+                    >
+                        <option value="all">All Status</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-brand-text-02/60">
+                        <svg width="10" height="6" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {/* Services Table */}
+            {loading ? (
+                <div className="text-center py-12 text-brand-text-02/60 text-sm">Loading services...</div>
+            ) : uniqueFilteredServices.length === 0 ? (
+                <div className="bg-white rounded-3xl shadow-sm border border-brand-text-02/20 p-12 text-center">
+                    <AlertCircle size={40} className="mx-auto mb-4 text-brand-text-02/60" />
+                    <h3 className="text-brand-text-02 mb-2">No Services Found</h3>
+                    <p className="text-sm text-brand-text-02/80 mb-6">
+                        {(searchTerm || filterMandatory !== 'all' || filterStatus !== 'all')
+                            ? 'Try adjusting your search or filter criteria'
+                            : 'Get started by adding your first service'}
+                    </p>
+                    {!searchTerm && filterMandatory === 'all' && filterStatus === 'all' && (
+                        <Button onClick={() => router.push('/admin/services/new')} className="bg-brand-color-03 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-brand-color-03/90">
+                            <Plus size={16} className="mr-2" /> Add Service
+                        </Button>
+                    )}
+                </div>
+            ) : (
+                <ServicesTable
+                    data={tableData}
+                    onEdit={(serviceData) => {
+                        // Navigate to edit page
+                        const id = serviceData.id || serviceData._id;
+                        router.push(`/admin/services/${id}`);
+                    }}
+                    onDelete={handleDeleteRequest}
+                    onToggleStatus={handleToggleStatus}
+                    onArchive={handleArchive}
+                />
             )}
+
+            <SecurityModal
+                isOpen={deleteIds.length > 0}
+                onClose={() => setDeleteIds([])}
+                onConfirm={executeDelete}
+                title={`Delete ${deleteIds.length} Service${deleteIds.length > 1 ? 's' : ''}?`}
+                actionType="danger"
+                isLoading={isDeleting}
+            />
         </div>
     );
 }

@@ -34,19 +34,19 @@ export default function ServiceLimitationModal({ isOpen, onClose }) {
                         className="relative w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden z-10"
                     >
                         {/* Decorative Elements */}
-                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pawpaths-brown to-primary" />
-                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-                        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-pawpaths-brown/10 rounded-full blur-3xl" />
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-primary" />
+                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-brand-color-01/10 rounded-full blur-3xl" />
+                        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-brand-color-01/10 rounded-full blur-3xl" />
 
                         <div className="p-8 relative">
                             {/* Icon */}
                             <div className="flex justify-center mb-8">
                                 <div className="relative w-32 h-32 flex items-center justify-center">
                                     {/* Rotating Ring */}
-                                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#00732F,#FFFFFF,#000000,#FF0000,#00732F)] animate-[spin_4s_linear_infinite] blur-[2px] opacity-80"></div>
+                                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,oklch(var(--status-success)),#FFFFFF,#000000,oklch(var(--status-error)),oklch(var(--status-success)))] animate-[spin_4s_linear_infinite] blur-[2px] opacity-80"></div>
 
                                     {/* Sharp Hairline Ring (on top of blur) */}
-                                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#00732F,#FFFFFF,#000000,#FF0000,#00732F)] animate-[spin_4s_linear_infinite]"></div>
+                                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,oklch(var(--status-success)),#FFFFFF,#000000,oklch(var(--status-error)),oklch(var(--status-success)))] animate-[spin_4s_linear_infinite]"></div>
 
                                     {/* Inner Mask/Container (creates the hollow ring effect) */}
                                     <div className="absolute inset-[2px] rounded-full bg-white/90 backdrop-blur-xl flex items-center justify-center z-10 shadow-[inset_0_0_20px_rgba(0,0,0,0.05)]">
@@ -60,21 +60,21 @@ export default function ServiceLimitationModal({ isOpen, onClose }) {
                                     </div>
 
                                     {/* Outer Glow */}
-                                    <div className="absolute inset-0 rounded-full shadow-[0_0_30px_rgba(0,115,47,0.3)] z-0"></div>
+                                    <div className="absolute inset-0 rounded-full shadow-glow-success z-0"></div>
                                 </div>
                             </div>
 
                             {/* Content */}
                             <div className="text-center space-y-4 mb-8">
-                                <h3 className="text-2xl font-bold text-gray-800 tracking-tight">
+                                <h3 className="text-brand-text-02 tracking-tight">
                                     Keeping Our Focus on the Emirates
                                 </h3>
-                                <div className="space-y-4 text-gray-600 leading-relaxed">
+                                <div className="space-y-4 text-brand-text-02 leading-relaxed">
                                     <p>
-                                        Thank you for choosing Pawpath for your pet&apos;s journey! We proudly specialize only in relocations to and from the <span className="font-semibold text-pawpaths-brown">United Arab Emirates</span>.
+                                        Thank you for choosing Pawpath for your pet&apos;s journey! We proudly specialize only in relocations to and from the <span className="font-semibold text-brand-color-01">United Arab Emirates</span>.
                                     </p>
-                                    <div className="p-4 rounded-2xl bg-green-50/30 border border-green-100/50 backdrop-blur-sm shadow-sm">
-                                        <p className="text-sm text-green-800 font-medium">
+                                    <div className="p-4 rounded-2xl bg-success/15/30 border border-system-color-02/50 backdrop-blur-sm shadow-sm">
+                                        <p className="text-sm text-system-color-02 font-medium">
                                             If your journey is beyond the UAE, we&apos;d still love to guide you with expert advice or trusted solutions for your pet&apos;s travel.
                                         </p>
                                     </div>
@@ -108,7 +108,7 @@ export default function ServiceLimitationModal({ isOpen, onClose }) {
                                         transition={{
                                             boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut" }
                                         }}
-                                        className="absolute inset-0 rounded-xl bg-[#25D366] blur-lg"
+                                        className="absolute inset-0 rounded-xl bg-system-color-02 blur-lg"
                                     />
 
                                     {/* Main Button */}
@@ -118,7 +118,7 @@ export default function ServiceLimitationModal({ isOpen, onClose }) {
                                             hover: { y: -1 },
                                             tap: { y: 2, scale: 0.99 },
                                         }}
-                                        className="relative w-full py-4 px-6 rounded-xl bg-gradient-to-b from-[#4ade80] to-[#128C7E] border-t border-white/50 border-b border-[#075E54]/30 shadow-[0_8px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] flex items-center justify-center gap-3 overflow-hidden z-10"
+                                        className="relative w-full py-4 px-6 rounded-xl bg-gradient-to-b from-system-color-02/80 to-system-color-02 border-t border-white/50 border-b border-system-color-02/30 shadow-[0_8px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] flex items-center justify-center gap-3 overflow-hidden z-10"
                                     >
                                         {/* Glass/Gloss Overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-50 pointer-events-none" />
@@ -140,7 +140,7 @@ export default function ServiceLimitationModal({ isOpen, onClose }) {
 
                                 <button
                                     onClick={onClose}
-                                    className="w-full py-3 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors"
+                                    className="w-full py-3 text-brand-text-02/60 hover:text-brand-text-02 text-sm font-medium transition-colors"
                                 >
                                     Adjust Travel Details
                                 </button>

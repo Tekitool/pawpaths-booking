@@ -2,11 +2,11 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 const variants = {
-    filled: 'bg-primary text-white hover:shadow-level-1 hover:bg-opacity-90',
+    filled: 'bg-brand-color-01 text-white hover:shadow-level-1 hover:bg-opacity-90',
     tonal: 'bg-secondary-container text-on-secondary-container hover:shadow-level-1 hover:bg-opacity-80',
-    outlined: 'border border-outline text-primary hover:bg-surface-variant hover:bg-opacity-10',
-    text: 'text-primary hover:bg-surface-variant hover:bg-opacity-10',
-    fab: 'bg-primary-container text-on-primary-container shadow-level-3 hover:shadow-level-4 rounded-md3-xl',
+    outlined: 'border border-outline text-brand-color-01 hover:bg-surface-variant hover:bg-opacity-10',
+    text: 'text-brand-color-01 hover:bg-surface-variant hover:bg-opacity-10',
+    fab: 'bg-brand-color-02 text-on-primary-container shadow-level-3 hover:shadow-level-4 rounded-md3-xl',
 };
 
 const sizes = {

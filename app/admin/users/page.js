@@ -7,10 +7,18 @@ import SearchBar from '@/components/admin/SearchBar';
 import Image from 'next/image';
 import { getUsers, createUser, updateUser, deleteUser } from '@/lib/actions/user-actions';
 import { useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { supabase } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
 export default function UsersPage() {
-    const { data: session } = useSession();
+    const [session, setSession] = useState(null);
+    // const supabase = createClient(); // Removed as we import the singleton
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+        });
+    }, []);
     const searchParams = useSearchParams();
     const query = searchParams.get('query') || '';
 
@@ -111,6 +119,8 @@ export default function UsersPage() {
         }
     };
 
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -132,7 +142,7 @@ export default function UsersPage() {
                 if (uploadResult.success) {
                     avatarPath = uploadResult.path;
                 } else {
-                    alert('Failed to upload avatar: ' + uploadResult.error);
+                    toast.error('Failed to upload avatar: ' + uploadResult.error);
                     setIsSubmitting(false);
                     return;
                 }
@@ -150,12 +160,13 @@ export default function UsersPage() {
             if (result.success) {
                 await fetchUsers();
                 handleCloseModal();
+                toast.success(currentUser ? "User updated successfully" : "User created successfully");
             } else {
-                alert(result.message);
+                toast.error(result.message);
             }
         } catch (error) {
             console.error('Operation failed:', error);
-            alert('Something went wrong');
+            toast.error('Something went wrong');
         } finally {
             setIsSubmitting(false);
         }
@@ -175,12 +186,13 @@ export default function UsersPage() {
                 await fetchUsers();
                 setIsDeleteModalOpen(false);
                 setCurrentUser(null);
+                toast.success("User deleted successfully");
             } else {
-                alert(result.message);
+                toast.error(result.message);
             }
         } catch (error) {
             console.error('Delete failed:', error);
-            alert('Failed to delete user');
+            toast.error('Failed to delete user');
         } finally {
             setIsSubmitting(false);
         }
@@ -190,26 +202,26 @@ export default function UsersPage() {
         const normalizedRole = role.toLowerCase();
         switch (normalizedRole) {
             case 'admin':
-                return <span className="px-2 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 flex items-center gap-1 w-fit"><Shield size={12} /> Admin</span>;
+                return <span className="px-2 py-1 rounded-full text-xs font-bold bg-brand-text-03/10 text-brand-text-03 flex items-center gap-1 w-fit"><Shield size={12} /> Admin</span>;
             case 'staff':
-                return <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 flex items-center gap-1 w-fit"><User size={12} /> Staff</span>;
+                return <span className="px-2 py-1 rounded-full text-xs font-bold bg-info/10 text-info flex items-center gap-1 w-fit"><User size={12} /> Staff</span>;
             default:
-                return <span className="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 flex items-center gap-1 w-fit"><User size={12} /> Customer</span>;
+                return <span className="px-2 py-1 rounded-full text-xs font-bold bg-brand-text-02/10 text-brand-text-02 flex items-center gap-1 w-fit"><User size={12} /> Customer</span>;
         }
     };
 
     const getStatusBadge = (status) => {
         return status === 'Active'
-            ? <span className="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 flex items-center gap-1 w-fit"><CheckCircle size={12} /> Active</span>
-            : <span className="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 flex items-center gap-1 w-fit"><XCircle size={12} /> Inactive</span>;
+            ? <span className="px-2 py-1 rounded-full text-xs font-bold bg-success/15 text-success flex items-center gap-1 w-fit"><CheckCircle size={12} /> Active</span>
+            : <span className="px-2 py-1 rounded-full text-xs font-bold bg-error/10 text-error flex items-center gap-1 w-fit"><XCircle size={12} /> Inactive</span>;
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/50 p-8 space-y-8">
+        <div className="min-h-screen bg-brand-text-02/5/50 p-8 space-y-8">
             {/* ... Header ... */}
 
             {/* Filters & Search - Bento Style */}
-            <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-4">
+            <div className="bg-white rounded-3xl p-4 shadow-sm border border-brand-text-02/20 flex flex-col md:flex-row items-center gap-4">
                 <div className="flex-1 w-full">
                     <Suspense fallback={<div>Loading...</div>}>
                         <SearchBar placeholder="Search by name or email..." />
@@ -220,14 +232,14 @@ export default function UsersPage() {
                         <select
                             value={roleFilter}
                             onChange={(e) => setRoleFilter(e.target.value)}
-                            className="appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-pawpaths-brown/20 focus:border-pawpaths-brown cursor-pointer hover:bg-gray-100 transition-colors font-medium text-gray-700 min-w-[140px]"
+                            className="appearance-none bg-brand-text-02/5 border border-brand-text-02/20 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 cursor-pointer hover:bg-brand-text-02/10 transition-colors font-medium text-brand-text-02 min-w-[140px]"
                         >
                             <option>All Roles</option>
                             <option>Admin</option>
                             <option>Staff</option>
                             <option>Customer</option>
                         </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-pawpaths-brown transition-colors">
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-brand-text-02/60 group-hover:text-brand-color-01 transition-colors">
                             <Shield size={16} />
                         </div>
                     </div>
@@ -235,13 +247,13 @@ export default function UsersPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-pawpaths-brown/20 focus:border-pawpaths-brown cursor-pointer hover:bg-gray-100 transition-colors font-medium text-gray-700 min-w-[140px]"
+                            className="appearance-none bg-brand-text-02/5 border border-brand-text-02/20 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 cursor-pointer hover:bg-brand-text-02/10 transition-colors font-medium text-brand-text-02 min-w-[140px]"
                         >
                             <option>All Status</option>
                             <option>Active</option>
                             <option>Inactive</option>
                         </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-pawpaths-brown transition-colors">
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-brand-text-02/60 group-hover:text-brand-color-01 transition-colors">
                             <CheckCircle size={16} />
                         </div>
                     </div>
@@ -249,14 +261,14 @@ export default function UsersPage() {
             </div>
 
             {/* Users Table */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-brand-text-02/20 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         {/* ... thead ... */}
                         <tbody className="divide-y divide-gray-50">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="px-8 py-10 text-center text-gray-500">
+                                    <td colSpan="5" className="px-8 py-10 text-center text-brand-text-02/80">
                                         <div className="flex justify-center items-center gap-2">
                                             <Loader2 className="animate-spin" /> Loading users...
                                         </div>
@@ -264,27 +276,28 @@ export default function UsersPage() {
                                 </tr>
                             ) : filteredUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-8 py-10 text-center text-gray-500">
+                                    <td colSpan="5" className="px-8 py-10 text-center text-brand-text-02/80">
                                         No users found matching your filters.
                                     </td>
                                 </tr>
                             ) : filteredUsers.map((user) => (
                                 // ... row content ...
 
-                                <tr key={user._id} className="hover:bg-pawpaths-cream/30 transition-all duration-200 group">
+                                <tr key={user._id} className="hover:bg-brand-color-02/30 transition-all duration-200 group">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
-                                            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg shadow-pawpaths-brown/20 group-hover:scale-110 transition-transform duration-300">
-                                                <img
+                                            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
+                                                <Image
                                                     src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
                                                     alt={user.name}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random` }} // Fallback
+                                                    fill
+                                                    sizes="48px"
+                                                    className="object-cover"
                                                 />
                                             </div>
                                             <div>
-                                                <p className="font-bold text-gray-900 text-base group-hover:text-pawpaths-brown transition-colors">{user.name}</p>
-                                                <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5"><Mail size={14} className="text-gray-400" /> {user.email}</p>
+                                                <p className="font-bold text-gray-900 text-base group-hover:text-brand-color-01 transition-colors">{user.name}</p>
+                                                <p className="text-sm text-brand-text-02/80 flex items-center gap-1.5 mt-0.5"><Mail size={14} className="text-brand-text-02/60" /> {user.email}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -294,9 +307,9 @@ export default function UsersPage() {
                                     <td className="px-8 py-5">
                                         {getStatusBadge(user.status)}
                                     </td>
-                                    <td className="px-8 py-5 text-sm text-gray-600">
-                                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg w-fit border border-gray-100">
-                                            <Calendar size={14} className="text-gray-400" />
+                                    <td className="px-8 py-5 text-sm text-brand-text-02">
+                                        <div className="flex items-center gap-2 bg-brand-text-02/5 px-3 py-1.5 rounded-lg w-fit border border-brand-text-02/20">
+                                            <Calendar size={14} className="text-brand-text-02/60" />
                                             {new Date(user.joined).toLocaleDateString()}
                                         </div>
                                     </td>
@@ -305,7 +318,7 @@ export default function UsersPage() {
                                             <button
                                                 onClick={() => isAdmin && handleOpenModal(user)}
                                                 disabled={!isAdmin}
-                                                className={`p-2.5 bg-white border border-gray-100 rounded-xl transition-all shadow-sm ${isAdmin ? 'text-gray-400 hover:text-pawpaths-brown hover:border-pawpaths-brown/30 hover:shadow-md' : 'text-gray-300 cursor-not-allowed'}`}
+                                                className={`p-2.5 bg-white border border-brand-text-02/20 rounded-xl transition-all shadow-sm ${isAdmin ? 'text-brand-text-02/60 hover:text-brand-color-01 hover:border-brand-color-01/30 hover:shadow-md' : 'text-brand-text-02/60 cursor-not-allowed'}`}
                                                 title="Edit User"
                                             >
                                                 <Edit size={18} />
@@ -313,7 +326,7 @@ export default function UsersPage() {
                                             <button
                                                 onClick={() => isAdmin && handleDeleteClick(user)}
                                                 disabled={!isAdmin}
-                                                className={`p-2.5 bg-white border border-gray-100 rounded-xl transition-all shadow-sm ${isAdmin ? 'text-gray-400 hover:text-red-600 hover:border-red-200 hover:shadow-md' : 'text-gray-300 cursor-not-allowed'}`}
+                                                className={`p-2.5 bg-white border border-brand-text-02/20 rounded-xl transition-all shadow-sm ${isAdmin ? 'text-brand-text-02/60 hover:text-error hover:border-error/30 hover:shadow-md' : 'text-brand-text-02/60 cursor-not-allowed'}`}
                                                 title="Delete User"
                                             >
                                                 <Trash2 size={18} />
@@ -327,11 +340,11 @@ export default function UsersPage() {
                 </div>
 
                 {/* Pagination Placeholder */}
-                <div className="px-8 py-5 border-t border-gray-100 flex items-center justify-between bg-gray-50/30">
-                    <p className="text-sm text-gray-500 font-medium">Showing <span className="text-gray-900 font-bold">{users.length}</span> users</p>
+                <div className="px-8 py-5 border-t border-brand-text-02/20 flex items-center justify-between bg-brand-text-02/5/30">
+                    <p className="text-sm text-brand-text-02/80 font-medium">Showing <span className="text-gray-900 font-bold">{users.length}</span> users</p>
                     <div className="flex gap-3">
-                        <Button variant="outline" size="sm" disabled className="rounded-xl border-gray-200 hover:bg-white hover:text-pawpaths-brown hover:border-pawpaths-brown/30 transition-all">Previous</Button>
-                        <Button variant="outline" size="sm" disabled className="rounded-xl border-gray-200 hover:bg-white hover:text-pawpaths-brown hover:border-pawpaths-brown/30 transition-all">Next</Button>
+                        <Button variant="outline" size="sm" disabled className="rounded-xl border-brand-text-02/20 hover:bg-white hover:text-brand-color-01 hover:border-brand-color-01/30 transition-all">Previous</Button>
+                        <Button variant="outline" size="sm" disabled className="rounded-xl border-brand-text-02/20 hover:bg-white hover:text-brand-color-01 hover:border-brand-color-01/30 transition-all">Next</Button>
                     </div>
                 </div>
             </div>
@@ -340,23 +353,25 @@ export default function UsersPage() {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-xl font-bold text-gray-800">{currentUser ? 'Edit User' : 'Add New User'}</h2>
-                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <div className="p-6 border-b border-brand-text-02/20 flex justify-between items-center bg-brand-text-02/5/50">
+                            <h2 className="text-brand-text-02">{currentUser ? 'Edit User' : 'Add New User'}</h2>
+                            <button onClick={handleCloseModal} className="text-brand-text-02/60 hover:text-brand-text-02 transition-colors">
                                 <X size={24} />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="flex justify-center mb-4">
-                                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-gray-100 shadow-md group cursor-pointer">
+                                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-brand-text-02/20 shadow-md group cursor-pointer">
                                     {avatarPreview ? (
-                                        <img
+                                        <Image
                                             src={avatarPreview}
                                             alt="Preview"
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            className="object-cover"
+                                            unoptimized={avatarPreview.startsWith('blob:')}
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                        <div className="w-full h-full bg-brand-text-02/10 flex items-center justify-center text-brand-text-02/60">
                                             <User size={40} />
                                         </div>
                                     )}
@@ -373,40 +388,40 @@ export default function UsersPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <label className="block text-sm font-medium text-brand-text-02 mb-1">Full Name</label>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pawpaths-brown/20 focus:border-pawpaths-brown transition-all"
+                                    className="w-full px-4 py-2 rounded-xl border border-brand-text-02/20 focus:outline-none focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <label className="block text-sm font-medium text-brand-text-02 mb-1">Email Address</label>
                                 <input
                                     type="email"
                                     required
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pawpaths-brown/20 focus:border-pawpaths-brown transition-all"
+                                    className="w-full px-4 py-2 rounded-xl border border-brand-text-02/20 focus:outline-none focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Password {currentUser && <span className="text-xs text-gray-400 font-normal">(Leave blank to keep current)</span>}</label>
+                                <label className="block text-sm font-medium text-brand-text-02 mb-1">Password {currentUser && <span className="text-xs text-brand-text-02/60 font-normal">(Leave blank to keep current)</span>}</label>
                                 <input
                                     type="password"
                                     required={!currentUser}
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pawpaths-brown/20 focus:border-pawpaths-brown transition-all"
+                                    className="w-full px-4 py-2 rounded-xl border border-brand-text-02/20 focus:outline-none focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                    <label className="block text-sm font-medium text-brand-text-02 mb-1">Role</label>
                                     <select
-                                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pawpaths-brown/20 focus:border-pawpaths-brown transition-all"
+                                        className="w-full px-4 py-2 rounded-xl border border-brand-text-02/20 focus:outline-none focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all"
                                         value={formData.role}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                     >
@@ -416,9 +431,9 @@ export default function UsersPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                    <label className="block text-sm font-medium text-brand-text-02 mb-1">Status</label>
                                     <select
-                                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pawpaths-brown/20 focus:border-pawpaths-brown transition-all"
+                                        className="w-full px-4 py-2 rounded-xl border border-brand-text-02/20 focus:outline-none focus:ring-2 focus:ring-brand-color-01/20 focus:border-brand-color-01 transition-all"
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                     >
@@ -429,7 +444,7 @@ export default function UsersPage() {
                             </div>
                             <div className="pt-4 flex gap-3">
                                 <Button type="button" variant="outline" onClick={handleCloseModal} className="flex-1 rounded-xl">Cancel</Button>
-                                <Button type="submit" disabled={isSubmitting} className="flex-1 bg-pawpaths-brown text-white rounded-xl hover:bg-[#3d2815]">
+                                <Button type="submit" disabled={isSubmitting} className="flex-1 bg-brand-color-01 text-white rounded-xl hover:bg-[#3d2815]">
                                     {isSubmitting ? 'Saving...' : 'Save User'}
                                 </Button>
                             </div>
@@ -443,14 +458,14 @@ export default function UsersPage() {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6 text-center space-y-4">
-                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+                            <div className="w-16 h-16 bg-error/10 text-error rounded-full flex items-center justify-center mx-auto">
                                 <Trash2 size={32} />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800">Delete User?</h2>
-                            <p className="text-gray-500">Are you sure you want to delete <span className="font-bold text-gray-800">{currentUser?.name}</span>? This action cannot be undone.</p>
+                            <h2 className="text-brand-text-02">Delete User?</h2>
+                            <p className="text-brand-text-02/80">Are you sure you want to delete <span className="font-bold text-brand-text-02">{currentUser?.name}</span>? This action cannot be undone.</p>
                             <div className="flex gap-3 pt-2">
                                 <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} className="flex-1 rounded-xl">Cancel</Button>
-                                <Button onClick={confirmDelete} disabled={isSubmitting} className="flex-1 bg-red-600 text-white rounded-xl hover:bg-red-700">
+                                <Button onClick={confirmDelete} disabled={isSubmitting} className="flex-1 bg-error text-white rounded-xl hover:bg-system-color-01">
                                     {isSubmitting ? 'Deleting...' : 'Delete'}
                                 </Button>
                             </div>

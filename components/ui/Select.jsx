@@ -15,7 +15,7 @@ export default function Select({
             <select
                 id={id}
                 className={`
-          peer block w-full appearance-none rounded-t-md3-xs border-b border-outline bg-surface px-4 pb-2.5 pt-6 text-body-large text-on-surface focus:border-b-2 focus:border-primary focus:outline-none
+          peer block w-full appearance-none rounded-t-md3-xs border-b border-outline bg-surface px-4 pb-2.5 pt-6 text-body-large text-on-surface focus:border-b-2 focus:border-brand-color-01 focus:outline-none
           ${error ? 'border-error focus:border-error' : ''}
           disabled:opacity-38 disabled:cursor-not-allowed
         `}
@@ -33,7 +33,7 @@ export default function Select({
                 className={`
           absolute left-4 top-4 z-10 origin-[0] -translate-y-3 scale-75 transform text-body-medium text-on-surface-variant duration-200 
           peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 
-          peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-primary
+          peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-brand-color-01
           ${error ? 'text-error peer-focus:text-error' : ''}
         `}
             >

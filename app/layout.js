@@ -20,7 +20,7 @@ import Providers from "@/components/Providers";
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-gray-50 min-h-screen`} suppressHydrationWarning>
+      <body className={`${inter.className} bg-surface-ivory min-h-screen`} suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>

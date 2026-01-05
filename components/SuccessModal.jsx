@@ -2,6 +2,8 @@ import React from 'react';
 import { CheckCircle, Download, Share2, RefreshCw, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { BRAND_COLORS } from '@/lib/theme-config';
+import { toast } from 'sonner';
 
 export default function SuccessModal({ bookingData, onClose, onReset }) {
     if (!bookingData) return null;
@@ -11,13 +13,13 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
             const doc = new jsPDF();
 
             // Header Background
-            doc.setFillColor(77, 52, 26); // #4d341a
+            doc.setFillColor(...BRAND_COLORS.brand01.rgb); // Brand Color
             doc.rect(0, 0, 210, 50, 'F');
 
             // Logo Placeholder
             doc.setFillColor(255, 255, 255);
             doc.circle(105, 15, 10, 'F');
-            doc.setTextColor(77, 52, 26);
+            doc.setTextColor(...BRAND_COLORS.brand01.rgb);
             doc.setFontSize(8);
             doc.text('LOGO', 105, 15, { align: 'center', baseline: 'middle' });
 
@@ -38,7 +40,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
 
             // Section: Customer & Travel Info
             doc.setFontSize(14);
-            doc.setTextColor(77, 52, 26);
+            doc.setTextColor(...BRAND_COLORS.brand01.rgb);
             doc.text('Customer Details', 14, 85);
             doc.text('Travel Details', 110, 85);
 
@@ -62,7 +64,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
 
             // Section: Pets
             doc.setFontSize(14);
-            doc.setTextColor(77, 52, 26);
+            doc.setTextColor(...BRAND_COLORS.brand01.rgb);
             doc.text('Pet Details', 14, 125);
 
             const tableColumn = ["#", "Name", "Type", "Breed", "Age", "Weight (kg)", "Special Req."];
@@ -80,7 +82,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
                 startY: 130,
                 head: [tableColumn],
                 body: tableRows,
-                headStyles: { fillColor: [77, 52, 26] },
+                headStyles: { fillColor: BRAND_COLORS.brand01.rgb },
                 theme: 'grid',
                 styles: { fontSize: 10 },
                 columnStyles: {
@@ -96,7 +98,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
 
             // Footer
             const pageHeight = doc.internal.pageSize.height;
-            doc.setFillColor(255, 242, 177); // #fff2b1
+            doc.setFillColor(...BRAND_COLORS.surfaces.warm.rgb); // Semantic Warm Surface
             doc.rect(0, pageHeight - 30, 210, 30, 'F');
 
             doc.setFontSize(9);
@@ -107,7 +109,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
             doc.save(`Pawpaths-Booking-${bookingData.bookingId}.pdf`);
         } catch (error) {
             console.error('PDF Generation Error:', error);
-            alert('Failed to generate PDF. Please check console for details.');
+            toast.error('Failed to generate PDF. Please check console for details.');
         }
     };
 
@@ -116,32 +118,32 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
             <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in duration-300 relative">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-2 rounded-full text-pawpaths-brown hover:bg-pawpaths-cream/50 transition-colors"
+                    className="absolute top-4 right-4 p-2 rounded-full text-brand-color-01 hover:bg-brand-color-02/50 transition-colors"
                     aria-label="Close"
                 >
                     <X size={20} />
                 </button>
                 <div className="text-center mb-6">
-                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-                        <CheckCircle className="h-10 w-10 text-green-600" />
+                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success/15 mb-4">
+                        <CheckCircle className="h-10 w-10 text-success" />
                     </div>
-                    <h2 className="text-2xl font-bold text-pawpaths-brown mb-2">Booking Confirmed!</h2>
-                    <p className="text-gray-600">
+                    <h2 className="text-brand-color-01 mb-2">Booking Confirmed!</h2>
+                    <p className="text-brand-text-02">
                         Your booking ID is <span className="font-mono font-bold text-black">{bookingData.bookingId}</span>
                     </p>
                 </div>
 
-                <div className="bg-pawpaths-cream/30 rounded-lg p-4 mb-6 space-y-2 text-sm">
+                <div className="bg-brand-color-02/30 rounded-lg p-4 mb-6 space-y-2 text-sm">
                     <div className="flex justify-between">
-                        <span className="text-gray-600">Customer:</span>
+                        <span className="text-brand-text-02">Customer:</span>
                         <span className="font-medium">{bookingData.customerInfo?.fullName}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-600">Route:</span>
+                        <span className="text-brand-text-02">Route:</span>
                         <span className="font-medium">{bookingData.travelDetails?.originCountry} → {bookingData.travelDetails?.destinationCountry}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-600">Pets:</span>
+                        <span className="text-brand-text-02">Pets:</span>
                         <span className="font-medium">{bookingData.pets?.length} Pet(s)</span>
                     </div>
                 </div>
@@ -151,7 +153,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
                         href={bookingData.whatsappLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-lg font-semibold transition-colors"
+                        className="w-full flex items-center justify-center gap-2 bg-system-color-02 hover:bg-system-color-02/90 text-white py-3 px-4 rounded-lg font-semibold transition-colors"
                     >
                         <Share2 size={20} />
                         Share via WhatsApp
@@ -159,7 +161,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
 
                     <button
                         onClick={handleDownload}
-                        className="w-full flex items-center justify-center gap-2 bg-pawpaths-brown hover:bg-[#3d2815] text-white py-3 px-4 rounded-lg font-semibold transition-colors"
+                        className="w-full flex items-center justify-center gap-2 bg-brand-color-01 hover:bg-brand-color-01/90 text-white py-3 px-4 rounded-lg font-semibold transition-colors"
                     >
                         <Download size={20} />
                         Download Confirmation
@@ -167,7 +169,7 @@ export default function SuccessModal({ bookingData, onClose, onReset }) {
 
                     <button
                         onClick={onReset}
-                        className="w-full flex items-center justify-center gap-2 border-2 border-pawpaths-brown text-pawpaths-brown hover:bg-pawpaths-brown hover:text-white py-3 px-4 rounded-lg font-semibold transition-colors"
+                        className="w-full flex items-center justify-center gap-2 border-2 border-brand-color-01 text-brand-color-01 hover:bg-brand-color-01 hover:text-white py-3 px-4 rounded-lg font-semibold transition-colors"
                     >
                         <RefreshCw size={20} />
                         Make Another Booking
