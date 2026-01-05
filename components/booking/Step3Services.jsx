@@ -1,8 +1,9 @@
 'use client';
+'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import useBookingStore from '@/lib/store/booking-store';
-import { Truck, Plane, FileText, Box, Car, Stethoscope, Check, Info, Home, User, CheckCircle, AlertCircle } from 'lucide-react';
+import { Truck, Plane, FileText, Box, Car, Stethoscope, Check, Info, Home, User, CheckCircle, AlertCircle, Sparkles, Dog, Cat, PawPrint, Briefcase } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAvailableServices } from '@/hooks/useAvailableServices';
 import { detectBookingContext } from '@/utils/bookingLogic';
@@ -10,54 +11,65 @@ import { detectBookingContext } from '@/utils/bookingLogic';
 export default function Step3Services() {
     const { formData, updateServices } = useBookingStore();
     const { pets, travelDetails } = formData;
-    const selectedServices = formData.services || [];
 
-    // Use the new hook for fetching and filtering
-    const { services: rawServices, loading } = useAvailableServices(travelDetails, pets);
-    const [selectedServiceDetails, setSelectedServiceDetails] = useState(null); // For modal
-
-    // Memoize the mapped services
-    const availableServices = React.useMemo(() => {
-        if (!rawServices) return [];
-        return rawServices.map(s => ({
-            ...s,
-            baseCost: s.base_price, // Map base_price to baseCost
-            isMandatory: s.is_mandatory, // Map snake_case to camelCase
-            shortDescription: s.short_description,
-            longDescription: s.long_description,
-            requirements: s.requirements,
-            // Ensure icon is valid or fallback
-            icon: s.icon || 'Box'
-        }));
-    }, [rawServices]);
-
-    // Auto-select mandatory services logic
-    useEffect(() => {
-        if (availableServices.length > 0) {
-            const mandatoryIds = availableServices.filter(s => s.isMandatory).map(s => s.id);
-
-            // Only update if there are mandatory services not yet selected
-            const missingMandatory = mandatoryIds.some(id => !selectedServices.includes(id));
-
-            if (missingMandatory) {
-                const newSelectedIds = [...new Set([...selectedServices, ...mandatoryIds])];
-                const newSelectedData = availableServices.filter(s => newSelectedIds.includes(s.id));
-                updateServices(newSelectedIds, newSelectedData);
-            }
+    // Normalize selected services to always be an array of objects
+    // Structure: { serviceId: string, petId?: string, quantity: 1 }
+    const selectedServices = useMemo(() => {
+        const raw = formData.services || [];
+        if (raw.length === 0) return [];
+        // Handle legacy string[] if any exists in state
+        if (typeof raw[0] === 'string') {
+            return raw.map(id => ({ serviceId: id, quantity: 1 }));
         }
-    }, [availableServices, selectedServices, updateServices]);
+        return raw;
+    }, [formData.services]);
 
-    // Helper to get icon component
+    const { services: availableServices, loading } = useAvailableServices(travelDetails, pets);
+    const [selectedServiceDetails, setSelectedServiceDetails] = useState(null);
+
+    // Group services by scope
+    const { tripEssentials, petSpecificServices } = useMemo(() => {
+        if (!availableServices) return { tripEssentials: [], petSpecificServices: [] };
+
+        const tripEssentials = availableServices.filter(s => s.scope === 'per_booking' || !s.scope);
+        const petSpecificServices = availableServices.filter(s => s.scope === 'per_pet');
+        return { tripEssentials, petSpecificServices };
+    }, [availableServices]);
+
+    // Flatten data for the unified grid
+    const allCards = useMemo(() => {
+        const tripCards = tripEssentials.map(s => ({ ...s, _ctx: { type: 'trip' } }));
+
+        const petCards = pets.flatMap((pet, index) => {
+            // Ensure we have a valid ID for the pet, fallback to index-based ID if missing (legacy state support)
+            const safePetId = pet.id || `temp-pet-${index}`;
+
+            // Filter services for this pet
+            const validServices = petSpecificServices.filter(s => {
+                if (s.valid_species && s.valid_species.length > 0 && pet.speciesName && !s.valid_species.includes(pet.speciesName)) return false;
+                return true;
+            });
+            return validServices.map(s => ({ ...s, _ctx: { type: 'pet', petName: pet.name, petId: safePetId, speciesName: pet.speciesName } }));
+        });
+
+        return [...tripCards, ...petCards];
+    }, [tripEssentials, petSpecificServices, pets]);
+
+    // Auto-select mandatory services logic REMOVED to allow full user control.
+    /*
+    useEffect(() => {
+        // ... logic removed ...
+    }, [availableServices, pets, updateServices]); 
+    */
+
     const getIcon = (iconName) => {
-        const icons = { Truck, Plane, FileText, Box, Car, Stethoscope, Check, Home, User, CheckCircle };
+        const icons = { Truck, Plane, FileText, Box, Car, Stethoscope, Check, Home, User, CheckCircle, Dog, Cat, PawPrint, Briefcase };
         const IconComponent = icons[iconName] || Box;
         return <IconComponent size={24} />;
     };
 
-    // Use shared logic for type code
     const customerTypeCode = detectBookingContext(travelDetails.originCountry, travelDetails.destinationCountry);
 
-    // Helper for UI display details
     const getCustomerTypeDetails = (code) => {
         const types = {
             'export': { label: 'Export', color: 'bg-accent/15 text-orange-700 border-accent/50', title: 'International Export Services' },
@@ -68,13 +80,26 @@ export default function Step3Services() {
         return types[code] || types['local'];
     };
 
-    const handleServiceToggle = (service) => {
-        const newSelectedServices = selectedServices.includes(service.id)
-            ? selectedServices.filter(id => id !== service.id)
-            : [...selectedServices, service.id];
+    const handleToggle = (service, petId = null) => {
+        let newSelections = [...selectedServices];
 
-        const newSelectedData = availableServices.filter(s => newSelectedServices.includes(s.id));
-        updateServices(newSelectedServices, newSelectedData);
+        const existsIndex = newSelections.findIndex(s =>
+            s.serviceId === service.id && s.petId === petId
+        );
+
+        if (existsIndex >= 0) {
+            newSelections.splice(existsIndex, 1);
+        } else {
+            newSelections.push({
+                serviceId: service.id,
+                petId: petId,
+                quantity: 1
+            });
+        }
+
+        const allServiceIds = [...new Set(newSelections.map(s => s.serviceId))];
+        const newSelectedData = availableServices.filter(s => allServiceIds.includes(s.id));
+        updateServices(newSelections, newSelectedData);
     };
 
     if (loading) return <div className="text-center py-20 text-brand-text-02/80">Loading services...</div>;
@@ -84,9 +109,132 @@ export default function Step3Services() {
         ? travelDetails.transportMode.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
         : 'Manifest Cargo';
 
+    // Updated Service Card Component
+    const ServiceCard = ({ service }) => {
+        const ctx = service._ctx;
+        const petId = ctx.type === 'pet' ? ctx.petId : null;
+        const isSelected = selectedServices.some(s => s.serviceId === service.id && s.petId === petId);
+        const isMandatory = service.is_mandatory;
+        const isRecommended = service.is_recommended;
+
+        // Visual Variants
+        const isTrip = ctx.type === 'trip';
+
+        let headerColor = 'bg-brand-color-01';
+        let cardBorderColor = 'border-brand-color-01';
+        let HeaderIcon = PawPrint;
+        let headerTitle = isTrip ? 'Trip Essential' : `For ${ctx.petName}`;
+
+        if (isTrip) {
+            headerColor = 'bg-brand-color-03';
+            cardBorderColor = 'border-brand-color-03';
+            HeaderIcon = Plane;
+        } else {
+            const species = (ctx.speciesName || '').toLowerCase();
+            if (species.includes('dog')) {
+                headerColor = 'bg-blue-600';
+                cardBorderColor = 'border-blue-600';
+                HeaderIcon = Dog;
+            } else if (species.includes('cat')) {
+                headerColor = 'bg-purple-600';
+                cardBorderColor = 'border-purple-600';
+                HeaderIcon = Cat;
+            }
+        }
+
+        // Check Circle Logic
+        // Common: Yellow border (border-brand-color-04)
+        // Trip (Orange Header): Checked -> Brown fill (bg-brand-color-01)
+        // Pet (Blue/Purple/Brown Header): Checked -> Orange fill (bg-brand-color-03)
+
+        let checkCircleClasses = "w-5 h-5 rounded-full border-2 border-brand-color-04 flex items-center justify-center transition-all duration-300 ";
+        if (isSelected) {
+            if (isTrip) {
+                checkCircleClasses += "bg-brand-color-01"; // Brown fill
+            } else {
+                checkCircleClasses += "bg-brand-color-03"; // Orange fill
+            }
+        } else {
+            checkCircleClasses += "bg-white";
+        }
+
+        return (
+            <div
+                onClick={() => handleToggle(service, petId)}
+                className={`
+                    relative rounded-xl cursor-pointer transition-all duration-300 ease-in-out group select-none h-full flex flex-col overflow-hidden bg-white
+                    ${isSelected
+                        ? `border-[2px] ${cardBorderColor} shadow-lg scale-[1.02]`
+                        : 'border border-brand-text-02/10 shadow-sm hover:shadow-md hover:-translate-y-1'
+                    }
+                    ${isMandatory ? 'opacity-90' : ''}
+                `}
+            >
+                {/* Header Bar */}
+                <div className={`h-9 flex items-center justify-between px-4 text-xs font-bold uppercase tracking-wide text-white ${headerColor}`}>
+                    <div className="flex items-center gap-2">
+                        <HeaderIcon size={14} />
+                        <span>{headerTitle}</span>
+                    </div>
+
+                    {/* Check Circle in Header */}
+                    <div className={checkCircleClasses}>
+                        {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}
+                    </div>
+                </div>
+
+                {isRecommended && (
+                    <div className="absolute top-11 right-2 bg-brand-color-03 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1 z-10">
+                        <Sparkles size={10} /> RECOMMENDED
+                    </div>
+                )}
+
+                <div className="p-4 flex flex-col flex-grow">
+                    {/* Title Row: Icon + Title */}
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="text-brand-color-01">
+                            {React.cloneElement(getIcon(service.icon), { size: 22 })}
+                        </div>
+                        <h3 className="text-brand-color-01 text-sm font-bold leading-tight flex-1">
+                            {service.name}
+                            {isMandatory && <span className="ml-2 text-[10px] uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded-full border-2 border-red-500 font-bold align-middle inline-block translate-y-[1px]">Mandatory</span>}
+                        </h3>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-xs leading-relaxed mb-3 text-brand-text-02/80 line-clamp-2 flex-grow">
+                        {service.short_description}
+                    </p>
+
+                    {/* Separator */}
+                    <div className="my-3 border-t border-brand-text-02/10"></div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] text-brand-text-02 font-medium">Our Price Starts from</span>
+                            <span className="text-sm font-bold text-brand-color-01">
+                                {service.base_price === 0 ? 'Free' : `AED ${service.base_price}`}
+                            </span>
+                        </div>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedServiceDetails(service);
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-brand-color-01/20 text-brand-color-01 bg-brand-color-02/30 hover:bg-brand-color-01 hover:text-white transition-all duration-300"
+                        >
+                            Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center mb-10">
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center mb-8">
                 <h2 className="text-brand-color-01 tracking-tight">Select Services</h2>
                 <div className="flex justify-center mt-3">
                     <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${typeDetails.color}`}>
@@ -99,62 +247,14 @@ export default function Step3Services() {
                 <p className="text-brand-text-02/80 mt-2">Customize your pet&apos;s journey based on your route</p>
             </div>
 
-            {/* Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {availableServices.map((service) => {
-                    const isSelected = selectedServices.includes(service.id);
-                    const isMandatory = service.isMandatory;
-
-                    return (
-                        <div
-                            key={service.id}
-                            onClick={() => handleServiceToggle(service)}
-                            className={`
-                                relative p-4 rounded-3xl cursor-pointer transition-all duration-300 ease-in-out group select-none
-                                ${isSelected
-                                    ? 'bg-brand-color-02 border-[0.5px] border-accent shadow-glow-accent scale-[1.02] ring-2 ring-accent/50'
-                                    : 'bg-brand-color-02/10 border-[0.5px] border-brand-color-04 shadow-level-1 hover:shadow-glow-accent hover:-translate-y-1'
-                                }
-                                ${isMandatory ? 'opacity-90' : ''}
-                            `}
-                        >
-                            <div className="flex items-start justify-between mb-4">
-                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm border ${isSelected ? 'bg-brand-color-04 border-brand-color-03' : 'bg-brand-color-02 border-brand-color-04'} text-brand-color-01 shadow-glow-accent group-hover:scale-105`}>
-                                    {React.cloneElement(getIcon(service.icon), {
-                                        className: 'text-brand-color-01',
-                                        size: 20
-                                    })}
-                                </div>
-                                <div className={`
-                                    w-8 h-8 rounded-full border-[0.5px] border-brand-color-04 flex items-center justify-center transition-all duration-300
-                                    ${isSelected ? 'bg-accent scale-110' : 'bg-white/50'}
-                                `}>
-                                    {isSelected && <Check size={16} className="text-white" strokeWidth={3} />}
-                                </div>
-                            </div>
-
-                            <h3 className="mb-1 transition-colors duration-300 text-brand-color-01 flex items-center gap-2 text-sm font-bold">
-                                {service.name}
-                                {isMandatory && <span className="text-[10px] uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold">Mandatory</span>}
-                            </h3>
-                            <p className="text-sm leading-relaxed mb-3 transition-colors duration-300 text-brand-color-01/80 line-clamp-2">
-                                {service.shortDescription}
-                            </p>
-
-                            <div className="flex items-center justify-end">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedServiceDetails(service);
-                                    }}
-                                    className="px-4 py-1.5 rounded-full text-xs font-bold border border-accent text-accent bg-white/50 hover:bg-accent hover:text-white transition-all duration-300 shadow-sm"
-                                >
-                                    View Details
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
+            {/* Unified Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allCards.map((service, index) => (
+                    <ServiceCard
+                        key={`${service.id}-${service._ctx.type === 'pet' ? service._ctx.petId : 'global'}-${index}`}
+                        service={service}
+                    />
+                ))}
             </div>
 
             {/* Service Details Modal */}
@@ -174,13 +274,13 @@ export default function Step3Services() {
                             </div>
                             <h3 className="text-gray-900 mb-2 text-sm font-bold flex items-center gap-2">
                                 {selectedServiceDetails.name}
-                                {selectedServiceDetails.isMandatory && <span className="text-[10px] uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold">Mandatory</span>}
+                                {selectedServiceDetails.is_mandatory && <span className="text-[10px] uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold">Mandatory</span>}
                             </h3>
                         </div>
 
                         <div className="space-y-4">
                             <div>
-                                <p className="text-brand-text-02 leading-relaxed text-xs">{selectedServiceDetails.longDescription}</p>
+                                <p className="text-brand-text-02 leading-relaxed text-xs">{selectedServiceDetails.long_description}</p>
                             </div>
 
                             {selectedServiceDetails.requirements && (

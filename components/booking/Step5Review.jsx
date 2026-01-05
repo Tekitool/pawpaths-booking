@@ -349,7 +349,10 @@ const Step5Review = forwardRef((props, ref) => {
                         <h4 className="text-brand-text-02/60 uppercase tracking-wider mb-4 text-xs">Selected Services</h4>
                         <div className="space-y-0.5">
                             {(() => {
-                                const validServices = (services || []).filter(id => getServiceDetails(id));
+                                const validServices = (services || []).filter(s => {
+                                    const id = typeof s === 'string' ? s : s.serviceId;
+                                    return getServiceDetails(id);
+                                });
 
                                 if (validServices.length === 0) {
                                     return (
@@ -357,14 +360,58 @@ const Step5Review = forwardRef((props, ref) => {
                                     );
                                 }
 
-                                return validServices.map(serviceId => {
+                                // Deduplicate services and filter out invalid entries
+                                const uniqueServices = [];
+                                const seen = new Set();
+                                validServices.forEach(s => {
+                                    const sId = typeof s === 'string' ? s : s.serviceId;
+                                    const pId = typeof s === 'object' ? s.petId : null;
+                                    const service = getServiceDetails(sId);
+
+                                    // Filter out "ghost" entries: 
+                                    // If a service is strictly per-pet but has no petId, it's invalid state -> skip it.
+                                    if (service && service.scope === 'per_pet' && !pId) {
+                                        return;
+                                    }
+
+                                    const key = `${sId}-${pId || 'global'}`;
+                                    if (!seen.has(key)) {
+                                        seen.add(key);
+                                        uniqueServices.push(s);
+                                    }
+                                });
+
+                                return uniqueServices.map((s, idx) => {
+                                    const serviceId = typeof s === 'string' ? s : s.serviceId;
+                                    const petId = typeof s === 'object' ? s.petId : null;
                                     const service = getServiceDetails(serviceId);
+
+                                    // Find pet name if petId exists
+                                    let pet = null;
+                                    if (petId) {
+                                        pet = pets.find(p => p.id === petId);
+                                        // Fallback for legacy temp IDs
+                                        if (!pet && typeof petId === 'string' && petId.startsWith('temp-pet-')) {
+                                            const index = parseInt(petId.split('-')[2], 10);
+                                            if (!isNaN(index) && pets[index]) {
+                                                pet = pets[index];
+                                            }
+                                        }
+                                    }
+
                                     return (
-                                        <div key={serviceId} className="flex items-center gap-2 p-1.5 rounded-lg bg-brand-color-02/5 border border-brand-color-02/10 text-brand-text-02 font-medium w-full hover:bg-brand-color-02 hover:border-brand-color-04 transition-colors">
-                                            <div className="p-1.5 bg-brand-color-02/10 rounded-lg text-brand-color-01">
+                                        <div key={`${serviceId}-${idx}`} className="flex items-center gap-2 p-2 rounded-lg bg-brand-color-02/5 border border-brand-color-02/10 text-brand-text-02 font-medium w-full hover:bg-brand-color-02 hover:border-brand-color-04 transition-colors">
+                                            <div className="p-1.5 bg-brand-color-02/10 rounded-lg text-brand-color-01 shrink-0">
                                                 <CheckCircle size={14} />
                                             </div>
-                                            <span className="text-sm">{service.name}</span>
+                                            <div className="flex items-center flex-wrap gap-1">
+                                                <span className="text-sm">{service.name}</span>
+                                                {pet && (
+                                                    <span className="text-sm text-brand-text-02/70 font-normal">
+                                                        (For {pet.name})
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 });

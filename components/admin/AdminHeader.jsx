@@ -2,15 +2,17 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { LogOut, User, ChevronDown } from 'lucide-react';
+import { LogOut, User, ChevronDown, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
 import GlobalSearch from '../dashboard/GlobalSearch';
 
 export default function AdminHeader({ user }) {
     const router = useRouter();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const dropdownRef = useRef(null);
 
     // Close dropdown when clicking outside
@@ -27,8 +29,32 @@ export default function AdminHeader({ user }) {
     }, [dropdownRef]);
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
-        router.push('/login');
+        setIsLoggingOut(true);
+        try {
+            // Sign out from Supabase
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+                console.error('Logout error:', error);
+                toast.error('Failed to logout. Please try again.');
+                setIsLoggingOut(false);
+                return;
+            }
+
+            // Clear any local storage items
+            localStorage.removeItem('adminSidebarCollapsed');
+
+            // Show success message
+            toast.success('Logged out successfully');
+
+            // Redirect to login page
+            router.push('/login');
+            router.refresh();
+        } catch (error) {
+            console.error('Unexpected logout error:', error);
+            toast.error('An unexpected error occurred');
+            setIsLoggingOut(false);
+        }
     };
 
     // Construct local avatar path if not provided
@@ -46,6 +72,7 @@ export default function AdminHeader({ user }) {
                 <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center gap-3 focus:outline-none group"
+                    disabled={isLoggingOut}
                 >
                     {/* Name removed from here as requested */}
 
@@ -80,10 +107,20 @@ export default function AdminHeader({ user }) {
                         <div className="p-2">
                             <button
                                 onClick={handleLogout}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error hover:bg-error/10 rounded-xl transition-colors font-medium active:bg-error/10"
+                                disabled={isLoggingOut}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 hover:border-red-300 rounded-xl transition-all duration-200 font-medium active:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <LogOut size={16} />
-                                Logout
+                                {isLoggingOut ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        Logging out...
+                                    </>
+                                ) : (
+                                    <>
+                                        <LogOut size={16} />
+                                        Logout
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

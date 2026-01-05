@@ -50,9 +50,9 @@ export default function Step1Travel({ countriesList = [] }) {
         }
 
         return [
+            { value: 'manifest_cargo', label: 'Manifest Cargo (Unaccompanied)' },
             { value: 'in_cabin', label: 'In Cabin (Accompanied)' },
             { value: 'excess_baggage', label: 'Excess Baggage (Accompanied)' },
-            { value: 'manifest_cargo', label: 'Manifest Cargo (Unaccompanied)' },
             { value: 'private_charter', label: 'Private Charter (VIP)' },
         ];
     }, [travelDetails.originCountry, travelDetails.destinationCountry]);

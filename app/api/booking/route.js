@@ -212,18 +212,24 @@ export async function POST(req) {
         }
 
         // 4. Link Services
-        for (const serviceId of services) {
+        // 4. Link Services
+        for (const s of services) {
+            // Handle both legacy string[] and new object[] format
+            const serviceId = typeof s === 'string' ? s : s.serviceId;
+            const petId = typeof s === 'object' ? s.petId : null;
+            const quantity = typeof s === 'object' ? (s.quantity || 1) : 1;
+
             // We need the UUID of the service from service_catalog.
             // The form sends service IDs (which might be UUIDs or legacy IDs).
             // If they are UUIDs, we can insert directly.
-            // If not, we might fail. Assuming they are UUIDs from the new service catalog.
             await supabaseAdmin
                 .from('booking_services')
                 .insert({
                     booking_id: booking.id,
                     service_id: serviceId,
-                    quantity: 1,
-                    unit_price: 0 // Fetch price? Or set 0 for enquiry.
+                    quantity: quantity,
+                    unit_price: 0, // Fetch price? Or set 0 for enquiry.
+                    pet_id: petId // Insert specific pet ID if applicable
                 });
         }
 

@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { detectBookingContext } from '@/utils/bookingLogic';
+import { Service } from '@/types/service';
 
 export function useAvailableServices(travelDetails: any, pets: any[]) {
-    const [services, setServices] = useState<any[]>([]);
+    const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchServices = async () => {
             setLoading(true);
             try {
-                // 1. Fetch Services
-                const { data: servicesData, error: servicesError } = await supabase
-                    .from('service_catalog')
-                    .select('*')
-                    .eq('is_active', true);
+                // 1. Prepare RPC Arguments
+                const serviceType = detectBookingContext(travelDetails.originCountry, travelDetails.destinationCountry);
+                const transportMode = travelDetails.transportMode || 'manifest_cargo';
 
-                if (servicesError) throw servicesError;
-
-                // 2. Fetch Species to map IDs to Names (if pets exist)
+                // Map pets to species names for filtering
                 let speciesMap = new Map<string, string>();
                 if (pets && pets.length > 0) {
                     const { data: speciesData } = await supabase
@@ -30,40 +27,31 @@ export function useAvailableServices(travelDetails: any, pets: any[]) {
                     }
                 }
 
-                // 3. Client-side Filtering
-                const serviceType = detectBookingContext(travelDetails.originCountry, travelDetails.destinationCountry);
-                const transportMode = travelDetails.transportMode || 'manifest_cargo';
-
                 const userSpecies = pets.map(p => {
-                    // Try to get name from map, or use p.speciesName if available, or fallback
                     return speciesMap.get(String(p.species_id)) || p.speciesName || '';
                 }).filter(Boolean);
 
-                const filtered = servicesData.filter(service => {
-                    // A. Service Type Logic
-                    // Empty = All. Otherwise must include detected type.
-                    const typeMatch = !service.valid_service_types || service.valid_service_types.length === 0 || service.valid_service_types.includes(serviceType);
+                // Unique species list for RPC
+                const uniqueSpecies = [...new Set(userSpecies)];
 
-                    // B. Transport Mode Logic
-                    // Empty = All. Otherwise must include user's mode.
-                    const modeMatch = !service.valid_transport_modes || service.valid_transport_modes.length === 0 || service.valid_transport_modes.includes(transportMode);
-
-                    // C. Species Logic
-                    // Empty = All. Otherwise must overlap with user's pets.
-                    let speciesMatch = true;
-                    if (service.valid_species && service.valid_species.length > 0) {
-                        if (userSpecies.length === 0) {
-                            speciesMatch = false;
-                        } else {
-                            // Check for intersection
-                            speciesMatch = service.valid_species.some((s: string) => userSpecies.includes(s));
-                        }
-                    }
-
-                    return typeMatch && modeMatch && speciesMatch;
+                console.log('Fetching services via RPC:', {
+                    target_type: serviceType,
+                    target_mode: transportMode,
+                    pet_species: uniqueSpecies
                 });
 
-                setServices(filtered);
+                // 2. Call the Smart Filter RPC
+                const { data: filteredServices, error } = await supabase
+                    .rpc('get_valid_services', {
+                        target_type: serviceType,
+                        target_mode: transportMode,
+                        pet_species: uniqueSpecies
+                    });
+
+                if (error) throw error;
+
+                setServices(filteredServices || []);
+
             } catch (err) {
                 console.error('Error fetching services:', err);
             } finally {

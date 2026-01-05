@@ -29,6 +29,7 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
         if (!initialized.current && pets.length === 0) {
             initialized.current = true;
             addPet({
+                id: crypto.randomUUID(),
                 species_id: '',
                 breed_id: '',
                 name: '',
@@ -43,9 +44,19 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
     const handlePetChange = (index, field, value) => {
         // If species changes, reset breed
         if (field === 'species_id') {
-            updatePet(index, { [field]: parseInt(value) || '', breed_id: '' });
+            const selectedSpecies = speciesList.find(s => s.id === parseInt(value));
+            updatePet(index, {
+                [field]: parseInt(value) || '',
+                speciesName: selectedSpecies ? selectedSpecies.name : '',
+                breed_id: '',
+                breedName: ''
+            });
         } else if (field === 'breed_id') {
-            updatePet(index, { [field]: parseInt(value) || '' });
+            const selectedBreed = breedsList.find(b => b.id === parseInt(value));
+            updatePet(index, {
+                [field]: parseInt(value) || '',
+                breedName: selectedBreed ? selectedBreed.name : ''
+            });
         } else {
             updatePet(index, { [field]: value });
         }
@@ -53,6 +64,7 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
 
     const handleAddPet = () => {
         addPet({
+            id: crypto.randomUUID(),
             species_id: '',
             breed_id: '',
             name: '',
