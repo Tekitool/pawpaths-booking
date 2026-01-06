@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Upload, ScanFace, Dog, Cat, AlertCircle, CheckCircle2, Info, Sparkles, RefreshCw, Ban, Wind } from 'lucide-react';
+import { Upload, ScanFace, Dog, Cat, AlertCircle, CheckCircle2, Info, Sparkles, RefreshCw, Ban, Wind, MessageCircle, ExternalLink } from 'lucide-react';
 
 type BreedData = {
     breed_name: string;
@@ -11,9 +11,15 @@ type BreedData = {
     description: string;
     average_weight: string;
     lifespan: string;
-    fun_fact: string;
     is_brachycephalic: boolean;
     is_banned_breed: boolean;
+    // New Pawpaths Intelligence Fields
+    travel_complexity_rating: number;
+    travel_complexity_note: string;
+    estimated_crate_series: string;
+    marketing_hook: string;
+    relocation_challenges: string[];
+    pawpaths_advantage: string;
 };
 
 export default function BreedIdentifierPage() {
@@ -380,20 +386,176 @@ export default function BreedIdentifierPage() {
                         </div>
                     </div>
 
-                    {/* Fun Fact Card */}
-                    <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-3xl p-6 border border-brand-text-02/5 flex gap-4 items-start">
-                        <div className="p-3 bg-white rounded-full shadow-sm text-primary flex-shrink-0">
-                            <Info size={20} />
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-brand-text-02 mb-1">Did you know?</h4>
-                            <p className="text-sm text-brand-text-02/60 leading-relaxed">
-                                {resultData?.fun_fact || 'Golden Retrievers are often used as guide dogs for the blind and hearing dogs for the deaf due to their intelligence and trainability.'}
-                            </p>
-                        </div>
-                    </div>
+
+
 
                 </div>
+
+                {/* Full-Width Expert Analysis Section - 2 Column Dashboard */}
+                {state === 'result' && resultData && (
+                    <div className="mt-12 animate-fade-in col-span-1 lg:col-span-2">
+                        {/* Premium Golden Border */}
+                        <div className="bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 p-[2px] rounded-3xl shadow-2xl">
+                            {/* Main Container with Sophisticated Gradient */}
+                            <div className="bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rounded-[22px] p-8 md:p-10">
+
+                                {/* Section Header - Premium Styling */}
+                                <div className="text-center mb-12 relative">
+                                    {/* Glowing Background Effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-brand-color-01/5 via-brand-color-03/10 to-brand-color-01/5 blur-3xl -z-10 rounded-full"></div>
+
+                                    <div className="inline-flex items-center justify-center gap-3 mb-4 px-6 py-3 bg-gradient-to-r from-brand-color-01 to-brand-color-01/80 rounded-full shadow-lg shadow-brand-color-01/20">
+                                        <Sparkles className="w-6 h-6 text-amber-300 animate-pulse" />
+                                        <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                                            Pawpaths Expert Analysis
+                                        </h3>
+                                        <Sparkles className="w-6 h-6 text-amber-300 animate-pulse" />
+                                    </div>
+
+                                    {/* Marketing Hook with Gold Accent */}
+                                    <div className="relative max-w-3xl mx-auto mt-6">
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-1 bg-gradient-to-r from-transparent to-amber-400 rounded-full"></div>
+                                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-1 bg-gradient-to-l from-transparent to-amber-400 rounded-full"></div>
+                                        <p className="text-lg md:text-xl text-brand-text-02/70 leading-relaxed font-medium italic px-16">
+                                            "{resultData.marketing_hook}"
+                                        </p>
+                                    </div>
+                                </div>
+
+
+                                {/* Top Row: Complexity & Crate Side-by-Side */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                                    {/* Travel Complexity Card */}
+                                    <div className={`rounded-2xl p-6 border-2 relative overflow-hidden group hover:shadow-xl transition-all ${resultData.travel_complexity_rating >= 8
+                                        ? 'bg-gradient-to-br from-emerald-50 to-green-100 border-green-200'
+                                        : resultData.travel_complexity_rating >= 5
+                                            ? 'bg-gradient-to-br from-amber-50 to-orange-100 border-orange-200'
+                                            : 'bg-gradient-to-br from-red-50 to-rose-100 border-red-200'
+                                        }`}>
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <AlertCircle size={80} />
+                                        </div>
+                                        <div className="relative z-10">
+                                            <div className="text-xs font-black text-slate-600 uppercase tracking-widest mb-2">Travel Complexity Score</div>
+                                            <div className="flex items-baseline gap-3">
+                                                <span className={`text-7xl font-black drop-shadow-md ${resultData.travel_complexity_rating >= 8 ? 'text-green-600' :
+                                                    resultData.travel_complexity_rating >= 5 ? 'text-orange-600' :
+                                                        'text-red-600'
+                                                    }`}>
+                                                    {resultData.travel_complexity_rating}
+                                                </span>
+                                                <span className="text-3xl text-slate-400 font-bold">/10</span>
+                                            </div>
+                                            <div className={`mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${resultData.travel_complexity_rating >= 8
+                                                ? 'bg-green-600 text-white'
+                                                : resultData.travel_complexity_rating >= 5
+                                                    ? 'bg-orange-600 text-white'
+                                                    : 'bg-red-600 text-white'
+                                                }`}>
+                                                <CheckCircle2 size={16} />
+                                                {resultData.travel_complexity_rating >= 8 ? 'Low Risk • Standard Protocols' :
+                                                    resultData.travel_complexity_rating >= 5 ? 'Moderate Risk • Requires Planning' :
+                                                        'High Risk • Expert Handling Required'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Crate Recommendation - Premium Cyan Gradient */}
+                                    <div className="bg-gradient-to-br from-cyan-600 via-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-2xl shadow-blue-600/30 relative overflow-hidden border-2 border-cyan-300/30">
+                                        {/* Animated Shimmer Effect */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"></div>
+                                        <div className="absolute -right-6 -bottom-6 opacity-10">
+                                            <Dog size={140} strokeWidth={1.5} />
+                                        </div>
+                                        <div className="relative z-10">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="text-cyan-100 text-xs font-black uppercase tracking-widest">Recommended Crate</div>
+                                                <div className="bg-amber-400 text-amber-900 px-3 py-1 rounded-full text-xs font-black flex items-center gap-1 shadow-lg">
+                                                    <CheckCircle2 size={12} /> IATA Approved
+                                                </div>
+                                            </div>
+                                            <div className="text-6xl md:text-7xl font-mono font-black tracking-tight drop-shadow-lg">
+                                                {resultData.estimated_crate_series}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bottom Row: Challenges (Left) & Solution (Right) */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* LEFT: Critical Considerations */}
+                                    <div className="flex flex-col gap-2 h-full">
+                                        <div className="flex items-center gap-2 text-orange-700/60 font-bold uppercase tracking-widest text-xs mb-2">
+                                            <Info size={14} />
+                                            Logistics Assessment
+                                        </div>
+
+                                        <div className="bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-50 rounded-2xl p-6 border-2 border-orange-200 shadow-lg flex-1 flex flex-col">
+                                            <h5 className="text-sm font-black text-orange-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                <AlertCircle size={18} className="text-orange-600" />
+                                                Critical Considerations
+                                            </h5>
+                                            <ul className="flex-1 flex flex-col justify-center gap-4">
+                                                {resultData.relocation_challenges?.map((challenge, idx) => (
+                                                    <li key={idx} className="text-sm text-slate-700 flex items-start gap-3 bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-orange-200/50 shadow-sm hover:shadow-md transition-shadow">
+                                                        <span className="text-orange-600 font-black text-2xl leading-none flex-shrink-0">•</span>
+                                                        <span className="leading-relaxed font-semibold pt-0.5">{challenge}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    {/* RIGHT: Solution */}
+                                    <div className="flex flex-col gap-2 h-full">
+                                        <div className="flex items-center gap-2 text-green-700/60 font-bold uppercase tracking-widest text-xs mb-2">
+                                            <CheckCircle2 size={14} />
+                                            Pawpaths Strategy
+                                        </div>
+
+                                        {/* 2. The Pawpaths Advantage - Rich Green */}
+                                        <div className="bg-gradient-to-br from-emerald-100 via-green-50 to-teal-50 rounded-2xl p-6 border-2 border-green-200 shadow-lg flex-1 flex flex-col justify-center">
+                                            <h5 className="text-sm font-black text-green-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                <Sparkles size={18} className="text-green-600" />
+                                                Our Solution
+                                            </h5>
+                                            <p className="text-slate-700 leading-relaxed font-semibold text-base">
+                                                {resultData.pawpaths_advantage}
+                                            </p>
+                                        </div>
+
+                                        {/* 3. WhatsApp CTA */}
+                                        {(() => {
+                                            const message = `Hi Pawpaths! I just used your AI Breed Scanner. It identified my ${resultData.species} as a ${resultData.breed_name} (${resultData.estimated_crate_series}). I need help planning their relocation!`;
+                                            const whatsappUrl = `https://wa.me/971586947755?text=${encodeURIComponent(message)}`;
+
+                                            return (
+                                                <a
+                                                    href={whatsappUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block w-full bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 hover:from-green-500 hover:via-green-600 hover:to-emerald-500 text-white p-5 rounded-2xl shadow-xl shadow-green-600/40 hover:shadow-2xl hover:shadow-green-600/50 hover:-translate-y-1.5 transition-all duration-300 group relative overflow-hidden"
+                                                >
+                                                    {/* Animated shine effect */}
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"></div>
+                                                    <div className="flex items-center justify-center gap-3 relative z-10">
+                                                        <MessageCircle size={28} className="group-hover:scale-110 group-hover:rotate-12 transition-transform" />
+                                                        <div className="text-center">
+                                                            <div className="text-xs text-green-100 font-bold tracking-wide">Ready to move?</div>
+                                                            <div className="text-xl font-black leading-tight">Get Personalized Quote</div>
+                                                        </div>
+                                                        <ExternalLink size={20} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                </a>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

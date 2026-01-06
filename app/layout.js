@@ -4,6 +4,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
+  metadataBase: new URL('https://pawpaths-booking.vercel.app'),
   title: "Pawpaths Pets Relocation Services | Book Your Pet's Travel",
   description: "Professional pet relocation services. Book your pet's safe journey with Pawpaths. International pet transport specialists.",
   icons: {
