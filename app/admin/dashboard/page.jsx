@@ -5,11 +5,12 @@ import RecentEnquiries from '../../../components/dashboard/RecentEnquiries';
 import StatsGrid from '../../../components/dashboard/StatsGrid';
 import CurrentDate from '../../../components/dashboard/CurrentDate';
 import { createClient } from '@/lib/supabase/server';
+import { STATUS_GROUPS, ALL_ACTIVE_STATUSES } from '@/lib/constants/booking-statuses';
 
 export default async function DashboardPage() {
     const supabase = await createClient();
 
-    // Parallel Data Fetching
+    // Parallel Data Fetching using canonical status groupings
     const [
         { count: totalCount },
         { count: pendingCount },
@@ -18,9 +19,9 @@ export default async function DashboardPage() {
         { data: recentEnquiries }
     ] = await Promise.all([
         supabase.from('bookings').select('*', { count: 'exact', head: true }),
-        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('bookings').select('*', { count: 'exact', head: true }).in('status', ['confirmed', 'in_progress']),
-        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).in('status', STATUS_GROUPS.PENDING),
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).in('status', ALL_ACTIVE_STATUSES),
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).in('status', STATUS_GROUPS.COMPLETED),
         supabase.from('bookings')
             .select(`
                 id,

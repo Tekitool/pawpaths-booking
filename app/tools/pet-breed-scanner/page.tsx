@@ -417,7 +417,7 @@ export default function BreedIdentifierPage() {
                                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-1 bg-gradient-to-r from-transparent to-amber-400 rounded-full"></div>
                                         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-1 bg-gradient-to-l from-transparent to-amber-400 rounded-full"></div>
                                         <p className="text-lg md:text-xl text-brand-text-02/70 leading-relaxed font-medium italic px-16">
-                                            "{resultData.marketing_hook}"
+                                            &quot;{resultData.marketing_hook}&quot;
                                         </p>
                                     </div>
                                 </div>

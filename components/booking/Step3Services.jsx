@@ -222,7 +222,7 @@ export default function Step3Services() {
                                 e.stopPropagation();
                                 setSelectedServiceDetails(service);
                             }}
-                            className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-brand-color-01/20 text-brand-color-01 bg-brand-color-02/30 hover:bg-brand-color-01 hover:text-white transition-all duration-300"
+                            className="px-3 py-2 rounded-lg text-xs font-bold border border-brand-color-01/20 text-brand-color-01 bg-brand-color-02/30 hover:bg-brand-color-01 hover:text-white transition-all duration-300 min-h-[36px]"
                         >
                             Details
                         </button>
@@ -259,11 +259,11 @@ export default function Step3Services() {
 
             {/* Service Details Modal */}
             {selectedServiceDetails && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedServiceDetails(null)}>
-                    <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-lg w-full border border-brand-text-02/20 relative animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedServiceDetails(null)}>
+                    <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 w-full sm:max-w-lg border border-brand-text-02/20 relative animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                         <button
                             onClick={() => setSelectedServiceDetails(null)}
-                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-accent border-[0.5px] border-brand-color-04 text-white hover:bg-accent/90 transition-all shadow-sm"
+                            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-accent border-[0.5px] border-brand-color-04 text-white hover:bg-accent/90 transition-all shadow-sm"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>

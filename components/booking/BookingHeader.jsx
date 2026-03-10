@@ -11,15 +11,16 @@ export default function BookingHeader() {
     const showBackButton = pathname?.startsWith('/tools/');
 
     return (
-        <header className="bg-brand-color-02 backdrop-blur-xl border-b border-white/50 sticky top-0 z-50 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <header className="bg-brand-color-02 backdrop-blur-xl border-b border-white/50 sticky top-0 z-50 shadow-sm pt-[env(safe-area-inset-top)]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
                 {/* Left: Logo & Back Button */}
                 <div className="flex items-center gap-4">
-                    <div className="relative w-48 h-16 transition-transform duration-300 hover:scale-105">
+                    <div className="relative w-32 h-12 sm:w-48 sm:h-16 transition-transform duration-300 hover:scale-105">
                         <Image
                             src="/logo.png"
                             alt="Pawpaths Logo"
                             fill
+                            sizes="(max-width: 640px) 128px, 192px"
                             className="object-contain object-left"
                             priority
                         />
@@ -55,7 +56,7 @@ export default function BookingHeader() {
 
                     <Link
                         href="/admin/dashboard"
-                        className="p-2 text-accent hover:text-accent hover:bg-accent/15 rounded-full transition-all duration-300 flex-shrink-0"
+                        className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-accent hover:text-accent hover:bg-accent/15 rounded-full transition-all duration-300 flex-shrink-0"
                         aria-label="Dashboard"
                     >
                         <Settings size={24} />

@@ -5,7 +5,7 @@ import useBookingStore from '@/lib/store/booking-store';
 import { COUNTRIES } from '@/lib/constants/countries';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, Phone, CreditCard, Plane, PlaneLanding, PlaneTakeoff } from 'lucide-react';
+import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, Phone, CreditCard, Plane, PlaneLanding, PlaneTakeoff, MessageCircle, ChevronDown, ChevronUp, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { submitEnquiry } from '@/app/booking/actions';
 import { toast } from '@/hooks/use-toast';
@@ -20,6 +20,7 @@ const Step5Review = forwardRef((props, ref) => {
     const [showError, setShowError] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [showValidationModal, setShowValidationModal] = useState(false);
+    const [showAddress, setShowAddress] = useState(false);
 
     const { speciesList = [], breedsList = [] } = props;
 
@@ -48,6 +49,24 @@ const Step5Review = forwardRef((props, ref) => {
         if (updateContactInfo) {
             updateContactInfo({ [name]: value });
         }
+    };
+
+    // Handle Address field changes (nested object)
+    const handleAddressChange = (e) => {
+        const { name, value } = e.target;
+        if (updateContactInfo) {
+            updateContactInfo({
+                address: {
+                    ...(contactInfo?.address || {}),
+                    [name]: value,
+                }
+            });
+        }
+    };
+
+    // Handle WhatsApp same-as-phone toggle
+    const handleWhatsAppToggle = () => {
+        updateContactInfo({ whatsappSameAsPhone: !contactInfo?.whatsappSameAsPhone });
     };
 
     // Calculate Total
@@ -241,15 +260,111 @@ const Step5Review = forwardRef((props, ref) => {
                                 icon={<Mail size={18} className="text-brand-color-01" />}
                                 className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
+
+                            {/* WhatsApp Number */}
+                            <div className="md:col-span-2 space-y-3">
+                                <div className="flex items-center gap-3 min-h-[44px]">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none min-h-[44px] py-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={contactInfo?.whatsappSameAsPhone ?? true}
+                                            onChange={handleWhatsAppToggle}
+                                            className="w-4 h-4 rounded border-brand-text-02/30 text-brand-color-01 focus:ring-brand-color-01"
+                                        />
+                                        <span className="text-sm text-brand-text-02 font-medium flex items-center gap-1.5">
+                                            <MessageCircle size={14} className="text-green-600" />
+                                            WhatsApp same as phone number
+                                        </span>
+                                    </label>
+                                </div>
+                                {!contactInfo?.whatsappSameAsPhone && (
+                                    <Input
+                                        id="whatsapp"
+                                        name="whatsapp"
+                                        type="tel"
+                                        label="WhatsApp Number"
+                                        value={contactInfo?.whatsapp || ''}
+                                        onChange={handleContactChange}
+                                        placeholder="e.g. +971 50 123 4567"
+                                        icon={<MessageCircle size={18} className="text-green-600" />}
+                                        className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300 animate-in fade-in slide-in-from-top-2 duration-300"
+                                    />
+                                )}
+                            </div>
+
+                            {/* Address Section (Collapsible) */}
+                            <div className="md:col-span-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddress(!showAddress)}
+                                    className="flex items-center gap-2 text-sm font-medium text-brand-color-01 hover:text-brand-color-01/80 transition-colors duration-200 min-h-[44px] py-2"
+                                >
+                                    {showAddress ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                    <Home size={14} />
+                                    <span>Add Address (Optional)</span>
+                                </button>
+
+                                {showAddress && (
+                                    <div className="mt-4 pt-4 border-t border-brand-text-02/10 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="md:col-span-2">
+                                            <Input
+                                                id="address-street"
+                                                name="street"
+                                                label="Street Address"
+                                                value={contactInfo?.address?.street || ''}
+                                                onChange={handleAddressChange}
+                                                placeholder="e.g. 123 Sheikh Zayed Road"
+                                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
+                                            />
+                                        </div>
+                                        <Input
+                                            id="address-city"
+                                            name="city"
+                                            label="City"
+                                            value={contactInfo?.address?.city || contactInfo?.city || ''}
+                                            onChange={handleAddressChange}
+                                            placeholder="e.g. Dubai"
+                                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
+                                        />
+                                        <Input
+                                            id="address-state"
+                                            name="state"
+                                            label="State / Region"
+                                            value={contactInfo?.address?.state || ''}
+                                            onChange={handleAddressChange}
+                                            placeholder="e.g. Dubai"
+                                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
+                                        />
+                                        <Input
+                                            id="address-country"
+                                            name="country"
+                                            label="Country"
+                                            value={contactInfo?.address?.country || ''}
+                                            onChange={handleAddressChange}
+                                            placeholder="e.g. United Arab Emirates"
+                                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
+                                        />
+                                        <Input
+                                            id="address-postalCode"
+                                            name="postalCode"
+                                            label="Postal Code"
+                                            value={contactInfo?.address?.postalCode || ''}
+                                            onChange={handleAddressChange}
+                                            placeholder="e.g. 00000"
+                                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </section>
                 </div>
             </div>
 
             {/* Travel & Pet Details Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-8">
                 {/* Travel Details Section */}
-                <section className="lg:col-span-7 bg-system-color-03/5 backdrop-blur-xl border-[0.5px] border-system-color-03/30 shadow-glow-info rounded-3xl p-6 hover:shadow-glow-info hover:shadow-lg transition-all duration-300 group h-full">
+                <section className="md:col-span-7 bg-system-color-03/5 backdrop-blur-xl border-[0.5px] border-system-color-03/30 shadow-glow-info rounded-3xl p-4 sm:p-6 hover:shadow-glow-info hover:shadow-lg transition-all duration-300 group h-full">
                     <h3 className="text-blue-600 mb-6 flex items-center gap-4 border-b border-brand-text-02/20 pb-4">
                         <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform duration-300">
                             <MapPin size={22} />
@@ -297,7 +412,7 @@ const Step5Review = forwardRef((props, ref) => {
                 </section>
 
                 {/* Pets Section */}
-                <section className="lg:col-span-5 bg-brand-text-03/5 backdrop-blur-xl border-[0.5px] border-brand-text-03/20 shadow-glow-accent rounded-3xl p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group h-full">
+                <section className="md:col-span-5 bg-brand-text-03/5 backdrop-blur-xl border-[0.5px] border-brand-text-03/20 shadow-glow-accent rounded-3xl p-4 sm:p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group h-full">
                     <h3 className="text-brand-text-03 mb-6 flex items-center gap-4 border-b border-brand-text-02/20 pb-4">
                         <div className="p-3 bg-brand-text-03/10 border border-brand-text-03/30 rounded-2xl text-brand-text-03 group-hover:scale-110 transition-transform duration-300">
                             <Dog size={22} />

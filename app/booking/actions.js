@@ -58,6 +58,11 @@ export async function submitEnquiry(formData) {
         if (existingCustomers && existingCustomers.length > 0) {
             customerId = existingCustomers[0].id
         } else {
+            // Resolve WhatsApp number
+            const whatsappNumber = contactInfo.whatsappSameAsPhone
+                ? contactInfo.phone
+                : (contactInfo.whatsapp || contactInfo.phone);
+
             // Create new customer
             const { data: newCustomer, error: createError } = await supabase
                 .from('entities')
@@ -68,7 +73,10 @@ export async function submitEnquiry(formData) {
                     contact_info: {
                         email: contactInfo.email,
                         phone: contactInfo.phone,
-                        city: contactInfo.city
+                        whatsapp: whatsappNumber,
+                        address: contactInfo.address?.street
+                            ? contactInfo.address
+                            : (contactInfo.city || null),
                     }
                 })
                 .select('id')
@@ -96,6 +104,13 @@ export async function submitEnquiry(formData) {
                 dbGender = 'Unknown';
             }
 
+            // Fix B1: Properly convert age + ageUnit
+            const ageNum = Number(pet.age) || 0;
+            const ageUnit = pet.ageUnit || 'years';
+            const ageYears = ageUnit === 'months' ? Math.floor(ageNum / 12) : ageNum;
+            const ageMonths = ageUnit === 'months' ? ageNum : ageNum * 12;
+            const hasDob = !!pet.date_of_birth;
+
             const { data: newPet, error: petError } = await supabase
                 .from('pets')
                 .insert({
@@ -105,8 +120,13 @@ export async function submitEnquiry(formData) {
                     breed_id: parseInt(pet.breed_id) || null,
                     gender: dbGender,
                     weight_kg: parseFloat(pet.weight) || 0,
-                    age_years: parseInt(pet.age) || 0, // Assuming age is years for now or we parse unit
-                    medical_alerts: pet.specialRequirements ? [pet.specialRequirements] : [], // Store as JSONB array
+                    age_years: ageYears,
+                    age_months: ageMonths,
+                    microchip_id: pet.microchip_id || null,
+                    passport_number: pet.passport_number || null,
+                    date_of_birth: pet.date_of_birth || null,
+                    is_dob_estimated: !hasDob,
+                    medical_alerts: pet.medical_alerts ? [pet.medical_alerts] : (pet.specialRequirements ? [pet.specialRequirements] : []),
                 })
                 .select('id')
                 .single()
@@ -178,11 +198,20 @@ export async function submitEnquiry(formData) {
                 status: 'enquiry',
                 service_type: serviceType,
                 transport_mode: travelDetails.transportMode || 'manifest_cargo',
+                traveling_with_pet: travelDetails.travelingWithPet || false,
+                number_of_pets: pets.length,
                 scheduled_departure_date: travelDetails.travelDate,
                 origin_node_id: originNodeId,
                 destination_node_id: destinationNodeId,
-                origin_node_id: originNodeId,
-                destination_node_id: destinationNodeId,
+                origin_raw: {
+                    country: travelDetails.originCountry,
+                    airport: travelDetails.originAirport
+                },
+                destination_raw: {
+                    country: travelDetails.destinationCountry,
+                    airport: travelDetails.destinationAirport
+                },
+                customer_contact_snapshot: contactInfo,
                 internal_notes: `Origin: ${travelDetails.originCountry} (${travelDetails.originAirport})\nDestination: ${travelDetails.destinationCountry} (${travelDetails.destinationAirport})`,
                 // File Uploads
                 pet_photo_path: formData.pet_photo_path || null,

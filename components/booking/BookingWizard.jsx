@@ -73,7 +73,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+        <div className="min-h-[100dvh] bg-gradient-to-br from-gray-50 via-white to-gray-50">
             <ServiceLimitationModal
                 isOpen={isLimitationModalOpen}
                 onClose={() => setIsLimitationModalOpen(false)}
@@ -85,7 +85,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
             />
             <BookingHeader />
 
-            <div className="py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            <div className="py-6 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
                 {/* Background Blobs */}
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-color-01/5 rounded-full blur-3xl -z-10 animate-pulse"></div>
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10 animate-pulse delay-1000"></div>
@@ -100,7 +100,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
                     </div>
 
                     {/* Premium Progress Bar */}
-                    <div className="relative mb-16 px-4">
+                    <div className="relative mb-10 sm:mb-16 px-4">
                         {/* Progress Bar Container */}
                         <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),0_8px_32px_rgba(0,0,0,0.2)] p-1.5 relative h-5 w-full z-0">
                             {/* Track Background (Dark) */}
@@ -124,7 +124,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
                                     <button
                                         onClick={() => setStep(step)}
                                         className={`
-                                            w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-500 relative
+                                            w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-500 relative
                                             backdrop-blur-md shadow-lg pointer-events-auto cursor-pointer
                                             hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80 hover:text-accent
                                             ${step <= currentStep
@@ -139,10 +139,10 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
                                         {step}
                                     </button>
 
-                                    {/* Label */}
+                                    {/* Label — hidden on small screens to prevent overflow */}
                                     <button
                                         onClick={() => setStep(step)}
-                                        className={`text-xs font-bold uppercase tracking-wider absolute -bottom-8 w-32 text-center transition-colors duration-300 pointer-events-auto cursor-pointer hover:text-accent ${step === currentStep
+                                        className={`text-xs font-bold uppercase tracking-wider absolute -bottom-8 w-32 text-center transition-colors duration-300 pointer-events-auto cursor-pointer hover:text-accent hidden sm:block ${step === currentStep
                                             ? 'text-accent'
                                             : step < currentStep
                                                 ? 'text-brand-color-01'
@@ -161,7 +161,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
                     </div>
                 </div>
 
-                <div className="bg-white/60 backdrop-blur-xl shadow-level-1 rounded-[2.5rem] p-8 md:p-12 border border-white/50 relative overflow-hidden max-w-5xl mx-auto">
+                <div className="bg-white/60 backdrop-blur-xl shadow-level-1 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-6 md:p-12 border border-white/50 relative overflow-hidden max-w-5xl mx-auto">
                     {/* Content Container */}
                     <div className="relative z-10">
                         {currentStep === 1 && <Step1Travel countriesList={countriesList} />}

@@ -27,7 +27,7 @@ export default function ValidationFailureModal({ isOpen, onClose, errors = {} })
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -43,17 +43,17 @@ export default function ValidationFailureModal({ isOpen, onClose, errors = {} })
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
-                        className="relative w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden z-10"
+                        className="relative w-full sm:max-w-lg bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-t-3xl sm:rounded-3xl overflow-hidden z-10 max-h-[90vh] overflow-y-auto"
                     >
                         {/* Decorative Elements */}
                         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-system-color-01/80 to-system-color-01" />
                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-error/100/10 rounded-full blur-3xl" />
                         <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
 
-                        <div className="p-8 relative">
+                        <div className="p-6 sm:p-8 relative">
                             {/* Icon */}
                             <div className="flex justify-center mb-8">
-                                <div className="relative w-32 h-32 flex items-center justify-center">
+                                <div className="relative w-20 h-20 sm:w-32 sm:h-32 flex items-center justify-center">
                                     {/* Rotating Ring */}
                                     <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,oklch(var(--status-error)),#FFFFFF,#000000,oklch(var(--status-error)))] animate-[spin_4s_linear_infinite] blur-[2px] opacity-80"></div>
 

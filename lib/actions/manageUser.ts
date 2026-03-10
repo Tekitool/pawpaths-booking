@@ -3,7 +3,23 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
-export async function createUserAction(formData: any) {
+interface UserFormData {
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    status: boolean;
+    password?: string;
+    avatar?: string;
+}
+
+interface ActionResult {
+    success: boolean;
+    message?: string;
+    userId?: string;
+}
+
+export async function createUserAction(formData: UserFormData): Promise<ActionResult> {
     try {
         const { firstName, lastName, email, role, status, password, avatar } = formData;
         const fullName = `${firstName} ${lastName}`.trim();
@@ -20,7 +36,6 @@ export async function createUserAction(formData: any) {
         if (!authData.user) throw new Error('Failed to create auth user');
 
         // 2. Insert into public.profiles
-        // Note: Triggers might handle this, but explicit insert ensures data sync if triggers fail or don't exist for all fields
         const { error: profileError } = await supabaseAdmin
             .from('profiles')
             .upsert({
@@ -28,34 +43,30 @@ export async function createUserAction(formData: any) {
                 full_name: fullName,
                 email,
                 role,
-                // status is usually managed via auth.users (banned/confirmed), but if we have a status column in profiles:
-                // Assuming 'status' in profiles is text 'Active'/'Suspended' or boolean
-                // User request says "Status: A sleek toggle switch for 'Active/Suspended'".
-                // Let's assume we store it in profiles for display, but also manage auth ban state.
                 avatar_url: avatar,
                 updated_at: new Date().toISOString(),
             });
 
         if (profileError) {
-            // If profile creation fails, we might want to cleanup auth user, but for now just throw
             console.error('Profile creation failed:', profileError);
             throw profileError;
         }
 
         // 3. Handle Status (Ban/Unban)
         if (status === false) {
-            await supabaseAdmin.auth.admin.updateUserById(authData.user.id, { ban_duration: '876000h' }); // Ban for 100 years
+            await supabaseAdmin.auth.admin.updateUserById(authData.user.id, { ban_duration: '876000h' });
         }
 
         revalidatePath('/admin/users');
         return { success: true, userId: authData.user.id };
-    } catch (error: any) {
-        console.error('Create User Error:', error);
-        return { success: false, message: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Create User Error:', message);
+        return { success: false, message };
     }
 }
 
-export async function updateUserAction(userId: string, formData: any) {
+export async function updateUserAction(userId: string, formData: UserFormData): Promise<ActionResult> {
     try {
         const { firstName, lastName, email, role, status, avatar } = formData;
         const fullName = `${firstName} ${lastName}`.trim();
@@ -75,8 +86,6 @@ export async function updateUserAction(userId: string, formData: any) {
                 role,
                 avatar_url: avatar,
                 updated_at: new Date().toISOString(),
-                // We update email in profile only if auth update succeeds, or we let auth update trigger it?
-                // Let's update it here for consistency if auth update is separate.
                 email: email
             })
             .eq('id', userId);
@@ -90,7 +99,6 @@ export async function updateUserAction(userId: string, formData: any) {
         }
 
         // 4. Update Status (Ban/Unban)
-        // Check current ban status? Or just force update.
         if (status === false) {
             await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: '876000h' });
         } else {
@@ -100,34 +108,37 @@ export async function updateUserAction(userId: string, formData: any) {
         revalidatePath('/admin/users');
         revalidatePath(`/admin/users/${userId}`);
         return { success: true };
-    } catch (error: any) {
-        console.error('Update User Error:', error);
-        return { success: false, message: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Update User Error:', message);
+        return { success: false, message };
     }
 }
 
-export async function deleteUserAction(userId: string) {
+export async function deleteUserAction(userId: string): Promise<ActionResult> {
     try {
         const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
         if (error) throw error;
 
         revalidatePath('/admin/users');
         return { success: true };
-    } catch (error: any) {
-        console.error('Delete User Error:', error);
-        return { success: false, message: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Delete User Error:', message);
+        return { success: false, message };
     }
 }
 
-export async function sendPasswordResetAction(email: string) {
+export async function sendPasswordResetAction(email: string): Promise<ActionResult> {
     try {
         const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
             redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/settings/security`,
         });
         if (error) throw error;
         return { success: true };
-    } catch (error: any) {
-        console.error('Password Reset Error:', error);
-        return { success: false, message: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Password Reset Error:', message);
+        return { success: false, message };
     }
 }

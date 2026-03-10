@@ -1,26 +1,23 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request) {
-    console.log('Middleware start: ' + request.nextUrl.pathname)
+export async function middleware(request: NextRequest) {
     let response = NextResponse.next({
         request: {
             headers: request.headers,
         },
     })
 
-    /*
     const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
                 getAll() {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    console.log('setAll called', cookiesToSet.length)
-                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
                     response = NextResponse.next({
                         request: {
                             headers: request.headers,
@@ -34,37 +31,42 @@ export async function middleware(request) {
         }
     )
 
-    console.log('Calling getUser')
-    const { data: { user }, error } = await supabase.auth.getUser()
-    console.log('getUser result:', user ? 'User found' : 'No user', error ? error.message : 'No error')
-    */
-    const user = null; // Simulate no user
+    const { data: { user } } = await supabase.auth.getUser()
 
     const path = request.nextUrl.pathname
 
-    // 2. DEFINE PROTECTED ROUTES
-    // The Dashboard is at the root "/"
-    const isDashboardRoute = path === '/' || path.startsWith('/dashboard')
+    // Public routes that don't require authentication
+    const publicRoutes = [
+        '/enquiry',
+        '/services',
+        '/tools',
+        '/api/booking',
+        '/api/tools',
+        '/api/health',
+        '/api/upload',
+        '/auth/callback',
+    ]
 
-    // 3. SECURITY LOGIC
+    const isPublicRoute = publicRoutes.some(route => path.startsWith(route))
 
-    // CASE A: User is NOT logged in and tries to access Dashboard
-    if (!user && isDashboardRoute) {
-        console.log('Redirecting to login')
+    // Protected admin/dashboard routes
+    const isProtectedRoute = path.startsWith('/admin') || path.startsWith('/dashboard')
+
+    // Redirect unauthenticated users from protected routes to login
+    if (!user && isProtectedRoute) {
         const loginUrl = request.nextUrl.clone()
         loginUrl.pathname = '/login'
+        loginUrl.searchParams.set('redirectTo', path)
         return NextResponse.redirect(loginUrl)
     }
 
-    // CASE B: User IS logged in and tries to access Login page (Redirect to Dash)
+    // Redirect authenticated users from login page to admin dashboard
     if (user && path.startsWith('/login')) {
-        console.log('Redirecting to dashboard')
         const dashUrl = request.nextUrl.clone()
-        dashUrl.pathname = '/'
+        dashUrl.pathname = '/admin/dashboard'
         return NextResponse.redirect(dashUrl)
     }
 
-    console.log('Returning response')
     return response
 }
 

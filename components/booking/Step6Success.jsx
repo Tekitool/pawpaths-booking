@@ -408,7 +408,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 py-12">
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 py-6 sm:py-12">
 
             <div className="text-center space-y-6">
                 <div className="flex justify-center">
@@ -434,15 +434,15 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                         </div>
                         Enquiry Summary
                     </h3>
-                    <span className="text-xl font-bold text-brand-color-01 font-mono bg-white/80 px-6 py-2 rounded-full border border-brand-color-01/20 shadow-sm">
+                    <span className="text-base sm:text-xl font-bold text-brand-color-01 font-mono bg-white/80 px-3 sm:px-6 py-2 rounded-full border border-brand-color-01/20 shadow-sm break-all">
                         {bookingReference ? `#${bookingReference}` : 'Processing...'}
                     </span>
                 </div>
 
                 <div className="p-6 lg:p-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                         {/* 1. Journey Details (Customer + Travel) - Span 7 */}
-                        <div className="lg:col-span-7 flex flex-col rounded-3xl border border-brand-color-01/10 overflow-hidden shadow-sm">
+                        <div className="md:col-span-7 flex flex-col rounded-3xl border border-brand-color-01/10 overflow-hidden shadow-sm">
                             {/* Customer Section */}
                             <div className="bg-brand-color-02/10 p-6 border-b border-brand-color-01/5">
                                 <h4 className="text-accent uppercase tracking-wider mb-4 flex items-center gap-2 text-sm font-bold">
@@ -521,7 +521,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                         </div>
 
                         {/* 2. Pets - Span 5 */}
-                        <div className="lg:col-span-5 bg-brand-text-03/5 rounded-3xl border border-brand-text-03/20 p-6 h-full flex flex-col shadow-sm">
+                        <div className="md:col-span-5 bg-brand-text-03/5 rounded-3xl border border-brand-text-03/20 p-4 sm:p-6 h-full flex flex-col shadow-sm">
                             <h4 className="text-brand-text-03 uppercase tracking-wider mb-4 flex items-center gap-2 text-sm font-bold">
                                 <div className="p-1.5 bg-brand-text-03/10 rounded-lg">
                                     <Dog size={16} />
@@ -605,7 +605,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
             <div className="pt-4 text-center">
                 <button
                     onClick={handleLogout}
-                    className="text-brand-text-02/60 hover:text-brand-text-02 flex items-center gap-2 mx-auto transition-colors text-sm font-medium"
+                    className="text-brand-text-02/60 hover:text-brand-text-02 flex items-center gap-2 mx-auto transition-colors text-sm font-medium min-h-[44px] px-4 py-3"
                 >
                     <LogOut size={16} />
                     Return to Home

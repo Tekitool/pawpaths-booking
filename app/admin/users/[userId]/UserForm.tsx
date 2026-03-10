@@ -45,6 +45,7 @@ export default function UserForm({ userId, initialData, isNew }: UserFormProps) 
         console.log('[UserForm] userId:', userId);
         console.log('[UserForm] isNew:', isNew);
         console.log('[UserForm] initialData:', JSON.stringify(initialData, null, 2));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Parse initial name

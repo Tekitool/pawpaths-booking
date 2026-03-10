@@ -31,6 +31,7 @@ import YearFilter from '../../../components/admin/YearFilter';
 import MonthFilter from '../../../components/admin/MonthFilter';
 import TypeFilter from '../../../components/admin/TypeFilter';
 import { createClient } from '@/lib/supabase/server';
+import { mapNodeBookingToViewModel } from '@/lib/mappers/booking-mapper';
 
 export default async function BookingsPage(props) {
     const searchParams = await props.searchParams;
@@ -90,35 +91,8 @@ export default async function BookingsPage(props) {
         return <div className="p-8 text-system-color-01">Error loading bookings: {error.message}</div>;
     }
 
-    // Map Data to UI Structure (matching BookingTable expectations)
-    const bookings = data.map(b => ({
-        bookingId: b.booking_number,
-        status: b.status,
-        customerInfo: {
-            fullName: b.customer?.display_name || 'Unknown',
-            email: b.customer?.contact_info?.email || '',
-            phone: b.customer?.contact_info?.whatsapp || b.customer?.contact_info?.phone || ''
-        },
-        pets: (b.pets || []).map(p => ({
-            name: p.pet?.name || 'Unknown',
-            type: p.pet?.species?.name || 'Pet',
-            breed: p.pet?.breed?.name || ''
-        })),
-        travelDetails: {
-            originAirport: b.origin?.iata_code || b.origin?.city || 'TBD',
-            originCountry: b.origin?.country?.iso_code || '',
-            destinationAirport: b.destination?.iata_code || b.destination?.city || 'TBD',
-            destinationCountry: b.destination?.country?.iso_code || '',
-            travelDate: b.scheduled_departure_date,
-            travelingWithPet: b.transport_mode === 'in_cabin'
-        },
-        customerType: {
-            type_code: (b.service_type || '??').substring(0, 2).toUpperCase() + '-' + (b.transport_mode ? b.transport_mode.substring(0, 1).toUpperCase() : '?')
-        },
-        // Pass original fields for potential future use
-        serviceType: b.service_type,
-        transportMode: b.transport_mode
-    }));
+    // Map Data to UI Structure using canonical mapper
+    const bookings = data.map(mapNodeBookingToViewModel);
 
     const totalPages = Math.ceil((count || 0) / pageSize);
 

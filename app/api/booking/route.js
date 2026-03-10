@@ -4,10 +4,30 @@ import { generateEmailTemplate } from '@/lib/utils/emailTemplate';
 import { generateWhatsAppMessage, generateWhatsAppLink } from '@/lib/utils/whatsappMessage';
 import nodemailer from 'nodemailer';
 import { SERVICES } from '@/lib/constants/services';
+import { EnquirySchema } from '@/lib/schemas';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req) {
     try {
+        // Rate limiting by IP
+        const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+        const { allowed, remaining } = checkRateLimit(ip);
+        if (!allowed) {
+            return NextResponse.json({
+                success: false,
+                message: 'Too many submissions. Please try again later.',
+                error: 'RATE_LIMIT_EXCEEDED'
+            }, { status: 429 });
+        }
+
         const formData = await req.formData();
+
+        // Honeypot field — bots fill this in, real users don't
+        const honeypot = formData.get('website_url');
+        if (honeypot) {
+            // Silently reject bot submissions
+            return NextResponse.json({ success: true, bookingId: 'RECEIVED' }, { status: 201 });
+        }
 
         // Parse JSON fields with null checks
         const travelDetailsRaw = formData.get('travelDetails');
@@ -15,22 +35,10 @@ export async function POST(req) {
         const servicesRaw = formData.get('services');
         const contactInfoRaw = formData.get('contactInfo');
 
-        console.log('Received FormData fields:', {
-            travelDetails: travelDetailsRaw ? 'present' : 'missing',
-            pets: petsRaw ? 'present' : 'missing',
-            services: servicesRaw ? 'present' : 'missing',
-            contactInfo: contactInfoRaw ? 'present' : 'missing'
-        });
-
         if (!travelDetailsRaw || !petsRaw || !contactInfoRaw) {
             return NextResponse.json({
                 success: false,
                 message: 'Missing required form fields',
-                details: {
-                    travelDetails: !!travelDetailsRaw,
-                    pets: !!petsRaw,
-                    contactInfo: !!contactInfoRaw
-                }
             }, { status: 400 });
         }
 
@@ -38,6 +46,23 @@ export async function POST(req) {
         const pets = JSON.parse(petsRaw);
         const services = JSON.parse(servicesRaw || '[]');
         const contactInfo = JSON.parse(contactInfoRaw);
+
+        // Server-side schema validation
+        const validationResult = EnquirySchema.safeParse({
+            contactInfo,
+            pets,
+            travelDetails,
+            services: services.map(s => typeof s === 'string' ? s : s.serviceId),
+        });
+
+        if (!validationResult.success) {
+            const fieldErrors = validationResult.error.flatten().fieldErrors;
+            return NextResponse.json({
+                success: false,
+                message: 'Validation failed',
+                errors: fieldErrors
+            }, { status: 400 });
+        }
 
         // Handle file uploads
         const uploadedDocuments = [];
@@ -116,121 +141,169 @@ export async function POST(req) {
         if (customerTypeCode.startsWith('IM')) serviceTypeEnum = 'import';
         if (customerTypeCode === 'TRANSIT') serviceTypeEnum = 'transit';
 
-        // --- Supabase Transaction ---
-
-        // 1. Find or Create Customer Entity
+        // --- Database Operations (with cleanup on failure) ---
         let customerId;
-        const { data: existingCustomer, error: findError } = await supabaseAdmin
-            .from('entities')
-            .select('id')
-            .eq('contact_info->>email', contactInfo.email)
-            .single();
+        let booking;
+        const createdPetIds = [];
+        let customerWasCreated = false;
 
-        if (existingCustomer) {
-            customerId = existingCustomer.id;
-        } else {
-            const { data: newCustomer, error: createError } = await supabaseAdmin
+        try {
+            // 1. Find or Create Customer Entity
+            const { data: existingCustomer } = await supabaseAdmin
                 .from('entities')
-                .insert({
-                    display_name: contactInfo.fullName,
-                    is_client: true,
-                    contact_info: {
-                        email: contactInfo.email,
-                        phone: contactInfo.phone,
-                        address: contactInfo.city
-                    },
-                    kyc_documents: uploadedDocuments // Storing docs here for now
-                })
-                .select()
+                .select('id')
+                .eq('contact_info->>email', contactInfo.email)
                 .single();
 
-            if (createError) {
-                console.error('Create Customer Error:', createError);
-                throw new Error('Failed to create customer record');
+            if (existingCustomer) {
+                customerId = existingCustomer.id;
+            } else {
+                // Resolve WhatsApp number
+                const whatsappNumber = contactInfo.whatsappSameAsPhone
+                    ? contactInfo.phone
+                    : (contactInfo.whatsapp || contactInfo.phone);
+
+                const { data: newCustomer, error: createError } = await supabaseAdmin
+                    .from('entities')
+                    .insert({
+                        display_name: contactInfo.fullName,
+                        is_client: true,
+                        contact_info: {
+                            email: contactInfo.email,
+                            phone: contactInfo.phone,
+                            whatsapp: whatsappNumber,
+                            address: contactInfo.address?.street
+                                ? contactInfo.address
+                                : (contactInfo.city || null),
+                        },
+                        kyc_documents: uploadedDocuments
+                    })
+                    .select()
+                    .single();
+
+                if (createError) {
+                    console.error('Create Customer Error:', createError);
+                    throw new Error('Failed to create customer record');
+                }
+                customerId = newCustomer.id;
+                customerWasCreated = true;
             }
-            customerId = newCustomer.id;
-        }
 
-        // 2. Create Booking
-        const { data: booking, error: bookingError } = await supabaseAdmin
-            .from('bookings')
-            .insert({
-                customer_id: customerId,
-                status: 'enquiry', // Default status
-                service_type: serviceTypeEnum,
-                scheduled_departure_date: new Date(travelDetails.travelDate),
-                origin_raw: {
-                    country: travelDetails.originCountry,
-                    airport: travelDetails.originAirport
-                },
-                destination_raw: {
-                    country: travelDetails.destinationCountry,
-                    airport: travelDetails.destinationAirport
-                },
-                transport_mode: travelDetails.transportMode,
-                number_of_pets: pets.length,
-                traveling_with_pet: travelDetails.travelingWithPet,
-                customer_contact_snapshot: contactInfo
-            })
-            .select()
-            .single();
-
-        if (bookingError) {
-            console.error('Create Booking Error:', bookingError);
-            throw new Error('Failed to create booking record');
-        }
-
-        // 3. Create Pets and Link
-        for (const pet of pets) {
-            // Create Pet
-            const { data: newPet, error: petError } = await supabaseAdmin
-                .from('pets')
+            // 2. Create Booking
+            const { data: bookingData, error: bookingError } = await supabaseAdmin
+                .from('bookings')
                 .insert({
-                    owner_id: customerId,
-                    name: pet.name,
-                    species_id: parseInt(pet.species) || parseInt(pet.species_id) || null,
-                    breed_id: parseInt(pet.breed) || parseInt(pet.breed_id) || null,
-                    gender: pet.gender === 'Male' ? 'male' : (pet.gender === 'Female' ? 'female' : null),
-                    weight_kg: Number(pet.weight),
-                    age_years: Number(pet.age),
+                    customer_id: customerId,
+                    status: 'enquiry',
+                    service_type: serviceTypeEnum,
+                    scheduled_departure_date: new Date(travelDetails.travelDate),
+                    origin_raw: {
+                        country: travelDetails.originCountry,
+                        airport: travelDetails.originAirport
+                    },
+                    destination_raw: {
+                        country: travelDetails.destinationCountry,
+                        airport: travelDetails.destinationAirport
+                    },
+                    transport_mode: travelDetails.transportMode,
+                    number_of_pets: pets.length,
+                    traveling_with_pet: travelDetails.travelingWithPet,
+                    customer_contact_snapshot: contactInfo
                 })
                 .select()
                 .single();
 
-            if (!petError && newPet) {
-                // Link to Booking
+            if (bookingError) {
+                console.error('Create Booking Error:', bookingError);
+                throw new Error('Failed to create booking record');
+            }
+            booking = bookingData;
+
+            // 3. Create Pets and Link
+            for (const pet of pets) {
+                // Fix B1: Properly convert age + ageUnit to age_years and age_months
+                const ageNum = Number(pet.age) || 0;
+                const ageUnit = pet.ageUnit || 'years';
+                const ageYears = ageUnit === 'months' ? Math.floor(ageNum / 12) : ageNum;
+                const ageMonths = ageUnit === 'months' ? ageNum : ageNum * 12;
+
+                // Determine if DOB is estimated or provided
+                const hasDob = !!pet.date_of_birth;
+                const isDobEstimated = !hasDob;
+
+                const { data: newPet, error: petError } = await supabaseAdmin
+                    .from('pets')
+                    .insert({
+                        owner_id: customerId,
+                        name: pet.name,
+                        species_id: parseInt(pet.species) || parseInt(pet.species_id) || null,
+                        breed_id: parseInt(pet.breed) || parseInt(pet.breed_id) || null,
+                        gender: pet.gender === 'Male' ? 'male' : (pet.gender === 'Female' ? 'female' : null),
+                        weight_kg: Number(pet.weight),
+                        age_years: ageYears,
+                        age_months: ageMonths,
+                        microchip_id: pet.microchip_id || null,
+                        passport_number: pet.passport_number || null,
+                        date_of_birth: pet.date_of_birth || null,
+                        is_dob_estimated: isDobEstimated,
+                        medical_alerts: pet.medical_alerts ? [pet.medical_alerts] : [],
+                    })
+                    .select()
+                    .single();
+
+                if (petError) {
+                    console.warn('Failed to create pet:', petError);
+                    throw new Error(`Failed to create pet: ${pet.name}`);
+                }
+
+                createdPetIds.push(newPet.id);
+
+                // Fix B2: Wire specialRequirements to booking_pets.notes
                 await supabaseAdmin
                     .from('booking_pets')
                     .insert({
                         booking_id: booking.id,
                         pet_id: newPet.id,
-                        recorded_weight_kg: Number(pet.weight)
+                        recorded_weight_kg: Number(pet.weight),
+                        notes: pet.specialRequirements || null,
                     });
-            } else {
-                console.warn('Failed to create pet:', petError);
             }
-        }
 
-        // 4. Link Services
-        // 4. Link Services
-        for (const s of services) {
-            // Handle both legacy string[] and new object[] format
-            const serviceId = typeof s === 'string' ? s : s.serviceId;
-            const petId = typeof s === 'object' ? s.petId : null;
-            const quantity = typeof s === 'object' ? (s.quantity || 1) : 1;
+            // 4. Link Services
+            for (const s of services) {
+                const serviceId = typeof s === 'string' ? s : s.serviceId;
+                const petId = typeof s === 'object' ? s.petId : null;
+                const quantity = typeof s === 'object' ? (s.quantity || 1) : 1;
 
-            // We need the UUID of the service from service_catalog.
-            // The form sends service IDs (which might be UUIDs or legacy IDs).
-            // If they are UUIDs, we can insert directly.
-            await supabaseAdmin
-                .from('booking_services')
-                .insert({
-                    booking_id: booking.id,
-                    service_id: serviceId,
-                    quantity: quantity,
-                    unit_price: 0, // Fetch price? Or set 0 for enquiry.
-                    pet_id: petId // Insert specific pet ID if applicable
-                });
+                await supabaseAdmin
+                    .from('booking_services')
+                    .insert({
+                        booking_id: booking.id,
+                        service_id: serviceId,
+                        quantity: quantity,
+                        unit_price: 0,
+                        pet_id: petId
+                    });
+            }
+        } catch (dbError) {
+            // Cleanup on failure: remove partially created records
+            console.error('Database operation failed, cleaning up:', dbError.message);
+            try {
+                if (booking?.id) {
+                    await supabaseAdmin.from('booking_services').delete().eq('booking_id', booking.id);
+                    await supabaseAdmin.from('booking_pets').delete().eq('booking_id', booking.id);
+                    await supabaseAdmin.from('bookings').delete().eq('id', booking.id);
+                }
+                for (const petId of createdPetIds) {
+                    await supabaseAdmin.from('pets').delete().eq('id', petId);
+                }
+                if (customerWasCreated && customerId) {
+                    await supabaseAdmin.from('entities').delete().eq('id', customerId);
+                }
+            } catch (cleanupError) {
+                console.error('Cleanup also failed:', cleanupError.message);
+            }
+            throw dbError;
         }
 
         // --- Construct Legacy Object for Email/WhatsApp ---

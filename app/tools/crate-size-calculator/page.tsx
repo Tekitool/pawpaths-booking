@@ -420,7 +420,7 @@ Min Internal Dims: ${result.minInternalDims.length}x${result.minInternalDims.wid
 
                                             {/* Footer Upsell */}
                                             <div className="bg-slate-50 p-5 border-t border-slate-100">
-                                                <p className="text-xs text-slate-500 mb-4 italic">"{aiResult.pawpaths_offer}"</p>
+                                                <p className="text-xs text-slate-500 mb-4 italic">&quot;{aiResult.pawpaths_offer}&quot;</p>
                                                 <a
                                                     href={`https://wa.me/971586947755?text=${encodeURIComponent(`Hi Pawpaths, I need a ${aiResult.recommended_crate_model} for my pet. The AI Safety Audit recommended this model.`)}`}
                                                     target="_blank"

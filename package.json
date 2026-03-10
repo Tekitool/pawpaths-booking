@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "create-hashif": "node scripts/create-hashif-user.js"
   },
   "dependencies": {
@@ -15,7 +17,6 @@
     "@hookform/resolvers": "^5.2.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
-    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
@@ -24,7 +25,6 @@
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.556.0",
     "next": "16.0.8",
-    "next-auth": "^5.0.0-beta.30",
     "nodemailer": "^7.0.11",
     "openai": "^6.15.0",
     "react": "19.2.1",
@@ -32,6 +32,7 @@
     "react-dom": "19.2.1",
     "react-hook-form": "^7.70.0",
     "recharts": "^3.6.0",
+    "server-only": "^0.0.1",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
@@ -44,12 +45,16 @@
   "devDependencies": {
     "@faker-js/faker": "^10.1.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.0.3",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.8",
+    "jsdom": "^28.1.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
