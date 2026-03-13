@@ -17,7 +17,7 @@ export async function login(prevState, formData) {
         return error.message
     }
 
-    redirect('/')
+    redirect('/admin/dashboard')
 }
 
 export async function signup(prevState, formData) {

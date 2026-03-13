@@ -15,7 +15,7 @@ export default function BookingHeader() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
                 {/* Left: Logo & Back Button */}
                 <div className="flex items-center gap-4">
-                    <div className="relative w-32 h-12 sm:w-48 sm:h-16 transition-transform duration-300 hover:scale-105">
+                    <Link href="/" aria-label="Pawpaths — home" className="relative w-32 h-12 sm:w-48 sm:h-16 transition-transform duration-300 hover:scale-105 block">
                         <Image
                             src="/logo.png"
                             alt="Pawpaths Logo"
@@ -24,7 +24,7 @@ export default function BookingHeader() {
                             className="object-contain object-left"
                             priority
                         />
-                    </div>
+                    </Link>
 
                     {showBackButton && (
                         <Link

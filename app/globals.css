@@ -5,6 +5,15 @@
     font-family: 'Inter', sans-serif;
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-baloo), sans-serif;
+  }
+
   /* Level 1 */
   h1 {
     font-size: 1.75rem;
@@ -161,6 +170,79 @@
 
   --gradient-stats-emerald: linear-gradient(to right, rgba(236, 253, 245, 0.8), rgba(240, 253, 250, 0.8));
   --border-stats-emerald: #d1fae5;
+}
+
+/* ── Homepage Brand Tokens ──────────────────────────────────────── */
+@theme {
+  --color-brand-brown: #4D2A00;
+  --color-brand-brown-light: #6B3D00;
+  --color-brand-brown-dark: #3A1F00;
+  --color-brand-cream: #FEEEA1;
+  --color-brand-cream-light: #FFFDF5;
+  --color-brand-amber: #FF6400;
+  --color-brand-amber-light: #FF8533;
+  --color-brand-yellow: #F6B500;
+  --color-brand-taupe: #665136;
+}
+
+/* ── Rotating Glass Border Effect ──────────────────────────────── */
+@keyframes border-rotate {
+  100% {
+    transform: rotate(1turn);
+  }
+}
+
+.glass-border-rotate {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  padding: 1px;
+}
+
+.glass-border-rotate::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-image: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    #FEEEA1 10%,
+    #FFB74D 25%,
+    #F6921E 40%,
+    transparent 50%,
+    transparent 60%,
+    #F6B500 70%,
+    #FF6400 85%,
+    transparent 95%
+  );
+  filter: blur(2px);
+  animation: border-rotate 4s linear infinite;
+}
+
+/* ── Warm Shine Button Border ─────────────────────────────────── */
+@keyframes warm-shine {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.button-warm-shine {
+  background: conic-gradient(from 0deg, #FEEEA1, #FFB74D, #F6921E, #FF6400, #F6B500, #FEEEA1);
+  background-size: 300% 300%;
+  animation: warm-shine 4s ease-out infinite;
+}
+
+/* ── 3D Flip Card Back-Face Gradient Shift ────────────────────── */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Custom utilities */

@@ -8,11 +8,9 @@ import { EnquirySchema } from '@/lib/schemas';
 import { COUNTRIES } from '@/lib/constants/countries';
 
 export async function submitEnquiry(formData) {
-    console.log('SERVER ACTION: submitEnquiry called');
     const supabase = createAdminClient()
 
     try {
-        console.log('SERVER ACTION: Parsing formData...');
 
         // 1. Validate Data with Zod
         const validationResult = EnquirySchema.safeParse(formData);
@@ -42,7 +40,6 @@ export async function submitEnquiry(formData) {
         }
 
         const { travelDetails, pets, services, contactInfo } = validationResult.data;
-        console.log('SERVER ACTION: Contact Info received:', contactInfo);
 
         // 1. Find or Create Entity (Customer)
         // Check if customer exists by email
@@ -245,7 +242,6 @@ export async function submitEnquiry(formData) {
         // 5. Add Services
         let servicesList = [];
         if (services && services.length > 0) {
-            console.log('Processing services:', services);
 
             // 1. Fetch matching services from catalog
             const { data: catalogServices, error: catalogError } = await supabase
@@ -310,7 +306,6 @@ export async function submitEnquiry(formData) {
 
         // --- EMAIL NOTIFICATION LOGIC ---
         try {
-            console.log('Starting email notification process...')
 
             // Verify contact info
             if (!contactInfo?.email) {
@@ -415,7 +410,6 @@ export async function submitEnquiry(formData) {
                 totalWeight: pets.reduce((acc, p) => acc + (parseFloat(p.weight) || 0), 0)
             }
 
-            console.log('Generating email templates...')
             const emailContent = generateEmailTemplate(bookingObj)
             const companyEmailContent = generateEmailTemplate(bookingObj, 'company')
 

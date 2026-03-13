@@ -1,0 +1,29 @@
+# .antigravityignore
+
+# Dependencies (Crucial to ignore for memory/token optimization)
+node_modules/
+
+# Next.js Build Output
+.next/
+out/
+build/
+dist/
+
+# Environment Variables (Security)
+.env
+.env.*
+*.local
+
+# Deployment / Vercel
+.vercel/
+
+# Version Control
+.git/
+
+# Logs and System Files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+*.pem

@@ -5,7 +5,7 @@ const nextConfig = {
   output: 'standalone',
   experimental: {
     serverActions: {
-      allowedOrigins: ['192.168.1.45:3000', 'localhost:3000', 'booking.pawpathsae.com', 'pawpaths-bms.vercel.app', '*.vercel.app'],
+      allowedOrigins: ['192.168.1.45:3000', 'localhost:3000', 'pawpathsae.com', 'admin.pawpathsae.com', 'booking.pawpathsae.com', '*.vercel.app'],
     },
   },
   images: {
@@ -40,6 +40,12 @@ const nextConfig = {
       {
         source: '/admin/bookings/:id',
         destination: '/admin/relocations/:id',
+        permanent: true,
+      },
+      // Security: obscure login entry point from scrapers
+      {
+        source: '/login',
+        destination: '/admin/login',
         permanent: true,
       },
     ];

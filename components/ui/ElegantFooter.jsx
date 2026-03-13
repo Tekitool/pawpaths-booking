@@ -129,9 +129,9 @@ export default function ElegantFooter() {
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
                         <FooterLink href="https://pawpathsae.com/pet-breed/">Pets & Breeds</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
-                        <FooterLink href="https://pawpathsae.com/terms-of-service/">Terms of Service</FooterLink>
+                        <FooterLink href="/terms-of-service">Terms of Service</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
-                        <FooterLink href="https://pawpathsae.com/privacy-policy/">Privacy Policy</FooterLink>
+                        <FooterLink href="/privacy-policy">Privacy Policy</FooterLink>
                     </div>
 
                     {/* Copyright */}

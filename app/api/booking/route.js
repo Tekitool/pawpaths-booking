@@ -344,7 +344,6 @@ export async function POST(req) {
 
         // Send Email with Timeout
         try {
-            console.log('Attempting to send email...');
 
             const transporter = nodemailer.createTransport({
                 host: process.env.EMAIL_HOST,
@@ -388,7 +387,7 @@ export async function POST(req) {
             );
 
             await Promise.race([sendEmailsPromise(), timeoutPromise]);
-            console.log('Emails sent successfully');
+            // Emails sent successfully
 
         } catch (emailError) {
             console.error('Email sending failed (Non-blocking):', emailError.message);

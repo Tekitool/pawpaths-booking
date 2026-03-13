@@ -81,6 +81,11 @@ const config = {
                 'glow-success': 'var(--shadow-glow-success)',
                 'glow-error': 'var(--shadow-glow-error)',
                 'glow-info': 'var(--shadow-glow-info)',
+                // Homepage Shadows
+                'soft': '0 4px 20px rgba(77, 42, 0, 0.08)',
+                'medium': '0 8px 40px rgba(77, 42, 0, 0.12)',
+                'glow-amber': '0 0 30px rgba(255, 100, 0, 0.4)',
+                'nav': '0 4px 30px rgba(77, 42, 0, 0.06)',
             },
             backgroundImage: {
                 'gradient-card-warm': 'var(--gradient-card-warm)',
