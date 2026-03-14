@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Next.js Dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/NEXT/Pawpath-Form/node_modules/next/dist/bin/next", "dev", "C:/NEXT/Pawpath-Form/.claude/worktrees/frosty-gates"],
+      "port": 3000
+    },
+    {
+      "name": "Next.js Production",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/NEXT/Pawpath-Form/node_modules/next/dist/bin/next", "start", "C:/NEXT/Pawpath-Form"],
+      "port": 3000
+    }
+  ]
+}

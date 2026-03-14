@@ -132,7 +132,7 @@ export default function ToolsHubPage() {
             {/* ══════════════════════════════════════════════════════════
                 1. VIDEO HERO
                ══════════════════════════════════════════════════════════ */}
-            <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-brand-brown">
+            <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-brand-brown">
 
                 {/* Video layer — cycles through HERO_VIDEOS automatically */}
                 <HeroVideoLoop videos={HERO_VIDEOS} opacity={0.65} />
