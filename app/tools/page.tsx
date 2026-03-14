@@ -169,7 +169,7 @@ export default function ToolsHubPage() {
                 `}</style>
 
                 {/* Content */}
-                <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-24">
                     <div className="inline-flex items-center gap-2 bg-white/8 border border-white/15 backdrop-blur-sm text-white/75 text-xs font-semibold uppercase tracking-widest px-5 py-2 rounded-full mb-8">
                         <Sparkles size={11} className="text-brand-yellow" />
                         Free · No Sign-up · AI-Powered
