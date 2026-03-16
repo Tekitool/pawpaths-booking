@@ -24,7 +24,7 @@ export default async function NewBookingPage() {
     // Fetch Breeds
     const { data: breedsList, error: breedsError } = await supabase
         .from('breeds')
-        .select('id, species_id, name')
+        .select('id, species_id, name, default_image_path')
         .order('name');
 
     if (breedsError) {

@@ -9,6 +9,8 @@ import { COUNTRIES } from '@/lib/constants/countries';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { BRAND_COLORS } from '@/lib/theme-config';
+import { getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage';
+import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
 
 export default function Step6Success({ speciesList = [], breedsList = [] }) {
     const router = useRouter();
@@ -529,36 +531,45 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                                 Pets ({pets.length})
                             </h4>
                             <div className="flex-grow overflow-y-auto pr-1 custom-scrollbar space-y-3 max-h-[500px]">
-                                {pets.map((pet, idx) => (
-                                    <div key={idx} className="bg-white/60 p-4 rounded-2xl border border-brand-text-03/10 hover:border-brand-text-03/30 hover:shadow-md transition-all duration-300 group">
-                                        <div className="flex items-center gap-4 mb-3">
-                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-text-03/20 to-brand-text-03/5 text-brand-text-03 flex items-center justify-center text-base font-bold shrink-0 shadow-sm">
-                                                {idx + 1}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-brand-text-02 text-base leading-tight truncate">{pet.name}</p>
-                                                <p className="text-[10px] text-brand-text-02/80 font-bold uppercase tracking-wide mt-0.5 truncate">
-                                                    {pet.speciesName || getSpeciesName(pet.species_id)} • {pet.breedName || getBreedName(pet.breed_id)}
-                                                </p>
-                                            </div>
-                                        </div>
+                                {pets.map((pet, idx) => {
+                                    const photoPath = formData[`pet_${idx}_photo_path`] || formData[`pet_photo_path`];
+                                    const uploadedPhotoUrl = photoPath ? getPublicUrl(STORAGE_BUCKETS.PHOTOS, photoPath) : null;
 
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div className="text-center p-1.5 bg-brand-text-02/5 rounded-lg border border-brand-text-02/10">
-                                                <span className="block text-brand-text-02/60 text-[9px] uppercase font-bold">Age</span>
-                                                <span className="font-bold text-brand-text-02 text-xs">{pet.age} {pet.ageUnit || 'yrs'}</span>
+                                    return (
+                                        <div key={idx} className="bg-white/60 p-4 rounded-2xl border border-brand-text-03/10 hover:border-brand-text-03/30 hover:shadow-md transition-all duration-300 group">
+                                            <div className="flex items-center gap-4 mb-3">
+                                                <SmartPetAvatar
+                                                    userUploadedFile={uploadedPhotoUrl}
+                                                    breedDefaultImageUrl={pet.breedDefaultImageUrl}
+                                                    petName={pet.name}
+                                                    size={48}
+                                                    className="shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-brand-text-02 text-base leading-tight truncate">{pet.name}</p>
+                                                    <p className="text-[10px] text-brand-text-02/80 font-bold uppercase tracking-wide mt-0.5 truncate">
+                                                        {pet.speciesName || getSpeciesName(pet.species_id)} • {pet.breedName || getBreedName(pet.breed_id)}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="text-center p-1.5 bg-brand-text-02/5 rounded-lg border border-brand-text-02/10">
-                                                <span className="block text-brand-text-02/60 text-[9px] uppercase font-bold">Gender</span>
-                                                <span className="font-bold text-brand-text-02 text-xs truncate">{pet.gender}</span>
-                                            </div>
-                                            <div className="text-center p-1.5 bg-brand-text-02/5 rounded-lg border border-brand-text-02/10">
-                                                <span className="block text-brand-text-02/60 text-[9px] uppercase font-bold">Weight</span>
-                                                <span className="font-bold text-brand-text-02 text-xs">{pet.weight} kg</span>
+
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div className="text-center p-1.5 bg-brand-text-02/5 rounded-lg border border-brand-text-02/10">
+                                                    <span className="block text-brand-text-02/60 text-[9px] uppercase font-bold">Age</span>
+                                                    <span className="font-bold text-brand-text-02 text-xs">{pet.age} {pet.ageUnit || 'yrs'}</span>
+                                                </div>
+                                                <div className="text-center p-1.5 bg-brand-text-02/5 rounded-lg border border-brand-text-02/10">
+                                                    <span className="block text-brand-text-02/60 text-[9px] uppercase font-bold">Gender</span>
+                                                    <span className="font-bold text-brand-text-02 text-xs truncate">{pet.gender}</span>
+                                                </div>
+                                                <div className="text-center p-1.5 bg-brand-text-02/5 rounded-lg border border-brand-text-02/10">
+                                                    <span className="block text-brand-text-02/60 text-[9px] uppercase font-bold">Weight</span>
+                                                    <span className="font-bold text-brand-text-02 text-xs">{pet.weight} kg</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

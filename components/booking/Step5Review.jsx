@@ -9,6 +9,8 @@ import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User,
 import { useRouter } from 'next/navigation';
 import { submitEnquiry } from '@/app/booking/actions';
 import { toast } from '@/hooks/use-toast';
+import { getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage';
+import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
 import ValidationFailureModal from './ValidationFailureModal';
 
 const Step5Review = forwardRef((props, ref) => {
@@ -420,29 +422,38 @@ const Step5Review = forwardRef((props, ref) => {
                         Pet Profiles
                     </h3>
                     <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                        {pets.map((pet, index) => (
-                            <div key={index} className="flex items-center p-4 rounded-2xl border border-brand-text-03/30 bg-white/40 hover:bg-white/60 hover:shadow-md transition-all duration-300 group/pet">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-brand-text-03 flex items-center justify-center font-bold text-lg mr-4 shadow-sm group-hover/pet:scale-110 transition-transform duration-300 shrink-0">
-                                    {index + 1}
-                                </div>
-                                <div className="flex-grow min-w-0">
-                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                        <p className="font-bold text-brand-text-02 text-base truncate">{pet.name || 'Unnamed Pet'}</p>
-                                        <span className="px-2 py-0.5 rounded-md bg-brand-text-02/10 text-[10px] font-bold text-brand-text-02/80 uppercase whitespace-nowrap">{getSpeciesName(pet.species_id)}</span>
+                        {pets.map((pet, index) => {
+                            const photoPath = formData[`pet_${index}_photo_path`] || formData[`pet_photo_path`];
+                            const uploadedPhotoUrl = photoPath ? getPublicUrl(STORAGE_BUCKETS.PHOTOS, photoPath) : null;
+
+                            return (
+                                <div key={index} className="flex items-center p-4 rounded-2xl border border-brand-text-03/30 bg-white/40 hover:bg-white/60 hover:shadow-md transition-all duration-300 group/pet">
+                                    <SmartPetAvatar
+                                        userUploadedFile={uploadedPhotoUrl}
+                                        breedDefaultImageUrl={pet.breedDefaultImageUrl}
+                                        petName={pet.name}
+                                        size={56}
+                                        className="mr-4 group-hover/pet:scale-110 transition-transform duration-300 shrink-0"
+                                    />
+                                    <div className="flex-grow min-w-0">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                            <p className="font-bold text-brand-text-02 text-base truncate">{pet.name || 'Unnamed Pet'}</p>
+                                            <span className="px-2 py-0.5 rounded-md bg-brand-text-02/10 text-[10px] font-bold text-brand-text-02/80 uppercase whitespace-nowrap">{getSpeciesName(pet.species_id)}</span>
+                                        </div>
+                                        <p className="text-xs font-medium text-brand-text-02 mb-2 truncate">
+                                            {getBreedName(pet.breed_id)}
+                                        </p>
+                                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-brand-text-02/80 bg-brand-text-02/5/50 w-fit px-2 py-1 rounded-lg border border-brand-text-02/20">
+                                            <span>{pet.gender}</span>
+                                            <span className="text-brand-text-02/60">|</span>
+                                            <span>{pet.age} {pet.ageUnit}</span>
+                                            <span className="text-brand-text-02/60">|</span>
+                                            <span>{pet.weight} kg</span>
+                                        </div>
                                     </div>
-                                    <p className="text-xs font-medium text-brand-text-02 mb-2 truncate">
-                                        {getBreedName(pet.breed_id)}
-                                    </p>
-                                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-brand-text-02/80 bg-brand-text-02/5/50 w-fit px-2 py-1 rounded-lg border border-brand-text-02/20">
-                                        <span>{pet.gender}</span>
-                                        <span className="text-brand-text-02/60">|</span>
-                                        <span>{pet.age} {pet.ageUnit}</span>
-                                        <span className="text-brand-text-02/60">|</span>
-                                        <span>{pet.weight} kg</span>
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
             </div>

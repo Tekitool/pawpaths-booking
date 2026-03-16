@@ -5,6 +5,7 @@ import useBookingStore from '@/lib/store/booking-store';
 import { UploadCloud, FileText, X, CheckCircle, AlertCircle, Loader2, Camera, PawPrint, Dog, Cat, Bird, Turtle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFile, STORAGE_BUCKETS } from '@/lib/services/storage';
+import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
 
 // ─────────────────────────────────────────────────────────
 // Species Icon + Color Mapping
@@ -26,7 +27,7 @@ const getSpeciesConfig = (speciesName) => {
 // ─────────────────────────────────────────────────────────
 // Per-Pet Dropzone Box
 // ─────────────────────────────────────────────────────────
-const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isUploading, icon: Icon }) => {
+const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isUploading, icon: Icon, fallbackImageUrl, petName, isPhoto }) => {
     const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('!border-brand-color-01', '!bg-brand-color-01/5'); };
     const handleDragLeave = (e) => { e.preventDefault(); e.currentTarget.classList.remove('!border-brand-color-01', '!bg-brand-color-01/5'); };
     const handleDrop = (e) => {
@@ -63,13 +64,28 @@ const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isU
                     />
                     <label
                         htmlFor={id}
-                        className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-blue-50/60 hover:border-blue-400 transition-colors rounded-xl p-6 sm:p-8 text-center cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-blue-50/60 hover:border-blue-400 transition-colors rounded-xl p-4 sm:p-6 text-center cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                     >
                         {isUploading ? (
                             <Loader2 className="w-7 h-7 animate-spin text-brand-color-01" />
+                        ) : isPhoto ? (
+                            <div className="flex flex-col items-center gap-3">
+                                <SmartPetAvatar
+                                    breedDefaultImageUrl={fallbackImageUrl}
+                                    petName={petName}
+                                    size={80}
+                                    className="group-hover/upload:scale-105 transition-transform duration-300"
+                                />
+                                <div className="space-y-1">
+                                    <span className="text-xs font-bold text-brand-text-02 group-hover/upload:text-brand-color-01 transition-colors block">
+                                        {fallbackImageUrl ? 'Change photo' : 'Upload photo'}
+                                    </span>
+                                    <span className="text-[10px] text-brand-text-02/50 block">Click or drag to upload</span>
+                                </div>
+                            </div>
                         ) : (
                             <>
                                 <div className="p-2.5 bg-white rounded-full shadow-sm mb-2 group-hover/upload:scale-110 transition-transform duration-300 text-brand-text-02/60 group-hover/upload:text-brand-color-01">
@@ -86,11 +102,20 @@ const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isU
             ) : (
                 <div className="flex items-center justify-between bg-white/80 backdrop-blur-md p-3 rounded-xl border border-brand-text-02/15 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="bg-gradient-to-br from-brand-color-01/10 to-brand-color-01/5 p-2 rounded-xl border border-brand-color-01/10 shadow-inner">
-                            <FileText size={16} className="text-brand-color-01" />
-                        </div>
+                        {isPhoto ? (
+                            <SmartPetAvatar
+                                userUploadedFile={file}
+                                petName={petName}
+                                size={44}
+                                className="flex-shrink-0"
+                            />
+                        ) : (
+                            <div className="bg-gradient-to-br from-brand-color-01/10 to-brand-color-01/5 p-2 rounded-xl border border-brand-color-01/10 shadow-inner">
+                                <FileText size={16} className="text-brand-color-01" />
+                            </div>
+                        )}
                         <div className="truncate">
-                            <p className="text-xs font-bold text-brand-text-02 truncate max-w-[180px]">{file.name}</p>
+                            <p className="text-xs font-bold text-brand-text-02 truncate max-w-[150px]">{file.name}</p>
                             <p className="text-[10px] text-brand-text-02/60 font-medium mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                         </div>
                     </div>
@@ -212,6 +237,9 @@ const PetDocumentFrame = ({ pet, petIndex, sessionId, uploading, setUploading, p
                     onRemove={() => removeFile('photo')}
                     isUploading={uploading[`${petIndex}-photo`]}
                     icon={Camera}
+                    fallbackImageUrl={pet.breedDefaultImageUrl}
+                    petName={petName}
+                    isPhoto={true}
                 />
 
                 {/* Box 2: Master Medical Document */}
