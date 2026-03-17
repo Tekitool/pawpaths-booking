@@ -11,16 +11,19 @@ import ServiceLimitationModal from '@/components/booking/ServiceLimitationModal'
 import ValidationFailureModal from '@/components/booking/ValidationFailureModal';
 import useBookingStore from '@/lib/store/booking-store';
 import Button from '@/components/ui/Button';
-import { ArrowLeft, RotateCcw, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, RotateCcw, ArrowRight, Check, Loader2 } from 'lucide-react';
 import BookingHeader from '@/components/booking/BookingHeader';
 import ElegantFooter from '@/components/ui/ElegantFooter';
 
 export default function BookingWizard({ speciesList, breedsList, genderOptions = [], countriesList = [] }) {
     const { currentStep, nextStep, prevStep, setStep, resetForm, formData } = useBookingStore();
     const step5Ref = useRef(null);
+    const TOTAL_STEPS = 5;
     const [isLimitationModalOpen, setIsLimitationModalOpen] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+    // Lifted from Step5Review so the nav button layer can react to submission state
+    const [isStep5Submitting, setIsStep5Submitting] = useState(false);
 
     const validateRoute = () => {
         const { originCountry, destinationCountry } = formData.travelDetails;
@@ -73,7 +76,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
     };
 
     return (
-        <div className="min-h-[100dvh] bg-gradient-to-br from-gray-50 via-white to-gray-50">
+        <div className="min-h-[100dvh] overflow-x-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50">
             <ServiceLimitationModal
                 isOpen={isLimitationModalOpen}
                 onClose={() => setIsLimitationModalOpen(false)}
@@ -109,7 +112,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
                             {/* Progress Fill */}
                             <div
                                 className="h-full rounded-full relative transition-all duration-700 ease-out shadow-[0_2px_8px_rgba(255,107,107,0.4)] bg-gradient-to-r from-red-500 via-orange-400 via-amber-300 to-yellow-50"
-                                style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
+                                style={{ width: `${((currentStep - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
                             >
                                 {/* Inner Glow */}
                                 <div className="absolute top-0 left-0 w-full h-[1px] bg-white/60 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
@@ -168,50 +171,71 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
                         {currentStep === 2 && <Step2Pets speciesList={speciesList} breedsList={breedsList} genderOptions={genderOptions} />}
                         {currentStep === 3 && <Step3Services />}
                         {currentStep === 4 && <Step4Documents />}
-                        {currentStep === 5 && <Step5Review ref={step5Ref} speciesList={speciesList} breedsList={breedsList} />}
+                        {currentStep === 5 && <Step5Review ref={step5Ref} speciesList={speciesList} breedsList={breedsList} isSubmitting={isStep5Submitting} setIsSubmitting={setIsStep5Submitting} />}
                         {currentStep === 6 && <Step6Success speciesList={speciesList} breedsList={breedsList} />}
 
                         {/* Navigation Buttons */}
                         {currentStep < 6 && (
                             <div className="mt-12 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-8 border-t border-brand-color-03">
+                                {/* Back — hidden on step 1, fully locked during submission */}
                                 <Button
                                     variant="text"
                                     onClick={prevStep}
-                                    disabled={currentStep === 1}
+                                    disabled={currentStep === 1 || isStep5Submitting}
                                     className={`
-                                            order-2 sm:order-1
-                                            px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300
-                                            bg-gradient-to-br from-gray-600/90 to-gray-700/90 backdrop-blur-xl border border-white/30
-                                            shadow-[0_4px_20px_rgba(107,114,128,0.2)]
-                                            hover:bg-gradient-to-br hover:from-gray-500/90 hover:to-gray-600/90 hover:shadow-[0_8px_30px_rgba(107,114,128,0.3)] hover:scale-[1.02] active:scale-95
-                                            ${currentStep === 1 ? 'opacity-0 pointer-events-none' : ''}
-                                        `}
+                                        order-2 sm:order-1
+                                        px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300
+                                        bg-gradient-to-br from-gray-600/90 to-gray-700/90 backdrop-blur-xl border border-white/30
+                                        shadow-[0_4px_20px_rgba(107,114,128,0.2)]
+                                        hover:bg-gradient-to-br hover:from-gray-500/90 hover:to-gray-600/90 hover:shadow-[0_8px_30px_rgba(107,114,128,0.3)] hover:scale-[1.02] active:scale-95
+                                        disabled:opacity-0 disabled:pointer-events-none
+                                        ${currentStep === 1 ? 'opacity-0 pointer-events-none' : ''}
+                                    `}
                                 >
                                     <ArrowLeft size={20} className="mr-2" />
                                     Back
                                 </Button>
 
+                                {/* Reset — locked during submission to prevent clearing mid-flight */}
                                 <Button
                                     variant="text"
                                     onClick={resetForm}
-                                    className="order-3 sm:order-2 sm:ml-auto px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300 bg-gradient-to-br from-orange-400/90 to-orange-500/90 backdrop-blur-xl border border-white/30 shadow-[0_4px_20px_rgba(249,115,22,0.2)] hover:shadow-[0_8px_30px_rgba(249,115,22,0.3)] hover:scale-[1.02] active:scale-95"
+                                    disabled={isStep5Submitting}
+                                    className="order-3 sm:order-2 sm:ml-auto px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300 bg-gradient-to-br from-orange-400/90 to-orange-500/90 backdrop-blur-xl border border-white/30 shadow-[0_4px_20px_rgba(249,115,22,0.2)] hover:shadow-[0_8px_30px_rgba(249,115,22,0.3)] hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
                                 >
                                     <RotateCcw size={20} className="mr-2" />
                                     Reset
                                 </Button>
+
+                                {/* Continue / Submit — the pessimistic lock lives here */}
                                 <Button
                                     onClick={handleContinue}
+                                    disabled={currentStep === 5 && isStep5Submitting}
                                     className={`
-                                        order-1 sm:order-3 px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300 backdrop-blur-xl border border-white/30 hover:scale-[1.02] active:scale-95
-                                        ${currentStep === 5
-                                            ? 'bg-gradient-to-br from-emerald-500/90 to-emerald-600/90 shadow-[0_4px_20px_rgba(16,185,129,0.2)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.3)]'
-                                            : 'bg-gradient-to-br from-blue-500/90 to-blue-600/90 shadow-[0_4px_20px_rgba(59,130,246,0.2)] hover:shadow-[0_8px_30px_rgba(59,130,246,0.3)]'
+                                        order-1 sm:order-3 px-8 sm:px-12 py-4 rounded-2xl font-bold text-white text-base sm:text-lg transition-all duration-300 backdrop-blur-xl border border-white/30
+                                        disabled:cursor-not-allowed disabled:pointer-events-none
+                                        ${currentStep === 5 && isStep5Submitting
+                                            // Locked / processing state
+                                            ? 'bg-gradient-to-br from-emerald-500/60 to-emerald-600/60 opacity-80 shadow-[0_4px_20px_rgba(16,185,129,0.1)] scale-[0.99]'
+                                            : currentStep === 5
+                                                // Ready-to-submit state
+                                                ? 'bg-gradient-to-br from-emerald-500/90 to-emerald-600/90 shadow-[0_4px_20px_rgba(16,185,129,0.2)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-95'
+                                                // Normal continue state
+                                                : 'bg-gradient-to-br from-blue-500/90 to-blue-600/90 shadow-[0_4px_20px_rgba(59,130,246,0.2)] hover:shadow-[0_8px_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] active:scale-95'
                                         }
                                     `}
                                 >
-                                    {currentStep === 5 ? (
+                                    {currentStep === 5 && isStep5Submitting ? (
+                                        // Processing state — spinner + reassuring copy
+                                        <>
+                                            <Loader2 size={20} className="mr-2 animate-spin" />
+                                            Securing your enquiry...
+                                        </>
+                                    ) : currentStep === 5 ? (
+                                        // Ready state
                                         <><Check size={20} className="mr-2" />Submit Enquiry</>
                                     ) : (
+                                        // All other steps
                                         <><ArrowRight size={20} className="mr-2" />Continue</>
                                     )}
                                 </Button>

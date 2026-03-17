@@ -84,54 +84,58 @@ export async function submitEnquiry(formData) {
             customerId = newCustomer.id
         }
 
-        // 2. Create Pets
-        const petIds = []
-        for (const pet of pets) {
-            // Map gender to DB enum
-            // DB Enum: 'Male', 'Female', 'Male_Neutered', 'Female_Spayed', 'Unknown'
-            // Frontend now sends these exact values if fetched from DB, but might send old values if cached or fallback used.
-            let dbGender = 'Unknown'
-            const validGenders = ['Male', 'Female', 'Male_Neutered', 'Female_Spayed', 'Unknown'];
+        // ── Idempotency trap ──────────────────────────────────────────────────────
+        // If a booking was already created for this customer in the last 60 seconds,
+        // treat this as a duplicate submission (double-click, network retry, aggressive
+        // browser re-send). Return the existing reference so the frontend routes the
+        // user to the success page without creating a second record or sending more email.
+        const sixtySecondsAgo = new Date(Date.now() - 60_000).toISOString()
+        const { data: recentBooking } = await supabase
+            .from('bookings')
+            .select('id, booking_number')
+            .eq('customer_id', customerId)
+            .gte('created_at', sixtySecondsAgo)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
 
-            if (validGenders.includes(pet.gender)) {
-                dbGender = pet.gender;
-            } else if (pet.gender === 'Desexed') {
-                // Handle legacy 'Desexed' by defaulting to Unknown or trying to infer? 
-                // Since we don't know if it's male or female desexed, 'Unknown' is safest, 
-                // or we could split it if we had sex info. But 'Desexed' was a standalone option.
-                dbGender = 'Unknown';
-            }
+        if (recentBooking) {
+            console.warn(`[IDEMPOTENCY] Duplicate submission detected for customer ${customerId} — returning existing reference ${recentBooking.booking_number}`)
+            return { success: true, bookingReference: recentBooking.booking_number }
+        }
 
-            // Fix B1: Properly convert age + ageUnit
+        // 2. Create Pets (single batch insert — avoids N+1 round-trips)
+        const validGenders = ['Male', 'Female', 'Male_Neutered', 'Female_Spayed', 'Unknown'];
+        const petInserts = pets.map(pet => {
+            const dbGender = validGenders.includes(pet.gender) ? pet.gender : 'Unknown';
             const ageNum = Number(pet.age) || 0;
             const ageUnit = pet.ageUnit || 'years';
             const ageYears = ageUnit === 'months' ? Math.floor(ageNum / 12) : ageNum;
             const ageMonths = ageUnit === 'months' ? ageNum : ageNum * 12;
-            const hasDob = !!pet.date_of_birth;
+            return {
+                owner_id: customerId,
+                name: pet.name,
+                species_id: parseInt(pet.species_id) || null,
+                breed_id: parseInt(pet.breed_id) || null,
+                gender: dbGender,
+                weight_kg: parseFloat(pet.weight) || 0,
+                age_years: ageYears,
+                age_months: ageMonths,
+                microchip_id: pet.microchip_id || null,
+                passport_number: pet.passport_number || null,
+                date_of_birth: pet.date_of_birth || null,
+                is_dob_estimated: !pet.date_of_birth,
+                medical_alerts: pet.medical_alerts ? [pet.medical_alerts] : (pet.specialRequirements ? [pet.specialRequirements] : []),
+            };
+        });
 
-            const { data: newPet, error: petError } = await supabase
-                .from('pets')
-                .insert({
-                    owner_id: customerId,
-                    name: pet.name,
-                    species_id: parseInt(pet.species_id) || null,
-                    breed_id: parseInt(pet.breed_id) || null,
-                    gender: dbGender,
-                    weight_kg: parseFloat(pet.weight) || 0,
-                    age_years: ageYears,
-                    age_months: ageMonths,
-                    microchip_id: pet.microchip_id || null,
-                    passport_number: pet.passport_number || null,
-                    date_of_birth: pet.date_of_birth || null,
-                    is_dob_estimated: !hasDob,
-                    medical_alerts: pet.medical_alerts ? [pet.medical_alerts] : (pet.specialRequirements ? [pet.specialRequirements] : []),
-                })
-                .select('id')
-                .single()
+        const { data: newPets, error: petError } = await supabase
+            .from('pets')
+            .insert(petInserts)
+            .select('id')
 
-            if (petError) throw new Error(`Error creating pet ${pet.name}: ${petError.message}`)
-            petIds.push(newPet.id)
-        }
+        if (petError) throw new Error(`Error creating pets: ${petError.message}`)
+        const petIds = newPets.map(p => p.id)
 
         // 3. Create Booking
         // Determine Service Type
@@ -426,29 +430,56 @@ export async function submitEnquiry(formData) {
             const emailContent = generateEmailTemplate(bookingObj)
             const companyEmailContent = generateEmailTemplate(bookingObj, 'company')
 
-            // 1. Send Customer Confirmation Email
-            console.log(`Sending customer email to ${contactInfo.email}...`)
-            await transporter.sendMail({
-                from: `"${process.env.COMPANY_NAME || 'Pawpaths'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+            const fromAddress = `"${process.env.COMPANY_NAME || 'Pawpaths'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`
+
+            // ── Build both mail payloads ─────────────────────────────────────
+            const customerMailPayload = {
+                from: fromAddress,
                 to: contactInfo.email,
                 subject: `Enquiry Confirmation - ${bookingObj.bookingId} | Pawpaths`,
                 html: emailContent,
-            })
-            console.log('Customer email sent successfully')
+            }
 
-            // 2. Send Company Notification Email
-            console.log(`Sending company email to ${process.env.EMAIL_USER}...`)
-            await transporter.sendMail({
-                from: `"${process.env.COMPANY_NAME || 'Pawpaths'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
-                to: process.env.EMAIL_USER,
+            const companyMailPayload = {
+                from: fromAddress,
+                // Use dedicated notification address if set; fall back to the sending account
+                to: process.env.COMPANY_NOTIFICATION_EMAIL || process.env.EMAIL_USER,
+                // Reply-To lets the admin hit "Reply" in their inbox and land directly in the
+                // client's inbox — no copy-pasting required
+                replyTo: contactInfo.email,
                 subject: `[NEW ENQUIRY] ${bookingObj.bookingId} - ${contactInfo.fullName}`,
                 html: companyEmailContent,
-            })
-            console.log('Company email sent successfully')
+            }
+
+            // ── Parallel dispatch with Promise.allSettled ────────────────────
+            // allSettled is used instead of Promise.all because it waits for every
+            // promise to settle regardless of outcome. With Promise.all, a single
+            // failed send would reject the whole group and surface as an uncaught
+            // error — potentially hiding which email actually failed and making the
+            // booking appear to error even though the DB write succeeded. allSettled
+            // gives us an independent result for each send so we can log precisely.
+            console.log(`[EMAIL] Dispatching in parallel → client: ${contactInfo.email} | company: ${companyMailPayload.to}`)
+            const [customerResult, companyResult] = await Promise.allSettled([
+                transporter.sendMail(customerMailPayload),
+                transporter.sendMail(companyMailPayload),
+            ])
+
+            // ── Diagnostic logging ───────────────────────────────────────────
+            if (customerResult.status === 'fulfilled') {
+                console.log('[EMAIL] Customer confirmation sent | messageId:', customerResult.value?.messageId ?? customerResult.value?.response)
+            } else {
+                console.error('[EMAIL] Customer email FAILED:', customerResult.reason)
+            }
+
+            if (companyResult.status === 'fulfilled') {
+                console.log('[EMAIL] Company notification sent | messageId:', companyResult.value?.messageId ?? companyResult.value?.response)
+            } else {
+                console.error('[EMAIL] Company email FAILED:', companyResult.reason)
+            }
 
         } catch (emailError) {
-            console.error('Email sending failed (non-fatal):', emailError)
-            // We don't throw here to ensure the booking success is returned
+            // Catches SMTP connection/verify failures — the DB write already succeeded
+            console.error('[EMAIL] Fatal dispatch error (non-fatal to booking):', emailError)
         }
 
         return { success: true, bookingReference: newBooking.booking_number }

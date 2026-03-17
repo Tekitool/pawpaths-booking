@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import HeroVideoLoop from '@/components/tools/HeroVideoLoop';
@@ -149,10 +150,10 @@ export default function ToolsHubPage() {
 
                 {/* Floating pet icons */}
                 <div aria-hidden className="absolute inset-0 pointer-events-none select-none">
-                    <img src="/icon-paw2.svg" alt="" className="absolute top-[15%] left-[8%]  w-14 h-14 opacity-15" style={{ animation: 'toolsFloat1 6s ease-in-out infinite' }} />
-                    <img src="/icon-bone1.svg" alt="" className="absolute bottom-[20%] right-[10%] w-12 h-12 opacity-15" style={{ animation: 'toolsFloat2 7s ease-in-out infinite 1s' }} />
-                    <img src="/icon-paw3.svg" alt="" className="absolute top-[60%] left-[5%]  w-10 h-10 opacity-10" style={{ animation: 'toolsFloat1 5s ease-in-out infinite 0.5s' }} />
-                    <img src="/icon-yarn2.svg" alt="" className="absolute top-[25%] right-[8%] w-12 h-12 opacity-10" style={{ animation: 'toolsFloat2 8s ease-in-out infinite 2s' }} />
+                    <Image src="/icon-paw2.svg" alt="" width={56} height={56} className="absolute top-[15%] left-[8%]  w-14 h-14 opacity-15" style={{ animation: 'toolsFloat1 6s ease-in-out infinite' }} />
+                    <Image src="/icon-bone1.svg" alt="" width={48} height={48} className="absolute bottom-[20%] right-[10%] w-12 h-12 opacity-15" style={{ animation: 'toolsFloat2 7s ease-in-out infinite 1s' }} />
+                    <Image src="/icon-paw3.svg" alt="" width={40} height={40} className="absolute top-[60%] left-[5%]  w-10 h-10 opacity-10" style={{ animation: 'toolsFloat1 5s ease-in-out infinite 0.5s' }} />
+                    <Image src="/icon-yarn2.svg" alt="" width={48} height={48} className="absolute top-[25%] right-[8%] w-12 h-12 opacity-10" style={{ animation: 'toolsFloat2 8s ease-in-out infinite 2s' }} />
                 </div>
 
                 <style>{`
@@ -255,11 +256,12 @@ export default function ToolsHubPage() {
 
                                         {/* Decorative image — fades in from bottom-right, invisible at top-left */}
                                         {tool.image && (
-                                            <img
+                                            <Image
                                                 src={tool.image}
                                                 alt=""
+                                                fill
                                                 aria-hidden="true"
-                                                className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+                                                className="object-cover pointer-events-none select-none"
                                                 style={{
                                                     objectPosition: 'right 75%',
                                                     maskImage: 'linear-gradient(to left, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.55) 25%, rgba(0,0,0,0.20) 55%, transparent 75%)',
@@ -347,7 +349,8 @@ export default function ToolsHubPage() {
                         const dur = 4 + ((i * 5) % 4);
                         const delay = (i * 3) % 5;
                         return (
-                            <img key={i} src="/ppicon.svg" alt="" aria-hidden="true"
+                            <Image key={i} src="/ppicon.svg" alt="" aria-hidden="true"
+                                width={32} height={32}
                                 className="absolute w-8 h-8"
                                 style={{
                                     top: `${top}%`, left: `${left}%`, opacity,

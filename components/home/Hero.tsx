@@ -30,28 +30,28 @@ export default function Hero() {
                     variants={floatAnimation(0.5)} initial="hidden" animate="visible"
                     className="absolute top-[15%] left-[10%] rotate-12 opacity-[0.6]"
                 >
-                    <img src="/icon-paw2.svg" alt="" className="w-12 h-12 lg:w-14 lg:h-14" />
+                    <Image src="/icon-paw2.svg" alt="" width={56} height={56} className="w-12 h-12 lg:w-14 lg:h-14" />
                 </motion.div>
 
                 <motion.div
                     variants={floatAnimation(1.2)} initial="hidden" animate="visible"
                     className="absolute top-[20%] left-[45%] -rotate-45 opacity-[0.6]"
                 >
-                    <img src="/icon-bone1.svg" alt="" className="w-10 h-10 lg:w-12 lg:h-12" />
+                    <Image src="/icon-bone1.svg" alt="" width={48} height={48} className="w-10 h-10 lg:w-12 lg:h-12" />
                 </motion.div>
 
                 <motion.div
                     variants={floatAnimation(0.8)} initial="hidden" animate="visible"
                     className="absolute bottom-[2%] left-[8%] opacity-[0.6]"
                 >
-                    <img src="/icon-yarn2.svg" alt="" className="w-14 h-14 lg:w-16 lg:h-16" />
+                    <Image src="/icon-yarn2.svg" alt="" width={64} height={64} className="w-14 h-14 lg:w-16 lg:h-16" />
                 </motion.div>
 
                 <motion.div
                     variants={floatAnimation(1.5)} initial="hidden" animate="visible"
                     className="absolute bottom-[25%] left-[45%] rotate-[15deg] opacity-[0.6]"
                 >
-                    <img src="/icon-candy1.svg" alt="" className="w-10 h-10 lg:w-12 lg:h-12" />
+                    <Image src="/icon-candy1.svg" alt="" width={48} height={48} className="w-10 h-10 lg:w-12 lg:h-12" />
                 </motion.div>
             </div>
 

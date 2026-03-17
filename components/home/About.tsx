@@ -29,7 +29,7 @@ export default function About() {
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                     className="absolute top-12 right-8 md:right-16 lg:right-[15%] w-[70px] h-[70px] md:w-[90px] md:h-[90px]"
                 >
-                    <img src="/icon-bone1.svg" alt="" className="w-full h-full object-contain" />
+                    <Image src="/icon-bone1.svg" alt="" width={90} height={90} className="w-full h-full object-contain" />
                 </motion.div>
 
                 {/* 3. Yellow Yarn (Bottom Right) */}
@@ -98,7 +98,7 @@ export default function About() {
                     {/* Tagline */}
                     <motion.div variants={fadeInUp} className="flex items-center gap-2 mb-3">
                         <span className="text-[#FF9900] text-sm font-extrabold tracking-wider uppercase">About Pawpaths</span>
-                        <img src="/icon-paw2.svg" alt="" className="w-5 h-5" />
+                        <Image src="/icon-paw2.svg" alt="" width={20} height={20} className="w-5 h-5" />
                     </motion.div>
 
                     {/* Heading */}

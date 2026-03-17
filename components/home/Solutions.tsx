@@ -126,7 +126,7 @@ export default function Solutions() {
                         <span className="text-[#FF9900] text-sm font-extrabold tracking-wider uppercase">
                             Why We&apos;re Your Trusted Expert?
                         </span>
-                        <img src="/icon-paw2.svg" alt="" className="w-5 h-5" />
+                        <Image src="/icon-paw2.svg" alt="" width={20} height={20} className="w-5 h-5" />
                     </motion.div>
 
                     {/* Heading */}

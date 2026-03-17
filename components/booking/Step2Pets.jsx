@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 import useBookingStore from '@/lib/store/booking-store';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -233,7 +234,7 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
                                                    transition-colors duration-200
                                                    min-h-[44px] sm:min-h-[36px] cursor-pointer"
                                     >
-                                        <img src="/ppicon.svg" alt="" className="w-4 h-4 shrink-0" />
+                                        <Image src="/ppicon.svg" alt="" width={16} height={16} className="w-4 h-4 shrink-0" />
                                         <span className="hidden sm:inline whitespace-nowrap">Pawpaths Breed Scan</span>
                                     </motion.button>
 

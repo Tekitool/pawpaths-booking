@@ -163,7 +163,7 @@ export default function NavBar() {
                 onClick={() => setMobileOpen((prev) => !prev)}
                 className="
                   lg:hidden flex items-center justify-center
-                  w-10 h-10 rounded-lg
+                  w-11 h-11 rounded-lg
                   text-brand-brown
                   transition-colors duration-200
                   hover:bg-brand-cream/50

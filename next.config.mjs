@@ -5,7 +5,7 @@ const nextConfig = {
   output: 'standalone',
   experimental: {
     serverActions: {
-      allowedOrigins: ['192.168.1.45:3000', 'localhost:3000', 'pawpathsae.com', 'admin.pawpathsae.com', 'booking.pawpathsae.com', '*.vercel.app'],
+      allowedOrigins: ['localhost:3000', 'pawpathsae.com', 'www.pawpathsae.com', '.pawpathsae.com', '*.vercel.app'],
     },
   },
   images: {

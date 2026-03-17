@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import useBookingStore from '@/lib/store/booking-store';
 import { COUNTRIES } from '@/lib/constants/countries';
 import Button from '@/components/ui/Button';
@@ -13,18 +13,21 @@ import { uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storag
 import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
 import ValidationFailureModal from './ValidationFailureModal';
 
-const Step5Review = forwardRef((props, ref) => {
+const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmitting, setIsSubmitting }, ref) => {
     const router = useRouter();
     const { formData, resetForm, updateContactInfo, setStep } = useBookingStore();
     const { travelDetails, pets, services, contactInfo } = formData;
-    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Synchronous in-flight guard. Unlike `isSubmitting` (which is React state and
+    // requires a render cycle before the button's `disabled` prop takes effect),
+    // a ref update is instantaneous — it blocks the second click in the ~16ms
+    // window between the first click and the first re-render with disabled=true.
+    const submittingGuard = useRef(false);
 
     const [showError, setShowError] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [showValidationModal, setShowValidationModal] = useState(false);
     const [showAddress, setShowAddress] = useState(false);
-
-    const { speciesList = [], breedsList = [] } = props;
 
     // Helper to get label from value
     const getCountryLabel = (code) => {
@@ -129,8 +132,20 @@ const Step5Review = forwardRef((props, ref) => {
             return;
         }
 
+        // Synchronous guard — a ref update is visible immediately, before any re-render.
+        // This closes the double-click window that exists between the first click and the
+        // first render that sets disabled=true on the button (~16ms in React 18).
+        if (submittingGuard.current) return;
+        submittingGuard.current = true;
+
         setIsSubmitting(true);
         setValidationErrors({}); // Clear previous errors
+
+        // Track whether submission succeeded so finally can decide whether to re-enable the button.
+        // On success we intentionally keep isSubmitting=true — the step transitions to 6 and the
+        // button disappears, so unlocking it would cause a flash and would permit a re-click if
+        // the render is delayed.
+        let succeeded = false;
 
         try {
             const petFiles = formData.petFiles || {};
@@ -181,6 +196,8 @@ const Step5Review = forwardRef((props, ref) => {
             console.log('Step5Review: Submission result:', result);
 
             if (result.success) {
+                succeeded = true; // Prevent finally from re-enabling the button
+
                 // Save reference to store for Step 6
                 if (useBookingStore.getState().setBookingReference) {
                     useBookingStore.getState().setBookingReference(result.bookingReference);
@@ -230,7 +247,12 @@ const Step5Review = forwardRef((props, ref) => {
                 description: "Failed to submit enquiry. Please check your connection.",
             });
         } finally {
-            setIsSubmitting(false);
+            // Only re-enable on failure. On success the step moves to 6 and the button
+            // is removed from the DOM, so keeping these locked prevents any edge-case flash.
+            if (!succeeded) {
+                submittingGuard.current = false;
+                setIsSubmitting(false);
+            }
         }
     };
 

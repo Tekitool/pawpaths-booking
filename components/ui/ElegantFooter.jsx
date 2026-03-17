@@ -65,7 +65,7 @@ export default function ElegantFooter() {
         <footer className="relative mt-16 w-full">
             {/* Main Footer Container with Gradient */}
             <div
-                className="w-full pt-10 pb-6 px-4 relative z-10 bg-gradient-to-r from-brand-color-04 to-brand-color-03"
+                className="w-full pt-10 pb-6 px-4 [padding-bottom:max(1.5rem,env(safe-area-inset-bottom))] relative z-10 bg-gradient-to-r from-brand-color-04 to-brand-color-03"
             >
                 {/* Extruded Logo Circle */}
                 <a

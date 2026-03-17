@@ -1,7 +1,6 @@
 'use client';
-'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import useBookingStore from '@/lib/store/booking-store';
 import { Truck, Plane, FileText, Box, Car, Stethoscope, Check, Info, Home, User, CheckCircle, AlertCircle, Sparkles, Dog, Cat, PawPrint, Briefcase } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -54,13 +53,6 @@ export default function Step3Services() {
 
         return [...tripCards, ...petCards];
     }, [tripEssentials, petSpecificServices, pets]);
-
-    // Auto-select mandatory services logic REMOVED to allow full user control.
-    /*
-    useEffect(() => {
-        // ... logic removed ...
-    }, [availableServices, pets, updateServices]); 
-    */
 
     const getIcon = (iconName) => {
         const icons = { Truck, Plane, FileText, Box, Car, Stethoscope, Check, Home, User, CheckCircle, Dog, Cat, PawPrint, Briefcase };
