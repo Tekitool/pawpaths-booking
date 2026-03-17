@@ -51,7 +51,7 @@ const calculateAgeFromDob = (dobString) => {
 
     // Under 1 year → express in whole months
     let months = (today.getFullYear() - dob.getFullYear()) * 12
-               + (today.getMonth() - dob.getMonth());
+        + (today.getMonth() - dob.getMonth());
     if (today.getDate() < dob.getDate()) months--;
     return { age: String(Math.max(0, months)), ageUnit: 'months' };
 };
@@ -145,12 +145,12 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
     // Path A handler — typing Age or switching Unit → calculates DOB, marks estimated
     // No useEffect involved: direct onChange → single updatePet call → no loop possible.
     const handleAgeOrUnitChange = (index, field, value, pet) => {
-        const newAge  = field === 'age'     ? value              : (pet.age     || '');
-        const newUnit = field === 'ageUnit' ? value              : (pet.ageUnit || 'years');
+        const newAge = field === 'age' ? value : (pet.age || '');
+        const newUnit = field === 'ageUnit' ? value : (pet.ageUnit || 'years');
         const dob = calculateDobFromAge(newAge, newUnit);
         updatePet(index, {
-            [field]:          value,
-            date_of_birth:    dob,
+            [field]: value,
+            date_of_birth: dob,
             is_dob_estimated: !!dob,
         });
     };
@@ -159,7 +159,7 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
     const handleDobChange = (index, dateStr) => {
         const { age, ageUnit } = calculateAgeFromDob(dateStr);
         updatePet(index, {
-            date_of_birth:    dateStr,
+            date_of_birth: dateStr,
             age,
             ageUnit,
             is_dob_estimated: false,
@@ -216,7 +216,7 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
                                             if (window.matchMedia('(hover: none)').matches) {
                                                 setTooltipIndex(prev => prev === index ? null : index);
                                             } else {
-                                                window.open('http://localhost:3000/tools/pet-breed-scanner', '_blank', 'noopener,noreferrer');
+                                                window.open('/tools/pet-breed-scanner', '_blank', 'noopener,noreferrer');
                                             }
                                         }}
                                         animate={{ scale: [1, 1.03, 1] }}
@@ -285,9 +285,9 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
                                         whileHover="hover"
                                         whileTap="tap"
                                         variants={{
-                                            rest:  { scale: 1    },
+                                            rest: { scale: 1 },
                                             hover: { scale: 1.12 },
-                                            tap:   { scale: 0.88 },
+                                            tap: { scale: 0.88 },
                                         }}
                                         className="text-brand-text-02/40 p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl
                                                    hover:text-error hover:bg-error/10 hover:shadow-[0_0_16px_rgba(239,68,68,0.2)]
@@ -297,9 +297,9 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
                                     >
                                         <motion.span
                                             variants={{
-                                                rest:  { rotate: 0,   scale: 1    },
-                                                hover: { rotate: -15, scale: 1    },
-                                                tap:   { rotate: -25, scale: 0.88 },
+                                                rest: { rotate: 0, scale: 1 },
+                                                hover: { rotate: -15, scale: 1 },
+                                                tap: { rotate: -25, scale: 0.88 },
                                             }}
                                             transition={{ duration: 0.18, ease: 'easeOut' }}
                                         >
