@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { uploadAvatarToSupabase } from '@/lib/storage-service';
 
 export async function POST(request) {
     try {
@@ -11,16 +10,11 @@ export async function POST(request) {
             return NextResponse.json({ error: 'No file received.' }, { status: 400 });
         }
 
-        const { uploadFile } = await import('@/lib/storage-service');
+        const { url } = await uploadAvatarToSupabase(file);
 
-        const { url, filename } = await uploadFile(file, 'users');
-
-        return NextResponse.json({
-            success: true,
-            path: url
-        });
+        return NextResponse.json({ success: true, path: url });
     } catch (error) {
-        console.error('Upload failed:', error);
+        console.error('Avatar upload failed:', error);
         return NextResponse.json({ error: 'Upload failed.' }, { status: 500 });
     }
 }

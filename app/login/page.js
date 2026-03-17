@@ -52,13 +52,22 @@ export default function LoginPage() {
                     </div>
 
                     {errorMessage && (
-                        <div className="flex items-center gap-2 text-system-color-01 text-sm bg-error/10 p-3 rounded-lg">
-                            <AlertCircle size={16} />
-                            <p>{errorMessage}</p>
+                        <div className="flex items-center gap-2 text-system-color-01 text-sm bg-system-color-01/10 p-3 rounded-lg border border-system-color-01/20 animate-in fade-in slide-in-from-top-1">
+                            <AlertCircle size={16} className="text-system-color-01" />
+                            <p className="font-medium text-system-color-01">{errorMessage}</p>
                         </div>
                     )}
 
                     <LoginButton />
+
+                    <div className="text-center">
+                        <a
+                            href="/login/forgot-password"
+                            className="text-sm font-medium text-brand-text-02/60 hover:text-brand-color-01 transition-colors underline decoration-brand-text-02/20 underline-offset-4"
+                        >
+                            Forgot password?
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>

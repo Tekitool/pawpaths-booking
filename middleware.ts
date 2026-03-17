@@ -17,6 +17,8 @@ const PUBLIC_PREFIXES = [
     '/api/upload',
     '/api/ai-crate-audit',
     '/auth/callback',
+    '/auth/set-password',
+    '/auth/auth-code-error',
 ]
 
 function isPublicPath(pathname: string): boolean {
@@ -30,6 +32,26 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
     const host = request.headers.get('host') ?? ''
 
+    // ── 0. Defensive: catch Supabase auth responses landing on root ───────────
+    // When redirectTo isn't in Supabase's allowlist it falls back to the Site URL,
+    // appending ?code= or ?error= to the root. Forward both to the right handlers.
+    const strayCode  = request.nextUrl.searchParams.get('code')
+    const strayError = request.nextUrl.searchParams.get('error')
+    if (pathname === '/') {
+        if (strayCode) {
+            const callbackUrl = new URL('/auth/callback', request.url)
+            callbackUrl.searchParams.set('code', strayCode)
+            callbackUrl.searchParams.set('next', '/auth/set-password')
+            return NextResponse.redirect(callbackUrl)
+        }
+        if (strayError) {
+            const errorUrl = new URL('/auth/auth-code-error', request.url)
+            const errorCode = request.nextUrl.searchParams.get('error_code')
+            if (errorCode) errorUrl.searchParams.set('error_code', errorCode)
+            return NextResponse.redirect(errorUrl)
+        }
+    }
+
     // ── 1. Cross-domain 301: booking.pawpathsae.com → pawpathsae.com ─────────
     // Requires booking.pawpathsae.com added as a domain alias in Vercel Dashboard.
     // Once Vercel routes that domain to this Next.js app, this intercepts it.
@@ -40,18 +62,16 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url, { status: 301 })
     }
 
-    // ── 2. Security obscurity: /login → /admin/login ──────────────────────────
-    if (pathname === '/login') {
-        return NextResponse.redirect(
-            new URL('/admin/login', request.url),
-            { status: 301 }
-        )
+    // ── 2. Security obscurity: /login/* → /admin/login/* ─────────────────────
+    if (pathname === '/login' || pathname.startsWith('/login/')) {
+        const adminPath = pathname.replace('/login', '/admin/login')
+        return NextResponse.redirect(new URL(adminPath, request.url), { status: 301 })
     }
 
-    // ── 3. /admin/login: pass through — MUST come before protected route check ─
-    // Without this, unauthenticated user → /admin/login → matches /admin/* →
-    // redirect to / → user can never reach the login form. Infinite loop fixed.
-    if (pathname === '/admin/login') {
+    // ── 3. /admin/login and all sub-paths: pass through ───────────────────────
+    // Without this, unauthenticated user → /admin/login/* → matches /admin/* →
+    // redirect to / → user can never reach the login or forgot-password form.
+    if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) {
         return NextResponse.next()
     }
 

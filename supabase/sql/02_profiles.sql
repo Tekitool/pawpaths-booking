@@ -44,7 +44,7 @@ BEGIN
     NEW.raw_user_meta_data->>'full_name',
     'customer'
   )
-  ON CONFLICT (id) DO NOTHING; -- Prevent error if profile already exists
+  ON CONFLICT DO NOTHING; -- Handles both id PK and email UNIQUE constraint violations
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

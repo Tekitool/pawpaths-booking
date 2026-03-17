@@ -7,7 +7,13 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(npx next build)",
-      "Bash(ls \"/c/NEXT/Pawpath-Form/app/\\(homepage\\)/components/sections/\")"
+      "Bash(ls \"/c/NEXT/Pawpath-Form/app/\\(homepage\\)/components/sections/\")",
+      "Bash(node scripts/list-dog-breeds.js)",
+      "Bash(grep -n \"isSendingInvite\" /c/NEXT/Pawpath-Form/app/admin/users/[userId]/UserForm.tsx)",
+      "Bash(xargs grep -l \"const ROLES\\\\|export.*ROLES\")",
+      "Read(//c/Users/USER/AppData/Local/Temp/claude/c--NEXT-Pawpath-Form/tasks/**)",
+      "Bash(wc -l components/admin/EditUserModal.tsx app/admin/users/[userId]/UserForm.tsx lib/storage-service.js)",
+      "Bash(ls \"c:\\\\NEXT\\\\Pawpath-Form\\\\app\\\\\\(auth\\)\\\\admin\\\\login\"\")"
     ],
     "additionalDirectories": [
       "C:\\NEXT\\Pawpath-Form\\components\\home",
