@@ -272,7 +272,7 @@ export default function NavBar() {
             '@type': 'SiteNavigationElement',
             name: NAV_ITEMS.map((item) => item.label),
             url: NAV_ITEMS.map(
-              (item) => `https://pawpathsae.com${item.href}`
+              (item) => `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.pawpathsae.com'}${item.href}`
             ),
           }),
         }}

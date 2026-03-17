@@ -4,7 +4,7 @@
 export const siteConfig = {
   name: "Pawpaths",
   legalName: "Tekitool Solutions",
-  url: "https://pawpathsae.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.pawpathsae.com",
   description: "Expert international pet relocation services in the UAE. AI-powered tools for stress-free dog and cat transport from Dubai, Abu Dhabi, and beyond.",
   
   // Contact

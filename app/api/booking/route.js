@@ -370,14 +370,14 @@ export async function POST(req) {
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
                     to: customerEmail,
-                    subject: `Booking Confirmation - ${bookingObj.bookingId} | Pawpaths`,
+                    subject: `Enquiry Confirmation - ${bookingObj.bookingId} | Pawpaths`,
                     html: emailContent,
                 });
 
                 await transporter.sendMail({
                     from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_FROM}>`,
                     to: process.env.EMAIL_USER,
-                    subject: `[NEW BOOKING] ${bookingObj.bookingId} - ${customerName}`,
+                    subject: `[NEW ENQUIRY] ${bookingObj.bookingId} - ${customerName}`,
                     html: companyEmailContent,
                 });
             };
@@ -401,7 +401,7 @@ export async function POST(req) {
             success: true,
             bookingId: booking.booking_number,
             booking: bookingObj,
-            message: 'Booking confirmed successfully',
+            message: 'Enquiry received successfully',
             whatsappLink,
             whatsappMessage
         }, { status: 201 });

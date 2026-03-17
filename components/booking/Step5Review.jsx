@@ -9,7 +9,7 @@ import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User,
 import { useRouter } from 'next/navigation';
 import { submitEnquiry } from '@/app/booking/actions';
 import { toast } from '@/hooks/use-toast';
-import { getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage';
+import { uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage';
 import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
 import ValidationFailureModal from './ValidationFailureModal';
 
@@ -120,7 +120,7 @@ const Step5Review = forwardRef((props, ref) => {
     };
 
     const handleSubmit = async () => {
-        // Basic client-side check
+        // 1. Basic client-side check
         if (!contactInfo?.fullName || !contactInfo?.email || !contactInfo?.phone || !contactInfo?.city) {
             setValidationErrors({
                 "Contact Info": ["Please fill in all required contact details (Name, City/Place, Phone, and Email)."]
@@ -131,11 +131,53 @@ const Step5Review = forwardRef((props, ref) => {
 
         setIsSubmitting(true);
         setValidationErrors({}); // Clear previous errors
-        console.log('Step5Review: Submitting enquiry...', formData);
 
         try {
-            // Call Server Action directly
-            const result = await submitEnquiry(formData);
+            const petFiles = formData.petFiles || {};
+            const sessionId = formData.enquiry_session_id || crypto.randomUUID();
+            const updatedFormData = { ...formData, enquiry_session_id: sessionId };
+
+            // 2. Upload Files to Supabase (Deferred from Step 4)
+            const uploadToasts = [];
+            const petFileEntries = Object.entries(petFiles);
+
+            if (petFileEntries.length > 0) {
+                toast({ title: "Uploading Documents", description: "Please wait while we secure your documents..." });
+            }
+
+            for (const [indexStr, docs] of petFileEntries) {
+                const index = parseInt(indexStr);
+
+                // Photo upload
+                if (docs.photo instanceof File) {
+                    const path = await uploadFile({
+                        file: docs.photo,
+                        bucket: STORAGE_BUCKETS.PHOTOS,
+                        folder: `enquiries/${sessionId}/pet-${index}/photos`
+                    });
+                    updatedFormData[`pet_${index}_photo_path`] = path;
+                    if (index === 0) updatedFormData.pet_photo_path = path;
+                }
+
+                // Medical Docs upload
+                if (docs.medicalDocs instanceof File) {
+                    const path = await uploadFile({
+                        file: docs.medicalDocs,
+                        bucket: STORAGE_BUCKETS.DOCUMENTS,
+                        folder: `enquiries/${sessionId}/pet-${index}/documents`
+                    });
+                    updatedFormData[`pet_${index}_medical_path`] = path;
+                    if (index === 0) {
+                        updatedFormData.passport_path = path;
+                        updatedFormData.documents_path = `enquiries/${sessionId}/pet-${index}/documents`;
+                    }
+                }
+            }
+
+            console.log('Step5Review: Submitting enquiry with uploaded paths...', updatedFormData);
+
+            // 3. Call Server Action
+            const result = await submitEnquiry(updatedFormData);
             console.log('Step5Review: Submission result:', result);
 
             if (result.success) {
@@ -185,7 +227,7 @@ const Step5Review = forwardRef((props, ref) => {
             toast({
                 variant: "error",
                 title: "Network Error",
-                description: "Failed to submit booking. Please check your connection.",
+                description: "Failed to submit enquiry. Please check your connection.",
             });
         } finally {
             setIsSubmitting(false);
@@ -201,7 +243,7 @@ const Step5Review = forwardRef((props, ref) => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto">
             <div className="text-center mb-10">
                 <h2 className="text-brand-color-01 tracking-tight mb-2">Review & Confirm</h2>
-                <p className="text-brand-text-02/80">Finalize your booking details below</p>
+                <p className="text-brand-text-02/80">Finalize your enquiry details below</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -423,13 +465,16 @@ const Step5Review = forwardRef((props, ref) => {
                     </h3>
                     <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                         {pets.map((pet, index) => {
+                            const petFiles = formData.petFiles || {};
+                            const localPhoto = petFiles[index]?.photo;
                             const photoPath = formData[`pet_${index}_photo_path`] || formData[`pet_photo_path`];
                             const uploadedPhotoUrl = photoPath ? getPublicUrl(STORAGE_BUCKETS.PHOTOS, photoPath) : null;
+                            const displayPhoto = localPhoto || uploadedPhotoUrl;
 
                             return (
                                 <div key={index} className="flex items-center p-4 rounded-2xl border border-brand-text-03/30 bg-white/40 hover:bg-white/60 hover:shadow-md transition-all duration-300 group/pet">
                                     <SmartPetAvatar
-                                        userUploadedFile={uploadedPhotoUrl}
+                                        userUploadedFile={displayPhoto}
                                         breedDefaultImageUrl={pet.breedDefaultImageUrl}
                                         petName={pet.name}
                                         size={56}
@@ -549,7 +594,7 @@ const Step5Review = forwardRef((props, ref) => {
                     <div className="flex items-start gap-3 text-xs text-system-color-02 bg-success/15 p-4 rounded-xl border border-system-color-02">
                         <CheckCircle size={16} className="shrink-0 mt-0.5 text-success" />
                         <p className="leading-relaxed">
-                            By confirming, you agree to our <a href="https://pawpathsae.com/terms-of-service/" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-success">Terms of Service</a> and <a href="https://pawpathsae.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-success">privacy-policy</a>. A confirmation email will be sent to <span className="font-bold">{contactInfo?.email || 'your email'}</span>.
+                            By confirming, you agree to our <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-success">Terms of Service</a> and <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-success">privacy-policy</a>. A confirmation email will be sent to <span className="font-bold">{contactInfo?.email || 'your email'}</span>.
                         </p>
                     </div>
                 </div>

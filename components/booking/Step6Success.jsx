@@ -32,7 +32,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
     };
 
     const handleClose = () => {
-        window.location.href = 'https://pawpathsae.com/';
+        window.location.href = '/';
     };
 
 

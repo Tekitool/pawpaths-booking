@@ -23,13 +23,13 @@ export const metadata: Metadata = {
     keywords:
         'pet relocation UAE, dog transport Dubai, cat travel Abu Dhabi, IATA pet crate calculator, AI breed scanner, international pet shipping, Pawpaths',
     alternates: {
-        canonical: 'https://pawpathsae.com',
+        canonical: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.pawpathsae.com',
     },
     openGraph: {
         title: 'Pawpaths | Premium Pet Relocation & Travel Tools UAE',
         description:
             'Expert international pet relocation services in the UAE. Use our free AI Breed Scanner and IATA Crate Size Calculator to plan your perfect journey.',
-        url: 'https://pawpathsae.com',
+        url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.pawpathsae.com',
         siteName: 'Pawpaths',
         images: [
             {

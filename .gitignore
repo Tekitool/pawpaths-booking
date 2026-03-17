@@ -42,3 +42,10 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# agent meta
+.claude/
+.agents/
+.agent/
+_agents/
+_agent/

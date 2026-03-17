@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import nodemailer from 'nodemailer'
 import { generateEmailTemplate } from '@/lib/utils/emailTemplate'
+import { getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage'
 
 import { EnquirySchema } from '@/lib/schemas';
 import { COUNTRIES } from '@/lib/constants/countries';
@@ -348,14 +349,26 @@ export async function submitEnquiry(formData) {
                 return data?.name || 'Unknown';
             };
 
-            const petsForEmail = await Promise.all(pets.map(async p => ({
-                name: p.name,
-                type: await getSpeciesName(p.species_id),
-                breed: await getBreedName(p.breed_id),
-                age: `${p.age} ${p.ageUnit || 'years'}`,
-                weight: p.weight,
-                specialRequirements: p.specialRequirements
-            })));
+            const petsForEmail = await Promise.all(pets.map(async (p, petIdx) => {
+                // Resolve pet photo: uploaded path → public URL, else breed default
+                let photoUrl = null;
+                const uploadedPath = formData[`pet_${petIdx}_photo_path`];
+                if (uploadedPath) {
+                    photoUrl = getPublicUrl(STORAGE_BUCKETS.PHOTOS, uploadedPath);
+                } else {
+                    photoUrl = formData.pets?.[petIdx]?.breedDefaultImageUrl || null;
+                }
+
+                return {
+                    name: p.name,
+                    type: await getSpeciesName(p.species_id),
+                    breed: await getBreedName(p.breed_id),
+                    age: `${p.age} ${p.ageUnit || 'years'}`,
+                    weight: p.weight,
+                    specialRequirements: p.specialRequirements,
+                    photoUrl
+                };
+            }));
 
             // Helper to get country label
             const getCountryLabel = (code) => {
@@ -418,7 +431,7 @@ export async function submitEnquiry(formData) {
             await transporter.sendMail({
                 from: `"${process.env.COMPANY_NAME || 'Pawpaths'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
                 to: contactInfo.email,
-                subject: `Booking Confirmation - ${bookingObj.bookingId} | Pawpaths`,
+                subject: `Enquiry Confirmation - ${bookingObj.bookingId} | Pawpaths`,
                 html: emailContent,
             })
             console.log('Customer email sent successfully')
@@ -428,7 +441,7 @@ export async function submitEnquiry(formData) {
             await transporter.sendMail({
                 from: `"${process.env.COMPANY_NAME || 'Pawpaths'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
                 to: process.env.EMAIL_USER,
-                subject: `[NEW BOOKING] ${bookingObj.bookingId} - ${contactInfo.fullName}`,
+                subject: `[NEW ENQUIRY] ${bookingObj.bookingId} - ${contactInfo.fullName}`,
                 html: companyEmailContent,
             })
             console.log('Company email sent successfully')

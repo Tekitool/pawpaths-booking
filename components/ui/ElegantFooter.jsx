@@ -69,7 +69,7 @@ export default function ElegantFooter() {
             >
                 {/* Extruded Logo Circle */}
                 <a
-                    href="https://pawpathsae.com/"
+                    href="/"
                     className="absolute top-0 left-1/2 transform -translate-x-1/2 -mt-16 z-20 group"
                 >
                     {/* Rotating Glow Effect */}
@@ -119,15 +119,15 @@ export default function ElegantFooter() {
 
                     {/* Navigation Links */}
                     <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-6 px-4">
-                        <FooterLink href="https://pawpathsae.com/">Home</FooterLink>
+                        <FooterLink href="/">Home</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
-                        <FooterLink href="https://pawpathsae.com/contacts/">Contact</FooterLink>
+                        <FooterLink href="/contact">Contact</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
-                        <FooterLink href="https://pawpathsae.com/services/">Services</FooterLink>
+                        <FooterLink href="/services">Services</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
-                        <FooterLink href="https://pawpathsae.com/faq/">FAQ</FooterLink>
+                        <FooterLink href="/faq">FAQ</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
-                        <FooterLink href="https://pawpathsae.com/pet-breed/">Pets & Breeds</FooterLink>
+                        <FooterLink href="/pet-breed">Pets & Breeds</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>
                         <FooterLink href="/terms-of-service">Terms of Service</FooterLink>
                         <span className="text-brand-color-01/30 hidden sm:inline">|</span>

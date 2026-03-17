@@ -4,7 +4,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import useBookingStore from '@/lib/store/booking-store';
 import { UploadCloud, FileText, X, CheckCircle, AlertCircle, Loader2, Camera, PawPrint, Dog, Cat, Bird, Turtle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { uploadFile, STORAGE_BUCKETS } from '@/lib/services/storage';
 import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
 
 // ─────────────────────────────────────────────────────────
@@ -27,7 +26,7 @@ const getSpeciesConfig = (speciesName) => {
 // ─────────────────────────────────────────────────────────
 // Per-Pet Dropzone Box
 // ─────────────────────────────────────────────────────────
-const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isUploading, icon: Icon, fallbackImageUrl, petName, isPhoto }) => {
+const DropzoneBox = ({ id, title, subtext, accept, file, previewUrl, onUpload, onRemove, isUploading, icon: Icon, fallbackImageUrl, petName, isPhoto }) => {
     const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('!border-brand-color-01', '!bg-brand-color-01/5'); };
     const handleDragLeave = (e) => { e.preventDefault(); e.currentTarget.classList.remove('!border-brand-color-01', '!bg-brand-color-01/5'); };
     const handleDrop = (e) => {
@@ -40,7 +39,7 @@ const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isU
     };
 
     return (
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
             <div className="flex items-center gap-2 mb-2">
                 <Icon size={16} className="text-brand-color-01" />
                 <h4 className="text-sm font-semibold text-brand-text-02">{title}</h4>
@@ -52,82 +51,94 @@ const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isU
             </div>
             <p className="text-xs text-brand-text-02/60 mb-3">{subtext}</p>
 
-            {!file ? (
-                <div className="relative group/upload">
-                    <input
-                        type="file"
-                        id={id}
-                        className="hidden"
-                        onChange={onUpload}
-                        accept={accept}
-                        disabled={isUploading}
-                    />
-                    <label
-                        htmlFor={id}
-                        className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-blue-50/60 hover:border-blue-400 transition-colors rounded-xl p-4 sm:p-6 text-center cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                    >
-                        {isUploading ? (
-                            <Loader2 className="w-7 h-7 animate-spin text-brand-color-01" />
-                        ) : isPhoto ? (
-                            <div className="flex flex-col items-center gap-3">
-                                <SmartPetAvatar
-                                    breedDefaultImageUrl={fallbackImageUrl}
-                                    petName={petName}
-                                    size={80}
-                                    className="group-hover/upload:scale-105 transition-transform duration-300"
-                                />
-                                <div className="space-y-1">
-                                    <span className="text-xs font-bold text-brand-text-02 group-hover/upload:text-brand-color-01 transition-colors block">
-                                        {fallbackImageUrl ? 'Change photo' : 'Upload photo'}
+            <div className="flex-1 flex flex-col">
+                {!file ? (
+                    <div className="relative group/upload flex-1">
+                        <input
+                            type="file"
+                            id={id}
+                            className="hidden"
+                            onChange={onUpload}
+                            accept={accept}
+                            disabled={isUploading}
+                        />
+                        <label
+                            htmlFor={id}
+                            className={`flex flex-col items-center justify-center w-full min-h-[220px] h-full border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-blue-50/60 hover:border-blue-400 transition-colors rounded-xl p-4 sm:p-6 text-center cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                        >
+                            {isUploading ? (
+                                <Loader2 className="w-10 h-10 animate-spin text-brand-color-01" />
+                            ) : isPhoto ? (
+                                <div className="flex flex-col items-center gap-4">
+                                    <SmartPetAvatar
+                                        breedDefaultImageUrl={fallbackImageUrl}
+                                        petName={petName}
+                                        size={96}
+                                        className="group-hover/upload:scale-105 transition-transform duration-300 shadow-sm"
+                                    />
+                                    <div className="space-y-1">
+                                        <span className="text-xs font-bold text-brand-text-02 group-hover/upload:text-brand-color-01 transition-colors block">
+                                            {fallbackImageUrl ? 'Change photo' : 'Upload photo'}
+                                        </span>
+                                        <span className="text-[10px] text-brand-text-02/50 block">Click or drag to upload</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="p-4 bg-white rounded-full shadow-sm mb-3 group-hover/upload:scale-110 transition-transform duration-300 text-brand-text-02/60 group-hover/upload:text-brand-color-01 border border-gray-100">
+                                        <UploadCloud size={32} strokeWidth={1.5} />
+                                    </div>
+                                    <span className="text-xs font-bold text-brand-text-02 group-hover/upload:text-brand-color-01 transition-colors">
+                                        Click or drag to upload
                                     </span>
-                                    <span className="text-[10px] text-brand-text-02/50 block">Click or drag to upload</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="p-2.5 bg-white rounded-full shadow-sm mb-2 group-hover/upload:scale-110 transition-transform duration-300 text-brand-text-02/60 group-hover/upload:text-brand-color-01">
-                                    <UploadCloud size={22} />
-                                </div>
-                                <span className="text-xs font-bold text-brand-text-02 group-hover/upload:text-brand-color-01 transition-colors">
-                                    Click or drag to upload
-                                </span>
-                                <span className="text-[10px] text-brand-text-02/50 mt-1">Max 5MB</span>
-                            </>
-                        )}
-                    </label>
-                </div>
-            ) : (
-                <div className="flex items-center justify-between bg-white/80 backdrop-blur-md p-3 rounded-xl border border-brand-text-02/15 shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        {isPhoto ? (
-                            <SmartPetAvatar
-                                userUploadedFile={file}
-                                petName={petName}
-                                size={44}
-                                className="flex-shrink-0"
-                            />
-                        ) : (
-                            <div className="bg-gradient-to-br from-brand-color-01/10 to-brand-color-01/5 p-2 rounded-xl border border-brand-color-01/10 shadow-inner">
-                                <FileText size={16} className="text-brand-color-01" />
-                            </div>
-                        )}
-                        <div className="truncate">
-                            <p className="text-xs font-bold text-brand-text-02 truncate max-w-[150px]">{file.name}</p>
-                            <p className="text-[10px] text-brand-text-02/60 font-medium mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
+                                    <span className="text-[10px] text-brand-text-02/50 mt-1">Max 5MB</span>
+                                </>
+                            )}
+                        </label>
                     </div>
-                    <button
-                        onClick={onRemove}
-                        className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-error/10 text-brand-text-02/60 hover:text-system-color-01 rounded-xl transition-all duration-300"
-                        title="Remove file"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-            )}
+                ) : (
+                    <div className="relative flex flex-col items-center justify-center w-full min-h-[220px] h-full bg-white/80 backdrop-blur-md p-6 rounded-xl border border-brand-text-02/15 shadow-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex flex-col items-center gap-4 w-full">
+                            {isPhoto ? (
+                                <SmartPetAvatar
+                                    userUploadedFile={previewUrl || undefined}
+                                    petName={petName}
+                                    size={110}
+                                    className="flex-shrink-0 shadow-md ring-4 ring-white"
+                                />
+                            ) : (
+                                <div className="bg-gradient-to-br from-brand-color-01/10 to-brand-color-01/5 p-5 rounded-2xl border border-brand-color-01/10 shadow-inner">
+                                    <FileText size={48} strokeWidth={1.2} className="text-brand-color-01" />
+                                </div>
+                            )}
+                            <div className="text-center w-full max-w-[200px]">
+                                <p className="text-xs font-bold text-brand-text-02 truncate" title={file.name}>{file.name}</p>
+                                <p className="text-[10px] text-brand-text-02/60 font-medium mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={onRemove}
+                            className="absolute top-3 right-3 p-2 hover:bg-error/10 text-brand-text-02/30 hover:text-system-color-01 rounded-lg transition-all duration-300"
+                            title="Remove file"
+                        >
+                            <X size={18} />
+                        </button>
+
+                        {isUploading && (
+                            <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-xl flex items-center justify-center animate-in fade-in duration-200">
+                                <div className="bg-white/90 p-3 rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center gap-2">
+                                    <Loader2 className="w-8 h-8 animate-spin text-brand-color-01" />
+                                    <span className="text-[10px] font-bold text-brand-color-01 uppercase tracking-tighter">Uploading</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -135,8 +146,19 @@ const DropzoneBox = ({ id, title, subtext, accept, file, onUpload, onRemove, isU
 // ─────────────────────────────────────────────────────────
 // Per-Pet Document Frame
 // ─────────────────────────────────────────────────────────
-const PetDocumentFrame = ({ pet, petIndex, sessionId, uploading, setUploading, petDocs, updatePetDocs, setFormData, validateFile }) => {
-    const petName = pet.name || `Pet ${petIndex + 1}`;
+const PetDocumentFrame = ({ pet, petIndex, petDocs, updatePetFiles, validateFile, petName }) => {
+    const [photoPreviewUrl, setPhotoPreviewUrl] = useState(null);
+
+    useEffect(() => {
+        const photoFile = petDocs?.photo;
+        if (!(photoFile instanceof File)) {
+            setPhotoPreviewUrl(null);
+            return;
+        }
+        const url = URL.createObjectURL(photoFile);
+        setPhotoPreviewUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [petDocs?.photo]);
 
     const handleFileChange = async (docType, e) => {
         const file = e.target.files?.[0];
@@ -147,61 +169,21 @@ const PetDocumentFrame = ({ pet, petIndex, sessionId, uploading, setUploading, p
             return;
         }
 
-        const uploadKey = `${petIndex}-${docType}`;
-        try {
-            setUploading(prev => ({ ...prev, [uploadKey]: true }));
-
-            if (!sessionId) {
-                toast({ variant: "error", title: "System Error", description: "Session ID missing. Please refresh the page." });
-                return;
-            }
-
-            const isPhoto = docType === 'photo';
-            const bucket = isPhoto ? STORAGE_BUCKETS.PHOTOS : STORAGE_BUCKETS.DOCUMENTS;
-            const folder = isPhoto
-                ? `enquiries/${sessionId}/pet-${petIndex}/photos`
-                : `enquiries/${sessionId}/pet-${petIndex}/documents`;
-
-            const path = await uploadFile({ file, bucket, folder });
-
-            // Update per-pet docs in store
-            updatePetDocs(petIndex, { [docType]: file });
-
-            // Update per-pet path in formData
-            const pathKey = isPhoto ? `pet_${petIndex}_photo_path` : `pet_${petIndex}_medical_path`;
-            setFormData(prev => ({
-                ...prev,
-                [pathKey]: path,
-                // Legacy compat: also write first pet paths to the flat fields
-                ...(petIndex === 0 && isPhoto ? { pet_photo_path: path } : {}),
-                ...(petIndex === 0 && !isPhoto ? { passport_path: path, documents_path: `enquiries/${sessionId}/pet-${petIndex}/documents` } : {}),
-            }));
-
-            toast({ variant: "success", title: "Upload Successful", description: `${file.name} uploaded for ${petName}.` });
-        } catch (error) {
-            console.error('Upload failed:', error);
-            toast({ variant: "error", title: "Upload Failed", description: `Error: ${error.message || 'Unknown error'}` });
-            if (e.target?.value) e.target.value = '';
-        } finally {
-            setUploading(prev => ({ ...prev, [uploadKey]: false }));
-        }
+        // Store file in local memory (Zustand) instantly for persistent navigation & preview
+        updatePetFiles(petIndex, { [docType]: file });
+        toast({
+            variant: "success",
+            title: "File Saved",
+            description: `${file.name} saved for ${petName}. It will be uploaded when you submit the form.`
+        });
     };
 
     const removeFile = (docType) => {
-        updatePetDocs(petIndex, { [docType]: null });
+        updatePetFiles(petIndex, { [docType]: null });
 
         const inputId = `file-${petIndex}-${docType}`;
         const fileInput = document.getElementById(inputId);
         if (fileInput) fileInput.value = '';
-
-        const isPhoto = docType === 'photo';
-        const pathKey = isPhoto ? `pet_${petIndex}_photo_path` : `pet_${petIndex}_medical_path`;
-        setFormData(prev => ({
-            ...prev,
-            [pathKey]: null,
-            ...(petIndex === 0 && isPhoto ? { pet_photo_path: null } : {}),
-            ...(petIndex === 0 && !isPhoto ? { passport_path: null } : {}),
-        }));
     };
 
     const speciesConfig = getSpeciesConfig(pet.speciesName);
@@ -233,9 +215,10 @@ const PetDocumentFrame = ({ pet, petIndex, sessionId, uploading, setUploading, p
                     accept=".jpg,.jpeg,.png"
                     required={false}
                     file={petDocs?.photo || null}
+                    previewUrl={photoPreviewUrl}
                     onUpload={(e) => handleFileChange('photo', e)}
                     onRemove={() => removeFile('photo')}
-                    isUploading={uploading[`${petIndex}-photo`]}
+                    isUploading={false}
                     icon={Camera}
                     fallbackImageUrl={pet.breedDefaultImageUrl}
                     petName={petName}
@@ -252,7 +235,7 @@ const PetDocumentFrame = ({ pet, petIndex, sessionId, uploading, setUploading, p
                     file={petDocs?.medicalDocs || null}
                     onUpload={(e) => handleFileChange('medicalDocs', e)}
                     onRemove={() => removeFile('medicalDocs')}
-                    isUploading={uploading[`${petIndex}-medicalDocs`]}
+                    isUploading={false}
                     icon={FileText}
                 />
             </div>
@@ -264,50 +247,9 @@ const PetDocumentFrame = ({ pet, petIndex, sessionId, uploading, setUploading, p
 // Main Step 4 Component
 // ─────────────────────────────────────────────────────────
 export default function Step4Documents() {
-    const { formData, setFormData } = useBookingStore();
+    const { formData, updatePetFiles } = useBookingStore();
     const pets = formData.pets || [];
-
-    // Per-pet document state (local only — File objects must NOT be persisted to store/server)
-    const [petDocuments, setPetDocuments] = useState(() => {
-        const init = {};
-        pets.forEach((_, i) => {
-            init[i] = { photo: null, medicalDocs: null };
-        });
-        return init;
-    });
-
-    const sessionId = useRef(null);
-    const [uploading, setUploading] = useState({});
-
-    // Session ID initialization — run once on mount only
-    useEffect(() => {
-        if (!sessionId.current) {
-            if (formData.enquiry_session_id) {
-                sessionId.current = formData.enquiry_session_id;
-            } else {
-                const newSessionId = crypto.randomUUID();
-                sessionId.current = newSessionId;
-                setFormData(prev => ({ ...prev, enquiry_session_id: newSessionId }));
-                console.log('[Step4Documents] Generated new session ID:', newSessionId);
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Run once on mount — sessionId ref guards against double-fire
-
-    // Sync petDocuments when pets array changes (e.g. user goes back and adds/removes a pet)
-    useEffect(() => {
-        setPetDocuments(prev => {
-            const updated = {};
-            pets.forEach((_, i) => {
-                updated[i] = prev[i] || { photo: null, medicalDocs: null };
-            });
-            return updated;
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pets.length]);
-
-    // NOTE: File objects are NOT persisted to the store — only upload paths are stored
-    // (pet_N_photo_path, pet_N_medical_path) which are set in handleFileChange
+    const petFiles = formData.petFiles || {};
 
     // File validation
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -325,13 +267,6 @@ export default function Step4Documents() {
             return false;
         }
         return true;
-    };
-
-    const updatePetDocs = (petIndex, docUpdate) => {
-        setPetDocuments(prev => ({
-            ...prev,
-            [petIndex]: { ...prev[petIndex], ...docUpdate }
-        }));
     };
 
     return (
@@ -383,12 +318,9 @@ export default function Step4Documents() {
                             key={index}
                             pet={pet}
                             petIndex={index}
-                            sessionId={sessionId.current}
-                            uploading={uploading}
-                            setUploading={setUploading}
-                            petDocs={petDocuments[index]}
-                            updatePetDocs={updatePetDocs}
-                            setFormData={setFormData}
+                            petName={pet.name || `Pet ${index + 1}`}
+                            petDocs={petFiles[index]}
+                            updatePetFiles={updatePetFiles}
                             validateFile={validateFile}
                         />
                     ))

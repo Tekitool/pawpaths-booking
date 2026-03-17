@@ -1,178 +1,565 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-        }
-
-        .header {
-            background-color: #4d341a;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .content {
-            padding: 20px;
-            background-color: #fff2b1;
-        }
-
-        .section {
-            margin-bottom: 20px;
-            background-color: white;
-            padding: 15px;
-            border-radius: 5px;
-        }
-
-        h2 {
-            color: #4d341a;
-            margin-top: 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 8px;
-            background-color: #f2f2f2;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Email Template Preview — Pawpaths</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 24px 64px;
+      background: #0F172A;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .page-header h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #F8FAFC;
+      letter-spacing: -0.3px;
+    }
+    .page-header p {
+      margin: 0;
+      font-size: 13px;
+      color: #64748B;
+    }
+    .badge {
+      display: inline-block;
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #94A3B8;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .email-section {
+      max-width: 660px;
+      margin: 0 auto 56px;
+    }
+    .email-section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .email-section-label span {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #64748B;
+    }
+    .email-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #1E293B;
+    }
+    .email-shell {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px #1E293B, 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .email-topbar {
+      background: #1E293B;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #EF4444; }
+    .dot-yellow { background: #F59E0B; }
+    .dot-green { background: #22C55E; }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <div class="header">
-            <!-- Placeholder for Logo -->
-            <div style="font-size: 24px; font-weight: bold;">PAWPATHS</div>
-            <p style="font-size: 18px; font-weight: bold; margin-top: 10px;">Booking Confirmation</p>
-        </div>
 
-        <div class="content">
-            <h2 style="color: #4d341a;">✓ Pet Relocation Request Received!</h2>
-            <p>Dear John Doe,</p>
-            <p>Thank you for choosing Pawpaths! We have successfully received your booking request and your confirmation
-                is currently pending. A Pawpaths agent will contact you shortly to finalize your booking details and
-                ensure a safe, comfortable relocation for your beloved pet.</p>
+<div class="page-header">
+  <div class="badge">Preview</div>
+  <h1>Pawpaths Email Templates</h1>
+  <p>Sample booking · PP-2026-0074 · Lara Martínez · UAE → Argentina · Glamor (Scottish Fold)</p>
+</div>
 
-            <div class="section">
-                <h2>Booking Details</h2>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd; width: 50%;"><strong>Booking ID:</strong>
-                            BK-2025-001</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; width: 50%;"><strong>Date:</strong> 29/12/2025
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" style="padding: 8px; border: 1px solid #ddd;"><strong>Customer Name:</strong>
-                            John Doe</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Contact No:</strong> +971 50 123 4567
-                        </td>
-                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Email:</strong> john@example.com</td>
-                    </tr>
-                </table>
-
-                <div
-                    style="background-color: #fff2b1; color: #4d341a; padding: 10px; border-radius: 4px; text-align: center; font-weight: bold; border: 1px solid #ffeeba;">
-                    Status: Pending Confirmation
-                </div>
-            </div>
-
-            <div class="section">
-                <h2>Travel Information</h2>
-
-                <!-- NEW ADDITION: Service String -->
-                <p style="text-align: left; font-size: 14px; color: #666; margin-top: -10px; margin-bottom: 15px;">
-                    International Import Services - In Cabin
-                </p>
-
-                <div
-                    style="background-color: #fff2b1; color: #4d341a; padding: 12px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 18px; border: 1px solid #d6d8db; margin-bottom: 15px;">
-                    Date of Travel: 15/01/2026
-                </div>
-
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd; width: 50%;"><strong>Origin Country:</strong>
-                            United Kingdom</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; width: 50%;"><strong>Origin Airport:</strong>
-                            Heathrow (LHR)</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Destination Country:</strong> United
-                            Arab Emirates</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Destination Airport:</strong> Dubai
-                            (DXB)</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" style="padding: 8px; border: 1px solid #ddd; font-size: 16px;"><strong>Client
-                                Traveling with Pet:</strong> <span style="font-weight: bold; color: #28a745;">Yes</span>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="section">
-                <h2>Pet Details</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Type/Breed</th>
-                            <th>Age</th>
-                            <th>Weight</th>
-                            <th>Special Req.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">1</td>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Buddy</td>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Dog (Golden Retriever)</td>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">3 years</td>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">25 kg</td>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">None</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p style="margin-top: 15px; font-size: 18px; font-weight: bold; text-align: right;">Total Weight: 25 kg
-                </p>
-            </div>
-
-            <p>We will review your booking and contact you shortly at +971 50 123 4567 or via email.</p>
-        </div>
-
-        <div class="footer">
-            <p>Pawpaths Pets Relocation Services</p>
-            <p>Phone: +971586947755 | Email: bookings@pawpaths.com</p>
-        </div>
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  1. CUSTOMER EMAIL                                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="email-section">
+  <div class="email-section-label">
+    <span>Customer Confirmation Email</span>
+  </div>
+  <div class="email-shell">
+    <div class="email-topbar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
     </div>
-</body>
 
+    <!-- EMAIL BODY START -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F1F5F9;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08);">
+
+            <!-- HEADER -->
+            <tr>
+              <td style="background:#4D2A00;padding:32px 40px;text-align:center;">
+                <img src="https://www.pawpathsae.com/pplogo-white.svg" alt="Pawpaths" width="160" style="display:block;margin:0 auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+                <p style="display:none;margin:0;font-size:26px;font-weight:900;color:#FFFFFF;letter-spacing:-0.5px;">PAWPATHS</p>
+              </td>
+            </tr>
+
+            <!-- HERO -->
+            <tr>
+              <td style="background:#FF6400;padding:28px 40px;text-align:center;">
+                <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#FFFFFF;letter-spacing:-0.3px;">Your Pet's Journey Begins Here 🐾</h1>
+                <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.85);font-weight:500;letter-spacing:0.3px;">ENQUIRY RECEIVED &nbsp;·&nbsp; UNDER REVIEW</p>
+              </td>
+            </tr>
+
+            <!-- BODY -->
+            <tr>
+              <td style="padding:36px 40px;">
+
+                <!-- Greeting -->
+                <p style="margin:0 0 12px;font-size:16px;color:#111827;font-weight:600;">Dear Lara Martínez,</p>
+                <p style="margin:0 0 32px;font-size:14px;color:#4B5563;line-height:1.75;">
+                  Thank you for trusting Pawpaths with your beloved companion's journey. We have successfully received your relocation request and our specialist team is now reviewing the details. You will hear from us within <strong style="color:#111827;">24 hours</strong>.
+                </p>
+
+                <!-- Enquiry Summary label -->
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;">Enquiry Summary</p>
+
+                <!-- Booking Card -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:20px 24px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="width:50%;padding-right:16px;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Enquiry ID</p>
+                            <p style="margin:0;font-size:20px;font-weight:800;color:#FF6400;">PP-2026-0074</p>
+                          </td>
+                          <td style="width:50%;padding-left:16px;border-left:1px solid #E5E7EB;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Submitted</p>
+                            <p style="margin:0;font-size:14px;font-weight:600;color:#111827;">17 March 2026</p>
+                          </td>
+                        </tr>
+                      </table>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;padding-top:16px;border-top:1px solid #E5E7EB;">
+                        <tr>
+                          <td style="width:50%;padding-right:16px;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Contact No.</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#4B5563;">+971 58 694 7755</p>
+                          </td>
+                          <td style="width:50%;padding-left:16px;border-left:1px solid #E5E7EB;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Email</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#4B5563;">lara@example.com</p>
+                          </td>
+                        </tr>
+                      </table>
+                      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E5E7EB;text-align:center;">
+                        <span style="display:inline-block;background:#FFF3EB;color:#FF6400;font-size:11px;font-weight:700;letter-spacing:0.5px;padding:5px 16px;border-radius:20px;border:1px solid #FFD0B3;">
+                          ⏳ ENQUIRY RECEIVED
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Travel Itinerary label -->
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;">Travel Itinerary</p>
+
+                <!-- Travel Block -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td style="background:#4D2A00;border-radius:10px;padding:24px 28px;">
+                      <p style="margin:0 0 18px;font-size:11px;font-weight:600;letter-spacing:1px;color:rgba(255,255,255,0.45);text-transform:uppercase;text-align:center;">Date of Travel</p>
+                      <p style="margin:0 0 20px;font-size:19px;font-weight:700;color:#FFFFFF;text-align:center;">15 April 2026</p>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="width:40%;text-align:center;vertical-align:middle;padding:0 8px;">
+                            <p style="margin:0 0 6px;font-size:22px;">🛫</p>
+                            <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#FFFFFF;">UAE</p>
+                            <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.5);">Dubai (DXB)</p>
+                          </td>
+                          <td style="width:20%;text-align:center;vertical-align:middle;">
+                            <p style="margin:0;font-size:22px;">✈️</p>
+                          </td>
+                          <td style="width:40%;text-align:center;vertical-align:middle;padding:0 8px;">
+                            <p style="margin:0 0 6px;font-size:22px;">🛬</p>
+                            <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#FFFFFF;">Argentina</p>
+                            <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.5);">Buenos Aires (EZE)</p>
+                          </td>
+                        </tr>
+                      </table>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+                        <tr>
+                          <td style="width:50%;text-align:center;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Service</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#FFFFFF;">International Export - Cargo</p>
+                          </td>
+                          <td style="width:50%;text-align:center;border-left:1px solid rgba(255,255,255,0.12);">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Client Traveling with Pet</p>
+                            <p style="margin:0;font-size:13px;font-weight:600;color:#FCA5A5;">No</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Your Pet label -->
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;">
+                  Your Pet &nbsp;<span style="background:#FFF3EB;color:#FF6400;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid #FFD0B3;">1</span>
+                </p>
+
+                <!-- Pet Card -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
+                  <tr>
+                    <td style="background:#F9FAFB;border:1px solid #E5E7EB;border-left:4px solid #FF6400;border-radius:8px;padding:16px 20px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="vertical-align:middle;width:56px;padding-right:14px;">
+                            <img src="https://placehold.co/52x52/FFF3EB/FF6400?text=😺" alt="Glamor" width="52" height="52" style="width:52px;height:52px;border-radius:50%;object-fit:cover;display:block;border:2px solid #FFD0B3;" />
+                          </td>
+                          <td style="vertical-align:middle;">
+                            <p style="margin:0 0 5px;font-size:15px;font-weight:700;color:#111827;">Glamor</p>
+                            <p style="margin:0;font-size:12px;color:#4B5563;line-height:1.8;">
+                              <strong>Type:</strong> Cat &nbsp;·&nbsp;
+                              <strong>Breed:</strong> Scottish Fold &nbsp;·&nbsp;
+                              <strong>Age:</strong> 2 years &nbsp;·&nbsp;
+                              <strong>Weight:</strong> 4.2 kg
+                            </p>
+                            <p style="margin:8px 0 0;font-size:12px;color:#4B5563;background:#FFFFFF;border-radius:4px;padding:6px 10px;border-left:2px solid #FF6400;">
+                              📋 Requires USDA-endorsed health certificate
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- What Happens Next -->
+                <div style="height:20px;"></div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:22px 24px;">
+                      <p style="margin:0 0 16px;font-size:13px;font-weight:700;color:#15803D;">✅ What Happens Next</p>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="vertical-align:top;width:28px;padding:0 14px 16px 0;">
+                            <div style="width:24px;height:24px;background:#16A34A;border-radius:50%;text-align:center;line-height:24px;font-size:11px;font-weight:700;color:white;">1</div>
+                          </td>
+                          <td style="vertical-align:top;padding-bottom:16px;">
+                            <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#15803D;">Team Review</p>
+                            <p style="margin:0;font-size:13px;color:#166534;line-height:1.5;">Our relocation specialists will review your booking within 24 hours.</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="vertical-align:top;width:28px;padding:0 14px 16px 0;">
+                            <div style="width:24px;height:24px;background:#16A34A;border-radius:50%;text-align:center;line-height:24px;font-size:11px;font-weight:700;color:white;">2</div>
+                          </td>
+                          <td style="vertical-align:top;padding-bottom:16px;">
+                            <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#15803D;">Specialist Contact</p>
+                            <p style="margin:0;font-size:13px;color:#166534;line-height:1.5;">A dedicated agent will reach out to confirm pricing and travel details.</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="vertical-align:top;width:28px;padding:0 14px 16px 0;">
+                            <div style="width:24px;height:24px;background:#16A34A;border-radius:50%;text-align:center;line-height:24px;font-size:11px;font-weight:700;color:white;">3</div>
+                          </td>
+                          <td style="vertical-align:top;padding-bottom:16px;">
+                            <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#15803D;">Document Checklist</p>
+                            <p style="margin:0;font-size:13px;color:#166534;line-height:1.5;">We will send a personalised checklist of required health certificates and permits.</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="vertical-align:top;width:28px;padding:0 14px 16px 0;">
+                            <div style="width:24px;height:24px;background:#16A34A;border-radius:50%;text-align:center;line-height:24px;font-size:11px;font-weight:700;color:white;">4</div>
+                          </td>
+                          <td style="vertical-align:top;padding-bottom:16px;">
+                            <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#15803D;">Journey Confirmed</p>
+                            <p style="margin:0;font-size:13px;color:#166534;line-height:1.5;">Once everything's in order, your pet's journey is officially confirmed!</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- CTA Button -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+                  <tr>
+                    <td align="center">
+                      <a href="https://www.pawpathsae.com" style="display:inline-block;background:#FF6400;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;padding:14px 44px;border-radius:8px;letter-spacing:0.2px;">
+                        Visit Pawpaths
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0;font-size:12px;color:#9CA3AF;text-align:center;">
+                  Questions? Email us at
+                  <a href="mailto:info@pawpathsae.com" style="color:#FF6400;text-decoration:none;font-weight:600;">info@pawpathsae.com</a>
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:28px 40px;text-align:center;">
+                <img src="https://www.pawpathsae.com/ppicon.svg" alt="Pawpaths" width="32" style="display:block;margin:0 auto 12px;" onerror="this.style.display='none'" />
+                <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#374151;">Pawpaths Pet Relocation Services</p>
+                <p style="margin:0 0 12px;font-size:12px;color:#9CA3AF;">Al Ain, Abu Dhabi, United Arab Emirates</p>
+                <p style="margin:0 0 16px;">
+                  <a href="https://www.pawpathsae.com" style="color:#FF6400;text-decoration:none;font-size:12px;font-weight:600;">www.pawpathsae.com</a>
+                  &nbsp;&nbsp;·&nbsp;&nbsp;
+                  <a href="mailto:info@pawpathsae.com" style="color:#FF6400;text-decoration:none;font-size:12px;font-weight:600;">info@pawpathsae.com</a>
+                </p>
+                <p style="margin:0;font-size:11px;color:#D1D5DB;line-height:1.7;">
+                  This is an automated message. Please do not reply directly to this email.<br>
+                  © 2026 Pawpaths Pet Relocation Services. All rights reserved.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+    <!-- EMAIL BODY END -->
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  2. ADMIN EMAIL                                     -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="email-section">
+  <div class="email-section-label">
+    <span>Admin / Internal Alert Email</span>
+  </div>
+  <div class="email-shell">
+    <div class="email-topbar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+    </div>
+
+    <!-- EMAIL BODY START -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F1F5F9;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08);">
+
+            <!-- HEADER -->
+            <tr>
+              <td style="background:#4D2A00;padding:28px 40px;text-align:center;">
+                <img src="https://www.pawpathsae.com/pplogo-white.svg" alt="Pawpaths" width="140" style="display:block;margin:0 auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+                <p style="display:none;margin:0;font-size:26px;font-weight:900;color:#FFFFFF;letter-spacing:-0.5px;">PAWPATHS</p>
+              </td>
+            </tr>
+
+            <!-- ALERT BANNER -->
+            <tr>
+              <td style="background:#FF6400;padding:22px 40px;text-align:center;">
+                <h1 style="margin:0 0 6px;font-size:22px;font-weight:800;color:#FFFFFF;">🔔 New Enquiry Alert</h1>
+                <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.88);">A new pet relocation enquiry has been submitted and requires your attention.</p>
+              </td>
+            </tr>
+
+            <!-- BODY -->
+            <tr>
+              <td style="padding:36px 40px;">
+
+                <!-- Enquiry Reference label -->
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;">Enquiry Reference</p>
+
+                <!-- Booking Card -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:20px 24px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="width:50%;padding-right:16px;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Enquiry ID</p>
+                            <p style="margin:0;font-size:20px;font-weight:800;color:#FF6400;">PP-2026-0074</p>
+                          </td>
+                          <td style="width:50%;padding-left:16px;border-left:1px solid #E5E7EB;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Submitted</p>
+                            <p style="margin:0;font-size:14px;font-weight:600;color:#111827;">17 March 2026</p>
+                          </td>
+                        </tr>
+                      </table>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;padding-top:16px;border-top:1px solid #E5E7EB;">
+                        <tr>
+                          <td style="width:50%;padding-right:16px;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Contact No.</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#4B5563;">+971 58 694 7755</p>
+                          </td>
+                          <td style="width:50%;padding-left:16px;border-left:1px solid #E5E7EB;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Email</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#4B5563;">lara@example.com</p>
+                          </td>
+                        </tr>
+                      </table>
+                      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E5E7EB;text-align:center;">
+                        <span style="display:inline-block;background:#FFF3EB;color:#FF6400;font-size:11px;font-weight:700;letter-spacing:0.5px;padding:5px 16px;border-radius:20px;border:1px solid #FFD0B3;">
+                          ⏳ ENQUIRY RECEIVED
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Customer Information label -->
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;">Customer Information</p>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:20px 24px;">
+                      <p style="margin:0 0 12px;font-size:17px;font-weight:700;color:#111827;">Lara Martínez</p>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding-top:12px;border-top:1px solid #E5E7EB;">
+                        <tr>
+                          <td style="width:50%;padding-right:16px;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Phone</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#4B5563;">+971 58 694 7755</p>
+                          </td>
+                          <td style="width:50%;padding-left:16px;border-left:1px solid #E5E7EB;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Email</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#4B5563;">lara@example.com</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Travel Details label -->
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;">Travel Details</p>
+
+                <!-- Travel Block -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td style="background:#4D2A00;border-radius:10px;padding:24px 28px;">
+                      <p style="margin:0 0 18px;font-size:11px;font-weight:600;letter-spacing:1px;color:rgba(255,255,255,0.45);text-transform:uppercase;text-align:center;">Date of Travel</p>
+                      <p style="margin:0 0 20px;font-size:19px;font-weight:700;color:#FFFFFF;text-align:center;">15 April 2026</p>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="width:40%;text-align:center;vertical-align:middle;padding:0 8px;">
+                            <p style="margin:0 0 6px;font-size:22px;">🛫</p>
+                            <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#FFFFFF;">UAE</p>
+                            <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.5);">Dubai (DXB)</p>
+                          </td>
+                          <td style="width:20%;text-align:center;vertical-align:middle;">
+                            <p style="margin:0;font-size:22px;">✈️</p>
+                          </td>
+                          <td style="width:40%;text-align:center;vertical-align:middle;padding:0 8px;">
+                            <p style="margin:0 0 6px;font-size:22px;">🛬</p>
+                            <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#FFFFFF;">Argentina</p>
+                            <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.5);">Buenos Aires (EZE)</p>
+                          </td>
+                        </tr>
+                      </table>
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+                        <tr>
+                          <td style="width:50%;text-align:center;">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Service</p>
+                            <p style="margin:0;font-size:13px;font-weight:500;color:#FFFFFF;">International Export - Cargo</p>
+                          </td>
+                          <td style="width:50%;text-align:center;border-left:1px solid rgba(255,255,255,0.12);">
+                            <p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.2px;">Client Traveling with Pet</p>
+                            <p style="margin:0;font-size:13px;font-weight:600;color:#FCA5A5;">No</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Pets label -->
+                <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;">
+                  Pet &nbsp;<span style="background:#FFF3EB;color:#FF6400;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid #FFD0B3;">1</span>
+                </p>
+
+                <!-- Pet Card -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
+                  <tr>
+                    <td style="background:#F9FAFB;border:1px solid #E5E7EB;border-left:4px solid #FF6400;border-radius:8px;padding:16px 20px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="vertical-align:middle;width:56px;padding-right:14px;">
+                            <img src="https://placehold.co/52x52/FFF3EB/FF6400?text=😺" alt="Glamor" width="52" height="52" style="width:52px;height:52px;border-radius:50%;object-fit:cover;display:block;border:2px solid #FFD0B3;" />
+                          </td>
+                          <td style="vertical-align:middle;">
+                            <p style="margin:0 0 5px;font-size:15px;font-weight:700;color:#111827;">Glamor</p>
+                            <p style="margin:0;font-size:12px;color:#4B5563;line-height:1.8;">
+                              <strong>Type:</strong> Cat &nbsp;·&nbsp;
+                              <strong>Breed:</strong> Scottish Fold &nbsp;·&nbsp;
+                              <strong>Age:</strong> 2 years &nbsp;·&nbsp;
+                              <strong>Weight:</strong> 4.2 kg
+                            </p>
+                            <p style="margin:8px 0 0;font-size:12px;color:#4B5563;background:#FFFFFF;border-radius:4px;padding:6px 10px;border-left:2px solid #FF6400;">
+                              📋 Requires USDA-endorsed health certificate
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Admin CTA -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
+                  <tr>
+                    <td align="center">
+                      <a href="https://www.pawpathsae.com/admin/dashboard" style="display:inline-block;background:#FF6400;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;padding:14px 44px;border-radius:8px;letter-spacing:0.2px;">
+                        Open Admin Dashboard
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:28px 40px;text-align:center;">
+                <img src="https://www.pawpathsae.com/ppicon.svg" alt="Pawpaths" width="32" style="display:block;margin:0 auto 12px;" onerror="this.style.display='none'" />
+                <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#374151;">Pawpaths Pet Relocation Services</p>
+                <p style="margin:0 0 12px;font-size:12px;color:#9CA3AF;">Al Ain, Abu Dhabi, United Arab Emirates</p>
+                <p style="margin:0 0 16px;">
+                  <a href="https://www.pawpathsae.com" style="color:#FF6400;text-decoration:none;font-size:12px;font-weight:600;">www.pawpathsae.com</a>
+                  &nbsp;&nbsp;·&nbsp;&nbsp;
+                  <a href="mailto:info@pawpathsae.com" style="color:#FF6400;text-decoration:none;font-size:12px;font-weight:600;">info@pawpathsae.com</a>
+                </p>
+                <p style="margin:0;font-size:11px;color:#D1D5DB;line-height:1.7;">
+                  This is an automated message. Please do not reply directly to this email.<br>
+                  © 2026 Pawpaths Pet Relocation Services. All rights reserved.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+    <!-- EMAIL BODY END -->
+
+  </div>
+</div>
+
+</body>
 </html>

@@ -13,7 +13,8 @@
       "Bash(xargs grep -l \"const ROLES\\\\|export.*ROLES\")",
       "Read(//c/Users/USER/AppData/Local/Temp/claude/c--NEXT-Pawpath-Form/tasks/**)",
       "Bash(wc -l components/admin/EditUserModal.tsx app/admin/users/[userId]/UserForm.tsx lib/storage-service.js)",
-      "Bash(ls \"c:\\\\NEXT\\\\Pawpath-Form\\\\app\\\\\\(auth\\)\\\\admin\\\\login\"\")"
+      "Bash(ls \"c:\\\\NEXT\\\\Pawpath-Form\\\\app\\\\\\(auth\\)\\\\admin\\\\login\"\")",
+      "Bash(/dev/null:*)"
     ],
     "additionalDirectories": [
       "C:\\NEXT\\Pawpath-Form\\components\\home",
