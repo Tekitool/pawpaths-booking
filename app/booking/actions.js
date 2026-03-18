@@ -137,6 +137,90 @@ export async function submitEnquiry(formData) {
         if (petError) throw new Error(`Error creating pets: ${petError.message}`)
         const petIds = newPets.map(p => p.id)
 
+        // 2b. Resolve & persist a photo for EVERY pet
+        // Priority: uploaded custom photo → duplicate breed default into photos bucket → empty
+        const sessionId = formData.enquiry_session_id
+        for (let i = 0; i < pets.length; i++) {
+            const uploadedPath = formData[`pet_${i}_photo_path`]
+            let photoEntry = null
+
+            if (uploadedPath) {
+                // User uploaded a custom photo — already in the photos bucket
+                photoEntry = {
+                    url: getPublicUrl(STORAGE_BUCKETS.PHOTOS, uploadedPath),
+                    storage_path: uploadedPath,
+                    bucket: STORAGE_BUCKETS.PHOTOS,
+                    source: 'user_upload',
+                }
+            } else {
+                // No upload — copy the breed default image into the photos bucket
+                // so each pet owns an independent file under their enquiry folder
+                const breedId = parseInt(pets[i].breed_id)
+                if (breedId) {
+                    const { data: breedRow } = await supabase
+                        .from('breeds')
+                        .select('default_image_path, name')
+                        .eq('id', breedId)
+                        .single()
+
+                    if (breedRow?.default_image_path) {
+                        try {
+                            // 1. Download the original from the avatars bucket
+                            const { data: fileBlob, error: downloadErr } = await supabase.storage
+                                .from(STORAGE_BUCKETS.AVATARS)
+                                .download(breedRow.default_image_path)
+
+                            if (downloadErr) throw downloadErr
+
+                            // 2. Determine extension and build the destination path
+                            const ext = breedRow.default_image_path.split('.').pop() || 'webp'
+                            const destPath = `enquiries/${sessionId}/pet-${i}/photos/breed-default.${ext}`
+
+                            // 3. Upload the copy into the photos bucket
+                            const { data: uploadData, error: uploadErr } = await supabase.storage
+                                .from(STORAGE_BUCKETS.PHOTOS)
+                                .upload(destPath, fileBlob, {
+                                    cacheControl: '3600',
+                                    upsert: true,
+                                    contentType: fileBlob.type || `image/${ext}`,
+                                })
+
+                            if (uploadErr) throw uploadErr
+
+                            photoEntry = {
+                                url: getPublicUrl(STORAGE_BUCKETS.PHOTOS, uploadData.path),
+                                storage_path: uploadData.path,
+                                bucket: STORAGE_BUCKETS.PHOTOS,
+                                source: 'breed_default',
+                                original_breed: breedRow.name,
+                            }
+                        } catch (copyErr) {
+                            console.error(`[PHOTO] Failed to copy breed default for pet ${i}:`, copyErr.message)
+                            // Fallback: store a reference to the original avatars image
+                            photoEntry = {
+                                url: getPublicUrl(STORAGE_BUCKETS.AVATARS, breedRow.default_image_path),
+                                storage_path: breedRow.default_image_path,
+                                bucket: STORAGE_BUCKETS.AVATARS,
+                                source: 'breed_default_ref',
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (photoEntry) {
+                const { error: photoError } = await supabase
+                    .from('pets')
+                    .update({ photos: [photoEntry] })
+                    .eq('id', petIds[i])
+
+                if (photoError) {
+                    console.error(`[PHOTO] Failed to save photo for pet ${petIds[i]}:`, photoError.message)
+                    // Non-fatal — booking proceeds even if photo write fails
+                }
+            }
+        }
+
         // 3. Create Booking
         // Determine Service Type
         let serviceType = 'local'; // Default
