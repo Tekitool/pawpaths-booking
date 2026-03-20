@@ -251,6 +251,10 @@
   padding-inline: 2rem;
 }
 
+@utility safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Custom radio button styling */
 /* FIXED: Uses the variable, not the hardcoded number */
 @layer base {

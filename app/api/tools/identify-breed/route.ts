@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
     try {
+        // Rate limit AI endpoints
+        const ip = getClientIP(req);
+        const { allowed, retryAfterMs } = checkRateLimit(`breed:${ip}`, RATE_LIMITS.ai);
+        if (!allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } }
+            );
+        }
+
         if (!process.env.OPENAI_API_KEY) {
             console.error('OpenAI API Key is missing');
             return NextResponse.json(

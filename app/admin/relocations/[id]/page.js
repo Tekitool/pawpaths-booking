@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Printer, Mail, Phone, MapPin, Calendar, Plane, FileText, AlertCircle, CheckCircle, Clock, Eye, Download, Users, FileX, Edit, Plus, Truck, Package } from 'lucide-react';
 import BookingStatusControl from '@/components/admin/BookingStatusControl';
+import InternalNotesEditor from '@/components/admin/InternalNotesEditor';
 import JobCostingTable from '@/components/admin/JobCostingTable';
 import TimelineWidget from '@/components/relocation/TimelineWidget';
 import DocumentStatusSection from '@/components/enquiry/DocumentStatusSection';
@@ -121,14 +122,7 @@ export default async function BookingDetailPage(props) {
                             </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-brand-color-02/20">
-                            <label className="text-xs font-bold text-brand-text-02/80 uppercase mb-2 block">Internal Notes</label>
-                            <textarea
-                                className="w-full text-sm p-3 bg-white/50 border border-brand-color-02/20 rounded-xl focus:ring-2 focus:ring-brand-color-02/20 outline-none resize-none h-24"
-                                placeholder="Add internal notes about this customer..."
-                                defaultValue={booking.internal_notes || ''}
-                            ></textarea>
-                        </div>
+                        <InternalNotesEditor bookingId={booking.id} initialNotes={booking.internal_notes} />
                     </div>
                 </div>
 
@@ -157,44 +151,78 @@ export default async function BookingDetailPage(props) {
                         </div>
                     </div>
 
-                    <div className="space-y-4 flex-grow overflow-y-auto max-h-[500px] pr-2">
+                    <div className="space-y-4 flex-grow overflow-y-auto max-h-[600px] pr-2">
                         {booking.pets.map((pet, idx) => (
-                            <div key={idx} className="flex gap-4 p-4 rounded-xl border border-brand-text-03/20 bg-white/60 hover:border-brand-text-03/40 hover:bg-white/80 transition-all group">
-                                <div className="w-16 h-16 rounded-lg bg-brand-text-03/10 relative overflow-hidden flex-shrink-0">
-                                    {pet.photoUrl ? (
-                                        <Image
-                                            src={pet.photoUrl}
-                                            alt={pet.name}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-2xl">🐶</div>
-                                    )}
+                            <div key={idx} className="p-4 rounded-xl border border-brand-text-03/20 bg-white/60 hover:border-brand-text-03/40 hover:bg-white/80 transition-all group">
+
+                                {/* Row 1: Photo + Core Info */}
+                                <div className="flex gap-4">
+                                    <div className="w-16 h-16 rounded-lg bg-brand-text-03/10 relative overflow-hidden flex-shrink-0">
+                                        {pet.photoUrl ? (
+                                            <Image
+                                                src={pet.photoUrl}
+                                                alt={pet.name}
+                                                fill
+                                                className="object-cover"
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-2xl">🐶</div>
+                                        )}
+                                    </div>
+                                    <div className="flex-grow flex flex-col justify-center">
+                                        {/* Name + Type/Breed */}
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-sm font-bold text-gray-900">{pet.name}</h3>
+                                            <span className="text-brand-text-02/80 text-xs font-medium bg-brand-text-03/10 px-2 py-1 rounded border border-brand-text-03/20">
+                                                {pet.type} <span className="text-brand-text-02/60">({pet.breed})</span>
+                                            </span>
+                                        </div>
+                                        {/* Gender | Age | Weight */}
+                                        <div className="flex items-center gap-3 text-xs text-brand-text-02 font-medium">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${pet.gender?.toLowerCase() === 'male'
+                                                ? 'bg-info/10 text-info border-system-color-03'
+                                                : 'bg-pink-50 text-pink-600 border-pink-100'
+                                                }`}>
+                                                {pet.gender || 'Unknown'}
+                                            </span>
+                                            <span className="text-brand-text-02/60">|</span>
+                                            <span>{pet.age} {pet.ageUnit}</span>
+                                            <span className="text-brand-text-02/60">|</span>
+                                            <span>{pet.weight} KG</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex-grow flex flex-col justify-center">
-                                    {/* Line 1: Name (Left) ... Type (Breed) (Right) */}
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h3 className="text-sm font-bold text-gray-900">{pet.name}</h3>
-                                        <span className="text-brand-text-02/80 text-xs font-medium bg-brand-text-03/10 px-2 py-1 rounded border border-brand-text-03/20">
-                                            {pet.type} <span className="text-brand-text-02/60">({pet.breed})</span>
-                                        </span>
+
+                                {/* Row 2: Special Requirements + Medical Alerts — always visible */}
+                                <div className="mt-3 pt-3 border-t border-brand-text-03/10 grid grid-cols-2 gap-3">
+
+                                    {/* Special Requirements — booking_pets.notes */}
+                                    <div>
+                                        <p className="text-[9px] font-bold text-brand-text-02/50 uppercase tracking-widest mb-1">Special Requirements</p>
+                                        {pet.specialRequirements ? (
+                                            <p className="text-[10px] text-brand-text-02/80 leading-relaxed">{pet.specialRequirements}</p>
+                                        ) : (
+                                            <p className="text-[10px] text-brand-text-02/40 italic">None specified</p>
+                                        )}
                                     </div>
 
-                                    {/* Line 2: Gender Pill | Age | Weight */}
-                                    <div className="flex items-center gap-3 text-xs text-brand-text-02 font-medium">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${pet.gender?.toLowerCase() === 'male'
-                                            ? 'bg-info/10 text-info border-system-color-03'
-                                            : 'bg-pink-50 text-pink-600 border-pink-100'
-                                            }`}>
-                                            {pet.gender || 'Unknown'}
-                                        </span>
-                                        <span className="text-brand-text-02/60">|</span>
-                                        <span>{pet.age} {pet.ageUnit}</span>
-                                        <span className="text-brand-text-02/60">|</span>
-                                        <span>{pet.weight} KG</span>
+                                    {/* Medical Alerts — pets.medical_alerts (JSONB) */}
+                                    <div>
+                                        <p className="text-[9px] font-bold text-error/50 uppercase tracking-widest mb-1">Medical Alerts</p>
+                                        {pet.medicalAlerts?.length > 0 ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {pet.medicalAlerts.map((alert, i) => (
+                                                    <span key={i} className="text-[10px] bg-error/10 text-error border border-error/20 px-1.5 py-0.5 rounded">
+                                                        {typeof alert === 'string' ? alert : alert.label || alert.name || JSON.stringify(alert)}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-[10px] text-brand-text-02/40 italic">None on record</p>
+                                        )}
                                     </div>
+
                                 </div>
                             </div>
                         ))}

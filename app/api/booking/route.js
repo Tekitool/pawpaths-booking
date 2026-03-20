@@ -5,19 +5,22 @@ import { generateWhatsAppMessage, generateWhatsAppLink } from '@/lib/utils/whats
 import nodemailer from 'nodemailer';
 import { SERVICES } from '@/lib/constants/services';
 import { EnquirySchema } from '@/lib/schemas';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function POST(req) {
     try {
         // Rate limiting by IP
-        const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-        const { allowed, remaining } = checkRateLimit(ip);
+        const ip = getClientIP(req);
+        const { allowed, remaining, retryAfterMs } = checkRateLimit(`booking:${ip}`, RATE_LIMITS.submission);
         if (!allowed) {
             return NextResponse.json({
                 success: false,
                 message: 'Too many submissions. Please try again later.',
                 error: 'RATE_LIMIT_EXCEEDED'
-            }, { status: 429 });
+            }, {
+                status: 429,
+                headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) },
+            });
         }
 
         const formData = await req.formData();

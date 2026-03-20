@@ -1,14 +1,18 @@
-'use client';
+import { getFinanceDocuments } from '@/lib/actions/finance-actions';
+import InvoicesListClient from '@/components/invoices/InvoicesListClient';
 
-import React from 'react';
+export default async function InvoicesPage({ searchParams }) {
+    const params = await searchParams;
+    const page = Math.max(1, Number(params?.page) || 1);
 
-export default function InvoicesPage() {
+    const result = await getFinanceDocuments({ doc_type: 'invoice', page, pageSize: 15 });
+
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Invoices</h1>
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
-                <p>Invoices module coming soon.</p>
-            </div>
-        </div>
+        <InvoicesListClient
+            invoices={result.data || []}
+            currentPage={page}
+            totalPages={result.totalPages || 0}
+            totalItems={result.total || 0}
+        />
     );
 }

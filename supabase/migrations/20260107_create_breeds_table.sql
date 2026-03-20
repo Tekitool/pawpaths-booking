@@ -62,7 +62,13 @@ new_breeds (name, species_name, is_brachycephalic, is_restricted) AS (
     ('Bengal', 'Cat', false, false),
     ('Sphynx', 'Cat', false, false),
     ('Abyssinian', 'Cat', false, false),
-    ('Domestic Shorthair', 'Cat', false, false)
+    ('Domestic Shorthair', 'Cat', false, false),
+    ('American Shorthair', 'Cat', false, false),
+    ('Norwegian Forest Cat', 'Cat', false, false),
+    ('Birman', 'Cat', false, false),
+    ('Oriental Shorthair', 'Cat', false, false),
+    ('Cornish Rex', 'Cat', false, false),
+    ('Ragamuffin', 'Cat', false, false)
 )
 INSERT INTO public.breeds (name, species_id, is_brachycephalic, is_restricted)
 SELECT 

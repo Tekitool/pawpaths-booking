@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -417,6 +418,16 @@ Return ONLY a JSON object with this structure:
 
 export async function POST(req: Request) {
     try {
+        // Rate limit AI endpoints
+        const ip = getClientIP(req);
+        const { allowed, retryAfterMs } = checkRateLimit(`ai-crate:${ip}`, RATE_LIMITS.ai);
+        if (!allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } }
+            );
+        }
+
         const body = await req.json();
         const { dimensions, breed, weight, destination } = body;
 

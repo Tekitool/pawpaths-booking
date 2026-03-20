@@ -3,6 +3,7 @@
 import React from 'react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Mail, Phone, Edit, Trash2, MoreVertical } from 'lucide-react';
+import Link from 'next/link';
 
 import { deleteCustomer } from '@/lib/actions/customer-mutations';
 import { toast } from 'sonner';
@@ -54,6 +55,11 @@ export default function CustomerTable({ customers }) {
                                 // Calculate Total Spend
                                 const totalSpend = customer.bookings?.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0) || 0;
 
+                                // Link to the most recent booking
+                                const latestBooking = customer.bookings && customer.bookings.length > 0
+                                    ? [...customer.bookings].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
+                                    : null;
+
                                 return (
                                     <tr key={customer.id} className="hover:bg-accent/15/50 transition-colors group">
                                         {/* Col 1: Identity */}
@@ -63,7 +69,19 @@ export default function CustomerTable({ customers }) {
                                                     {customer.display_name?.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-brand-text-02 text-sm">{customer.display_name}</div>
+                                                    <div className="font-bold text-brand-text-02 text-sm">
+                                                        {latestBooking ? (
+                                                            <Link
+                                                                href={`/admin/relocations/${latestBooking.booking_number}`}
+                                                                className="hover:text-accent hover:underline transition-colors block"
+                                                                title={`Go to booking ${latestBooking.booking_number}`}
+                                                            >
+                                                                {customer.display_name}
+                                                            </Link>
+                                                        ) : (
+                                                            customer.display_name
+                                                        )}
+                                                    </div>
                                                     <div className="text-[10px] font-mono text-brand-text-02/60">{customer.code || 'N/A'}</div>
                                                 </div>
                                             </div>

@@ -189,6 +189,10 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                 }
             }
 
+            // Strip petFiles before sending to server — File objects already uploaded,
+            // and non-serializable values can corrupt the server action payload
+            delete updatedFormData.petFiles;
+
             console.log('Step5Review: Submitting enquiry with uploaded paths...', updatedFormData);
 
             // 3. Call Server Action

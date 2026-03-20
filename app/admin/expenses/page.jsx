@@ -1,14 +1,22 @@
-'use client';
+import { getFinanceDocuments } from '@/lib/actions/finance-actions';
+import ExpensesListClient from '@/components/expenses/ExpensesListClient';
 
-import React from 'react';
+export default async function ExpensesPage({ searchParams }) {
+    const params = await searchParams;
+    const page = Math.max(1, Number(params?.page) || 1);
 
-export default function ExpensesPage() {
+    const result = await getFinanceDocuments({
+        doc_type: ['vendor_bill', 'expense_claim'],
+        page,
+        pageSize: 15,
+    });
+
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Expenses</h1>
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
-                <p>Expenses module coming soon.</p>
-            </div>
-        </div>
+        <ExpensesListClient
+            expenses={result.data || []}
+            currentPage={page}
+            totalPages={result.totalPages || 0}
+            totalItems={result.total || 0}
+        />
     );
 }

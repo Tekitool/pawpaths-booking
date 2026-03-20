@@ -28,14 +28,23 @@ export async function PUT(req, { params }) {
         // Extract audit reason
         const { audit_reason, ...updateFields } = body;
 
-        // Map frontend camelCase to DB snake_case if needed
+        // Map frontend camelCase to DB snake_case
         const updateData = {};
         if (updateFields.name !== undefined) updateData.name = updateFields.name;
+        if (updateFields.code !== undefined) updateData.code = updateFields.code;
+        if (updateFields.icon !== undefined) updateData.icon = updateFields.icon;
         if (updateFields.shortDescription !== undefined) updateData.short_description = updateFields.shortDescription;
         if (updateFields.longDescription !== undefined) updateData.long_description = updateFields.longDescription;
         if (updateFields.requirements !== undefined) updateData.requirements = updateFields.requirements;
+        if (updateFields.promoBadge !== undefined) updateData.promo_badge = updateFields.promoBadge;
+        if (updateFields.validSpecies !== undefined) updateData.valid_species = updateFields.validSpecies;
+        if (updateFields.validServiceTypes !== undefined) updateData.valid_service_types = updateFields.validServiceTypes;
+        if (updateFields.validTransportModes !== undefined) updateData.valid_transport_modes = updateFields.validTransportModes;
         if (updateFields.baseCost !== undefined) updateData.base_cost = updateFields.baseCost;
         if (updateFields.basePrice !== undefined) updateData.base_price = updateFields.basePrice;
+        if (updateFields.taxRate !== undefined) updateData.tax_rate = updateFields.taxRate;
+        if (updateFields.pricingModel !== undefined) updateData.pricing_model = updateFields.pricingModel;
+        if (updateFields.uom !== undefined) updateData.uom = updateFields.uom;
         if (updateFields.isMandatory !== undefined) updateData.is_mandatory = updateFields.isMandatory;
         if (updateFields.isActive !== undefined) updateData.is_active = updateFields.isActive;
 
@@ -81,12 +90,12 @@ export async function DELETE(req, { params }) {
 
         const { error } = await supabase
             .from('service_catalog')
-            .delete()
+            .update({ deleted_at: new Date().toISOString(), is_active: false })
             .eq('id', id);
 
         if (error) throw error;
 
-        await logAuditAction(supabase, 'service_catalog', id, 'DELETE', audit_reason);
+        await logAuditAction(supabase, 'service_catalog', id, 'DELETE', audit_reason, { deleted_at: new Date().toISOString() });
 
         return NextResponse.json({ success: true });
     } catch (error) {

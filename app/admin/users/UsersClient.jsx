@@ -14,9 +14,10 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import SecurityModal from '@/components/ui/SecurityModal';
+import Pagination from '@/components/ui/Pagination';
 import { Suspense } from 'react';
 
-export default function UsersClient({ initialUsers, isAdmin, initialQuery }) {
+export default function UsersClient({ initialUsers, isAdmin, initialQuery, currentPage = 1, totalPages = 1, totalItems = 0, pageSize = 15 }) {
     const searchParams = useSearchParams();
     const query = searchParams.get('query') || initialQuery || '';
 
@@ -301,14 +302,13 @@ export default function UsersClient({ initialUsers, isAdmin, initialQuery }) {
                 </div>
 
                 {/* Footer / Pagination */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50 flex items-center justify-between">
-                    <p className="text-xs text-gray-500">
-                        Showing <span className="font-semibold text-gray-900">{filteredUsers.length}</span> of <span className="font-semibold text-gray-900">{users.length}</span> users
-                    </p>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" disabled className="h-8 text-xs rounded-lg border-gray-200 text-gray-500">Previous</Button>
-                        <Button variant="outline" size="sm" disabled className="h-8 text-xs rounded-lg border-gray-200 text-gray-500">Next</Button>
-                    </div>
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50">
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalItems}
+                        pageSize={pageSize}
+                    />
                 </div>
             </div>
 

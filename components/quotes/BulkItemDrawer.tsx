@@ -14,19 +14,10 @@ interface BulkItemDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     onAddItems: (items: { item: ServiceItem; quantity: number }[]) => void;
+    services?: ServiceItem[];
 }
 
-const MOCK_SERVICES: ServiceItem[] = [
-    { id: '1', name: 'Airline fee AWB & Customs BOE', rate: 0 },
-    { id: '2', name: 'Australia Blood Works & Treatment Package for Cats', rate: 1630 },
-    { id: '3', name: 'Australia Blood Works & Treatment Package for Dogs', rate: 2650 },
-    { id: '4', name: 'Boarding fee', rate: 0 },
-    { id: '5', name: 'Brucella Canis Test', rate: 500 },
-    { id: '6', name: 'Deworming, Tick & Flea Treatments', rate: 300 },
-    { id: '7', name: 'Dnata ground handling fee & Customs BOE', rate: 1000 },
-];
-
-export default function BulkItemDrawer({ isOpen, onClose, onAddItems }: BulkItemDrawerProps) {
+export default function BulkItemDrawer({ isOpen, onClose, onAddItems, services = [] }: BulkItemDrawerProps) {
     const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -46,7 +37,7 @@ export default function BulkItemDrawer({ isOpen, onClose, onAddItems }: BulkItem
 
     const handleAdd = () => {
         const itemsToAdd = Object.entries(selectedItems).map(([id, qty]) => {
-            const item = MOCK_SERVICES.find(s => s.id === id);
+            const item = services.find(s => s.id === id);
             return item ? { item, quantity: qty } : null;
         }).filter(Boolean) as { item: ServiceItem; quantity: number }[];
 
@@ -55,7 +46,7 @@ export default function BulkItemDrawer({ isOpen, onClose, onAddItems }: BulkItem
         setSelectedItems({});
     };
 
-    const filteredServices = MOCK_SERVICES.filter(s =>
+    const filteredServices = services.filter(s =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -123,7 +114,7 @@ export default function BulkItemDrawer({ isOpen, onClose, onAddItems }: BulkItem
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
                             {Object.entries(selectedItems).map(([id, qty]) => {
-                                const item = MOCK_SERVICES.find(s => s.id === id);
+                                const item = services.find(s => s.id === id);
                                 if (!item) return null;
                                 return (
                                     <div key={id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 shadow-sm">

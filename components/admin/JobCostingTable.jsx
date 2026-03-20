@@ -40,7 +40,7 @@ export default function JobCostingTable({ items = [], relocationId }) {
                 toast({ title: "Updated", description: "Line item updated successfully." });
                 setEditingId(null);
             } else {
-                toast({ variant: "destructive", title: "Error", description: result.error });
+                toast({ variant: "destructive", title: "Error", description: result.message });
             }
         } catch (error) {
             console.error(error);
@@ -65,7 +65,7 @@ export default function JobCostingTable({ items = [], relocationId }) {
                 toast({ title: "Removed", description: "Line item removed successfully." });
                 setDeleteTarget(null);
             } else {
-                toast({ variant: "destructive", title: "Error", description: result.error });
+                toast({ variant: "destructive", title: "Error", description: result.message });
             }
         } catch (error) {
             console.error(error);

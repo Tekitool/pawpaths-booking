@@ -10,6 +10,7 @@ import Step6Success from '@/components/booking/Step6Success';
 import ServiceLimitationModal from '@/components/booking/ServiceLimitationModal';
 import ValidationFailureModal from '@/components/booking/ValidationFailureModal';
 import useBookingStore from '@/lib/store/booking-store';
+import { validateStep } from '@/lib/validations/booking-schemas';
 import Button from '@/components/ui/Button';
 import { ArrowLeft, RotateCcw, ArrowRight, Check, Loader2 } from 'lucide-react';
 import BookingHeader from '@/components/booking/BookingHeader';
@@ -42,29 +43,18 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
     };
 
     const handleContinue = () => {
-        if (currentStep === 1) {
-            // 1. Validate Route Limitation (UAE Check)
-            if (!validateRoute()) {
-                setIsLimitationModalOpen(true);
-                return;
-            }
+        // Schema-based validation for the current step
+        const { valid, errors } = validateStep(currentStep, formData);
+        if (!valid) {
+            setValidationErrors(errors);
+            setIsValidationModalOpen(true);
+            return;
+        }
 
-            // 2. Validate Empty Fields
-            const { originAirport, destinationAirport } = formData.travelDetails;
-            const errors = {};
-
-            if (!originAirport || !originAirport.trim()) {
-                errors.originAirport = "Please enter the Origin City or Airport.";
-            }
-            if (!destinationAirport || !destinationAirport.trim()) {
-                errors.destinationAirport = "Please enter the Destination City or Airport.";
-            }
-
-            if (Object.keys(errors).length > 0) {
-                setValidationErrors(errors);
-                setIsValidationModalOpen(true);
-                return;
-            }
+        // Step 1: additional business rule — UAE route check
+        if (currentStep === 1 && !validateRoute()) {
+            setIsLimitationModalOpen(true);
+            return;
         }
 
         if (currentStep === 5 && step5Ref.current) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
@@ -216,6 +216,22 @@ export default function CalendarView({ events = [] }) {
 
     const onNavigate = useCallback((newDate) => setDate(newDate), []);
     const onView = useCallback((newView) => setView(newView), []);
+
+    // Real-time: auto-refresh when bookings change
+    useEffect(() => {
+        let channel;
+        async function subscribe() {
+            const { supabase } = await import('@/lib/supabase/client');
+            channel = supabase
+                .channel('bookings-calendar')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+                    router.refresh();
+                })
+                .subscribe();
+        }
+        subscribe();
+        return () => { if (channel) channel.unsubscribe(); };
+    }, [router]);
 
     const processedEvents = React.useMemo(() => {
         return events.map(event => ({

@@ -2,7 +2,10 @@ import { Suspense } from 'react';
 import { getCustomers } from '@/lib/actions/customer-actions';
 import PageShell from '@/components/ui/PageShell';
 import CustomerTable from '@/components/admin/CustomerTable';
+import Pagination from '@/components/ui/Pagination';
 import { Plus, Search, Filter } from 'lucide-react';
+
+const PAGE_SIZE = 15;
 
 function TableSkeleton() {
     return (
@@ -10,12 +13,26 @@ function TableSkeleton() {
     );
 }
 
-async function CustomerList() {
-    const customers = await getCustomers();
-    return <CustomerTable customers={customers || []} />;
+async function CustomerList({ page, query }) {
+    const { data, total, totalPages } = await getCustomers({ page, pageSize: PAGE_SIZE, query });
+    return (
+        <>
+            <CustomerTable customers={data} />
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={total}
+                pageSize={PAGE_SIZE}
+            />
+        </>
+    );
 }
 
-export default function CustomersPage() {
+export default async function CustomersPage(props) {
+    const searchParams = await props.searchParams;
+    const page = Math.max(1, Number(searchParams?.page) || 1);
+    const query = searchParams?.query || '';
+
     return (
         <PageShell
             title="Customer Directory"
@@ -32,6 +49,7 @@ export default function CustomersPage() {
                     <input
                         type="text"
                         placeholder="Search customers..."
+                        defaultValue={query}
                         className="w-full pl-10 pr-4 py-2 bg-white/50 border border-brand-text-02/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20"
                     />
                 </div>
@@ -41,7 +59,7 @@ export default function CustomersPage() {
             </div>
 
             <Suspense fallback={<TableSkeleton />}>
-                <CustomerList />
+                <CustomerList page={page} query={query} />
             </Suspense>
         </PageShell>
     );

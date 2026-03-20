@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 /**
  * global-error.tsx — catches errors that escape the root layout and all nested
@@ -15,7 +16,7 @@ export default function GlobalError({
     reset: () => void;
 }) {
     useEffect(() => {
-        // Forward to your error-tracking service (e.g. Sentry) once integrated
+        Sentry.captureException(error);
         console.error('[GlobalError]', error);
     }, [error]);
 

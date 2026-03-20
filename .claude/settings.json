@@ -14,11 +14,21 @@
       "Read(//c/Users/USER/AppData/Local/Temp/claude/c--NEXT-Pawpath-Form/tasks/**)",
       "Bash(wc -l components/admin/EditUserModal.tsx app/admin/users/[userId]/UserForm.tsx lib/storage-service.js)",
       "Bash(ls \"c:\\\\NEXT\\\\Pawpath-Form\\\\app\\\\\\(auth\\)\\\\admin\\\\login\"\")",
-      "Bash(/dev/null:*)"
+      "Bash(/dev/null:*)",
+      "Bash(find /c/NEXT/Pawpath-Form/components /c/NEXT/Pawpath-Form/app -type f \\\\\\( -name \"*.jsx\" -o -name \"*.tsx\" \\\\\\) -exec grep -n '<img\\\\s' {} +)",
+      "Bash(find /c/NEXT/Pawpath-Form/components /c/NEXT/Pawpath-Form/app -type f \\\\\\( -name \"*.jsx\" -o -name \"*.tsx\" \\\\\\) -exec grep -n \"useEffect\" {} +)",
+      "Bash(xargs grep -l \"breeds\")",
+      "Bash(xargs grep -l \"default_image_path\")",
+      "Bash(node -e \":*)",
+      "Bash(node scripts/check-cat-breeds.js)",
+      "Bash(xargs grep -l \"invoice\\\\|quote\\\\|line.*item\")"
     ],
     "additionalDirectories": [
       "C:\\NEXT\\Pawpath-Form\\components\\home",
-      "C:\\Users\\USER\\.claude\\projects\\c--NEXT-Pawpath-Form"
+      "C:\\Users\\USER\\.claude\\projects\\c--NEXT-Pawpath-Form",
+      "\\tmp",
+      "c:\\NEXT\\Pawpath-app\\app\\admin\\quotes",
+      "c:\\NEXT\\Pawpath-app\\app\\admin\\expenses"
     ]
   }
 }

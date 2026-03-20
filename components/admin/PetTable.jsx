@@ -82,7 +82,7 @@ export default function PetTable({ pets, onDelete }) {
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-brand-text-02/10 relative overflow-hidden flex-shrink-0 border border-brand-text-02/20">
                                                 {pet.photos && pet.photos.length > 0 ? (
-                                                    <Image src={pet.photos[0]} alt={pet.name} fill className="object-cover" />
+                                                    <Image src={pet.photos[0]?.url || pet.photos[0]} alt={pet.name} fill className="object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center bg-accent/15">
                                                         {getSpeciesIcon(pet.species?.name)}

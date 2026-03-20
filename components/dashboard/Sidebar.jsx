@@ -23,6 +23,7 @@ import {
     UserCog,
     Wrench
 } from 'lucide-react';
+import { canAccessMenuGroup, canAccessRoute } from '@/lib/constants/permissions';
 
 const MENU_ITEMS = [
     {
@@ -63,14 +64,22 @@ const MENU_ITEMS = [
         items: [
             { label: 'Settings', href: '/admin/settings', icon: Settings },
             { label: 'Users', href: '/admin/users', icon: UserCog },
-            { label: 'Tools', href: '/tools', icon: Wrench },
+            { label: 'Tools', href: '/tools', icon: Wrench, external: true },
             { label: 'Themes', href: '/admin/themes', icon: Palette }
         ]
     }
 ];
 
-export default function Sidebar({ isCollapsed, toggleSidebar }) {
+export default function Sidebar({ isCollapsed, toggleSidebar, userRole = 'staff' }) {
     const pathname = usePathname();
+
+    const filteredMenu = MENU_ITEMS
+        .filter(group => canAccessMenuGroup(userRole, group.group))
+        .map(group => ({
+            ...group,
+            items: group.items.filter(item => canAccessRoute(userRole, item.href)),
+        }))
+        .filter(group => group.items.length > 0);
 
     return (
         <aside
@@ -109,7 +118,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
 
             {/* Nav */}
             <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-2 scrollbar-hide">
-                {MENU_ITEMS.map((group, idx) => (
+                {filteredMenu.map((group, idx) => (
                     <div key={idx} className="flex flex-col">
                         {/* THE STABILIZER HEADER - Always renders with fixed height */}
                         <div className={`flex items-center shrink-0 h-6 transition-all duration-300 ${isCollapsed ? 'justify-center px-2' : 'px-3'}`}>
@@ -131,6 +140,8 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
                                     <Link
                                         key={item.href}
                                         href={item.href}
+                                        target={item.external ? "_blank" : undefined}
+                                        rel={item.external ? "noopener noreferrer" : undefined}
                                         className={`flex items-center h-8 ${isCollapsed ? 'justify-center' : 'gap-2.5 px-3'} rounded-md transition-all duration-200 group
                                             ${isActive
                                                 ? 'bg-accent text-white shadow-sm'

@@ -75,7 +75,7 @@ const DocumentFrame = ({ title, type, path, isPrivate, preSignedUrl, bookingId }
         try {
             const result = await uploadBookingDocument(bookingId, type, formData);
             if (!result.success) {
-                toast.error(`Upload failed: ${result.error}`);
+                toast.error(`Upload failed: ${result.message}`);
             } else {
                 toast.success('Document uploaded successfully');
             }
@@ -102,7 +102,7 @@ const DocumentFrame = ({ title, type, path, isPrivate, preSignedUrl, bookingId }
             console.log('Deleting document with reason:', reason);
             const result = await deleteBookingDocument(bookingId, type, reason);
             if (!result.success) {
-                toast.error(`Delete failed: ${result.error}`);
+                toast.error(`Delete failed: ${result.message}`);
             } else {
                 toast.success('Document removed successfully');
                 setShowDeleteModal(false);
@@ -262,64 +262,89 @@ const DocumentFrame = ({ title, type, path, isPrivate, preSignedUrl, bookingId }
 };
 
 const DocumentStatusSection = ({ booking }) => {
+    const pets = booking?.pets && booking.pets.length > 0 ? booking.pets : [{ id: 'default', name: '', breed: 'Pet' }];
+
     return (
-        <div className="bg-surface-pearl rounded-2xl shadow-sm border-[0.5px] border-system-color-02/20 p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-system-color-02/10 text-system-color-02 rounded-xl border border-system-color-02/20">
-                        <FileText size={24} />
+        <div className="space-y-6 mb-6">
+            {pets.map((pet, idx) => {
+                const petName = pet.name || pet.breed || 'Pet';
+                const isFirst = idx === 0;
+
+                // For first pet, use the primary booking path. For others, query into extraDocuments.
+                const extraDocs = booking.extraDocuments?.[pet.id] || {};
+
+                const photoPath = isFirst ? booking.pet_photo_path : extraDocs.photo;
+                const passportPath = isFirst ? booking.passport_path : extraDocs.passport;
+                const vacPath = isFirst ? booking.vaccination_path : extraDocs.vaccination;
+                const rabiesPath = isFirst ? booking.rabies_path : extraDocs.rabies;
+
+                const passportUrl = isFirst ? booking.passportUrl : extraDocs.passportUrl;
+                const vacUrl = isFirst ? booking.vaccinationUrl : extraDocs.vaccinationUrl;
+                const rabiesUrl = isFirst ? booking.rabiesUrl : extraDocs.rabiesUrl;
+
+                return (
+                    <div key={pet.id || idx} className="bg-surface-pearl rounded-2xl shadow-sm border-[0.5px] border-system-color-02/20 p-6">
+                        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-system-color-02/10 text-system-color-02 rounded-xl border border-system-color-02/20 flex-shrink-0">
+                                    <FileText size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-system-color-02">
+                                        Required Documents for {petName}
+                                    </h3>
+                                    <p className="text-xs text-brand-text-02/80 uppercase font-bold tracking-wider">Verification</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-system-color-01 font-medium bg-system-color-01/10 px-3 py-1.5 rounded-lg border border-system-color-01/20">
+                                <AlertCircle size={14} className="flex-shrink-0" />
+                                <span>All documents must be verified before travel</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {/* 1. Pet Photo (Public) */}
+                            <DocumentFrame
+                                title={`Photo - ${petName}`}
+                                type={isFirst ? "photo" : `photo_${pet.id}`}
+                                path={photoPath}
+                                isPrivate={false}
+                                bookingId={booking.id}
+                            />
+
+                            {/* 2. Pet Passport (Private) */}
+                            <DocumentFrame
+                                title={`Passport - ${petName}`}
+                                type={isFirst ? "passport" : `passport_${pet.id}`}
+                                path={passportPath}
+                                isPrivate={true}
+                                preSignedUrl={passportUrl}
+                                bookingId={booking.id}
+                            />
+
+                            {/* 3. Vaccination Records (Private) */}
+                            <DocumentFrame
+                                title={`Vaccination - ${petName}`}
+                                type={isFirst ? "vaccination" : `vaccination_${pet.id}`}
+                                path={vacPath}
+                                isPrivate={true}
+                                preSignedUrl={vacUrl}
+                                bookingId={booking.id}
+                            />
+
+                            {/* 4. Rabies Certificate (Private) */}
+                            <DocumentFrame
+                                title={`Rabies - ${petName}`}
+                                type={isFirst ? "rabies" : `rabies_${pet.id}`}
+                                path={rabiesPath}
+                                isPrivate={true}
+                                preSignedUrl={rabiesUrl}
+                                bookingId={booking.id}
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-base font-bold text-system-color-02">Required Documents</h3>
-                        <p className="text-xs text-brand-text-02/80 uppercase font-bold tracking-wider">Verification</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-system-color-01 font-medium bg-system-color-01/10 px-3 py-1.5 rounded-lg border border-system-color-01/20">
-                    <AlertCircle size={14} />
-                    <span>All documents must be verified before travel</span>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* 1. Pet Photo (Public) */}
-                <DocumentFrame
-                    title="Pet Photo"
-                    type="photo"
-                    path={booking.pet_photo_path}
-                    isPrivate={false}
-                    bookingId={booking.id}
-                />
-
-                {/* 2. Pet Passport (Private) */}
-                <DocumentFrame
-                    title="Pet Passport"
-                    type="passport"
-                    path={booking.passport_path}
-                    isPrivate={true}
-                    preSignedUrl={booking.passportUrl}
-                    bookingId={booking.id}
-                />
-
-                {/* 3. Vaccination Records (Private) */}
-                <DocumentFrame
-                    title="Vaccination Records"
-                    type="vaccination"
-                    path={booking.vaccination_path}
-                    isPrivate={true}
-                    preSignedUrl={booking.vaccinationUrl}
-                    bookingId={booking.id}
-                />
-
-                {/* 4. Rabies Certificate (Private) */}
-                <DocumentFrame
-                    title="Rabies Certificate"
-                    type="rabies"
-                    path={booking.rabies_path}
-                    isPrivate={true}
-                    preSignedUrl={booking.rabiesUrl}
-                    bookingId={booking.id}
-                />
-            </div>
+                );
+            })}
         </div>
     );
 };

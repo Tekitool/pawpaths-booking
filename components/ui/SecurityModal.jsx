@@ -11,7 +11,8 @@ export default function SecurityModal({
     title = "Security Check",
     actionType = 'warning', // 'warning' | 'danger'
     isLoading = false,
-    zIndex = "z-[60]"
+    zIndex = "z-[60]",
+    confirmLabel = "Confirm Delete",
 }) {
     const [reason, setReason] = useState('');
 
@@ -111,7 +112,7 @@ export default function SecurityModal({
                                 ) : (
                                     <>
                                         <ShieldCheck size={14} />
-                                        Confirm Delete
+                                        {confirmLabel}
                                     </>
                                 )}
                             </button>

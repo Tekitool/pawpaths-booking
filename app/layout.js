@@ -27,6 +27,30 @@ export const metadata = {
     template: "%s | Pawpaths",
   },
   description: "Expert international pet relocation services in the UAE. Safe, stress-free pet transport handled by specialists.",
+  keywords: ['pet relocation', 'pet transport', 'UAE', 'Dubai', 'international pet shipping', 'IATA compliant', 'animal transport'],
+  authors: [{ name: 'Pawpaths Pet Relocation' }],
+  creator: 'Pawpaths',
+  openGraph: {
+    type: 'website',
+    locale: 'en_AE',
+    siteName: 'Pawpaths',
+    title: 'Pawpaths | Premium Pet Relocation UAE',
+    description: 'Expert international pet relocation services in the UAE. Safe, stress-free pet transport handled by specialists.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Pawpaths Pet Relocation Services',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pawpaths | Premium Pet Relocation UAE',
+    description: 'Expert international pet relocation services in the UAE. Safe, stress-free pet transport handled by specialists.',
+    images: ['/og-image.png'],
+  },
   icons: {
     icon: [
       { url: "/ppicon.svg", type: "image/svg+xml" },

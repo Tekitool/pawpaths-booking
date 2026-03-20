@@ -28,6 +28,23 @@ function isPublicPath(pathname: string): boolean {
     )
 }
 
+// Security headers applied to every response
+const SECURITY_HEADERS: Record<string, string> = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+}
+
+function applySecurityHeaders(response: NextResponse): NextResponse {
+    for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+        response.headers.set(key, value)
+    }
+    return response
+}
+
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
     const host = request.headers.get('host') ?? ''
@@ -72,12 +89,12 @@ export async function middleware(request: NextRequest) {
     // Without this, unauthenticated user → /admin/login/* → matches /admin/* →
     // redirect to / → user can never reach the login or forgot-password form.
     if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) {
-        return NextResponse.next()
+        return applySecurityHeaders(NextResponse.next())
     }
 
     // ── 4. Public paths: no auth check, return immediately ───────────────────
     if (isPublicPath(pathname)) {
-        return NextResponse.next()
+        return applySecurityHeaders(NextResponse.next())
     }
 
     // ── 5. Protected routes: create Supabase client with cookie domain ────────
@@ -141,14 +158,28 @@ export async function middleware(request: NextRequest) {
             .eq('id', user.id)
             .single()
 
-        const allowedRoles = ['admin', 'super_admin', 'super-admin'] // Allowing variations just in case
-        if (!profile || !allowedRoles.includes(profile.role)) {
-            // Authenticated but not an admin → back to homepage
+        const staffRoles = ['super_admin', 'admin', 'ops_manager', 'relocation_coordinator', 'finance', 'driver', 'staff']
+        if (!profile || !staffRoles.includes(profile.role)) {
+            // Authenticated but not a staff member → back to homepage
             return NextResponse.redirect(new URL('/', request.url))
+        }
+
+        // Fine-grained route protection
+        const role = profile.role
+        const financeRoutes = ['/admin/invoices', '/admin/expenses', '/admin/summary', '/admin/reports', '/admin/quotes']
+        const financeRoles = ['super_admin', 'admin', 'finance', 'ops_manager']
+        if (financeRoutes.some(r => pathname.startsWith(r)) && !financeRoles.includes(role)) {
+            return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+        }
+
+        const systemRoutes = ['/admin/users', '/admin/settings', '/admin/themes']
+        const systemRoles = ['super_admin', 'admin']
+        if (systemRoutes.some(r => pathname.startsWith(r)) && !systemRoles.includes(role)) {
+            return NextResponse.redirect(new URL('/admin/dashboard', request.url))
         }
     }
 
-    return response
+    return applySecurityHeaders(response)
 }
 
 export const config = {

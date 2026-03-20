@@ -32,133 +32,207 @@ export function useSmartSearch(query: string) {
             let newResults: SearchResult[] = [];
 
             try {
-                console.log('Performing search for:', trimmedQuery);
+                // Determine search modes
+                const isPossibleBooking = /^PP-/i.test(trimmedQuery) || /^\d{2,}$/.test(trimmedQuery);
+                const isPossibleEmail = trimmedQuery.includes('@');
+                const isPossiblePhone = /^\+?[\d\s-]{4,}$/.test(trimmedQuery);
 
-                // MODE A: Booking Lookup
-                if (/^PP-/i.test(trimmedQuery) || /^\d{4,}$/.test(trimmedQuery)) {
-                    console.log('Mode A: Booking search');
+                // Initialize queries
+                const promises = [];
 
-                    // Check authentication
-                    const { data: { user }, error: authError } = await supabase.auth.getUser();
-                    console.log('DEBUG - Current user:', user);
-                    console.log('DEBUG - Auth error:', authError);
-
-                    // Check if we can access bookings at all
-                    const { data: allBookings, error: debugError } = await supabase
+                // 1. Search Bookings Direct
+                let bookingPromise = null;
+                if (isPossibleBooking) {
+                    bookingPromise = supabase
                         .from('bookings')
-                        .select('id, booking_number, status')
-                        .limit(5);
-
-                    console.log('DEBUG - All bookings (first 5):', allBookings);
-                    console.log('DEBUG - Error:', debugError);
-
-                    // Try exact match
-                    const { data: exactMatch, error: exactError } = await supabase
-                        .from('bookings')
-                        .select('id, booking_number, status')
-                        .eq('booking_number', trimmedQuery)
-                        .maybeSingle();
-
-                    console.log('DEBUG - Exact match for', trimmedQuery, ':', exactMatch);
-                    console.log('DEBUG - Exact match error:', exactError);
-
-                    // Try wildcard search
-                    const { data, error } = await supabase
-                        .from('bookings')
-                        .select('id, booking_number, status')
+                        .select('id, booking_number, status, customer:customer_id(display_name)')
                         .ilike('booking_number', `%${trimmedQuery}%`)
                         .limit(5);
+                    promises.push(bookingPromise);
+                }
 
-                    console.log('Booking filtered results:', data);
-                    console.log('Booking search error:', error);
+                // 2. Search Entities (Customers)
+                let entityPromise = null;
+                if (isPossibleEmail) {
+                    entityPromise = supabase
+                        .from('entities')
+                        .select('id, display_name, contact_info')
+                        .ilike('contact_info->>email', `%${trimmedQuery}%`)
+                        .limit(5);
+                } else if (isPossiblePhone) {
+                    entityPromise = supabase
+                        .from('entities')
+                        .select('id, display_name, contact_info')
+                        .ilike('contact_info->>phone', `%${trimmedQuery}%`)
+                        .limit(5);
+                } else {
+                    entityPromise = supabase
+                        .from('entities')
+                        .select('id, display_name, contact_info')
+                        .or(`display_name.ilike.%${trimmedQuery}%,code.ilike.%${trimmedQuery}%`)
+                        .limit(5);
+                }
+                promises.push(entityPromise);
 
-                    if (data) {
-                        newResults = data.map(b => ({
-                            id: b.id,
-                            type: 'booking',
-                            title: b.booking_number,
-                            subtitle: `Status: ${b.status}`,
-                            url: `/admin/relocations/${b.booking_number}`
-                        }));
+                // 3. Search Pets, Breeds, Nodes (if not email/phone)
+                let petPromise = null;
+                let breedPromise = null;
+                let nodePromise = null;
+
+                if (!isPossibleEmail && !isPossiblePhone) {
+                    petPromise = supabase
+                        .from('pets')
+                        .select('id, name')
+                        .ilike('name', `%${trimmedQuery}%`)
+                        .limit(5);
+                    promises.push(petPromise);
+
+                    breedPromise = supabase
+                        .from('breeds')
+                        .select('id, name')
+                        .ilike('name', `%${trimmedQuery}%`)
+                        .limit(5);
+                    promises.push(breedPromise);
+
+                    nodePromise = supabase
+                        .from('logistics_nodes')
+                        .select('id, name, city, iata_code')
+                        .or(`name.ilike.%${trimmedQuery}%,city.ilike.%${trimmedQuery}%,iata_code.ilike.%${trimmedQuery}%`)
+                        .limit(5);
+                    promises.push(nodePromise);
+                }
+
+                // Wait for initial matches
+                const resultsArray = await Promise.all(promises);
+
+                let bookingRes = isPossibleBooking ? resultsArray.shift() : { data: null };
+                let entityRes = resultsArray.shift() || { data: null };
+                let petRes = petPromise ? resultsArray.shift() : { data: null };
+                let breedRes = breedPromise ? resultsArray.shift() : { data: null };
+                let nodeRes = nodePromise ? resultsArray.shift() : { data: null };
+
+                const allBookingHits: SearchResult[] = [];
+                const seenBookingNumbers = new Set<string>();
+
+                const addBooking = (b: any, type: 'booking' | 'customer' | 'pet', title: string, subtitle: string) => {
+                    const bNumber = b.booking_number;
+                    if (bNumber && !seenBookingNumbers.has(bNumber)) {
+                        seenBookingNumbers.add(bNumber);
+                        allBookingHits.push({
+                            id: b.id || bNumber,
+                            type,
+                            title,
+                            subtitle,
+                            url: `/admin/relocations/${bNumber}`
+                        });
+                    }
+                };
+
+                // Add direct booking hits
+                if (bookingRes?.data) {
+                    bookingRes.data.forEach((b: any) => {
+                        const customerName = b.customer?.display_name || 'Booking';
+                        addBooking(b, 'booking', b.booking_number, `Booking • Status: ${b.status || 'N/A'}`);
+                    });
+                }
+
+                // Add booking hits via customer
+                if (entityRes?.data && entityRes.data.length > 0) {
+                    const customerIds = entityRes.data.map((e: any) => e.id);
+                    const { data: customerBookings } = await supabase
+                        .from('bookings')
+                        .select('id, booking_number, status, customer_id')
+                        .in('customer_id', customerIds)
+                        .limit(10);
+
+                    if (customerBookings) {
+                        customerBookings.forEach((b: any) => {
+                            const customer = entityRes.data.find((e: any) => e.id === b.customer_id);
+                            if (customer) {
+                                addBooking(b, 'customer', b.booking_number, `Customer: ${customer.display_name} • ${b.status || 'N/A'}`);
+                            }
+                        });
                     }
                 }
-                // MODE B: Email
-                else if (trimmedQuery.includes('@')) {
-                    const { data } = await supabase
-                        .from('entities')
-                        .select('id, display_name, contact_info')
-                        .limit(50);
 
-                    const filtered = data?.filter(c => {
-                        const email = c.contact_info?.email;
-                        return email && email.toLowerCase().includes(trimmedQuery.toLowerCase());
-                    }) || [];
-
-                    newResults = filtered.slice(0, 5).map(c => ({
-                        id: c.id,
-                        type: 'customer',
-                        title: c.display_name,
-                        subtitle: c.contact_info?.email || 'No Email',
-                        url: `/admin/customers/${c.id}`
-                    }));
+                // Add booking hits via pet & breed
+                const petMap = new Map();
+                if (petRes?.data) {
+                    petRes.data.forEach((p: any) => petMap.set(p.id, { name: p.name, source: 'name' }));
                 }
-                // MODE C: Phone
-                else if (/^\+?[\d\s-]{5,}$/.test(trimmedQuery)) {
-                    const { data } = await supabase
-                        .from('entities')
-                        .select('id, display_name, contact_info')
-                        .limit(50);
 
-                    const filtered = data?.filter(c => {
-                        const phone = c.contact_info?.phone;
-                        return phone && phone.includes(trimmedQuery);
-                    }) || [];
+                if (breedRes?.data && breedRes.data.length > 0) {
+                    const breedIds = breedRes.data.map((b: any) => b.id);
+                    const { data: petsWithBreed } = await supabase
+                        .from('pets')
+                        .select('id, name, breed_id')
+                        .in('breed_id', breedIds)
+                        .limit(10);
 
-                    newResults = filtered.slice(0, 5).map(c => ({
-                        id: c.id,
-                        type: 'customer',
-                        title: c.display_name,
-                        subtitle: c.contact_info?.phone || 'No Phone',
-                        url: `/admin/customers/${c.id}`
-                    }));
+                    if (petsWithBreed) {
+                        petsWithBreed.forEach((p: any) => {
+                            if (!petMap.has(p.id)) {
+                                const breedName = breedRes.data.find((b: any) => b.id === p.breed_id)?.name;
+                                petMap.set(p.id, { name: p.name, source: 'breed', breedName });
+                            }
+                        });
+                    }
                 }
-                // MODE D: Wildcard
-                else {
-                    const [customerRes, petRes] = await Promise.all([
-                        supabase
-                            .from('entities')
-                            .select('id, display_name, contact_info')
-                            .ilike('display_name', `%${trimmedQuery}%`)
-                            .limit(3),
 
-                        supabase
-                            .from('booking_pets')
-                            .select(`pet:pets!inner(id, name, species_id), booking:bookings!inner(customer_id)`)
-                            .ilike('pets.name', `%${trimmedQuery}%`)
-                            .limit(3)
+                if (petMap.size > 0) {
+                    const petIds = Array.from(petMap.keys());
+                    const { data: bookingPets } = await supabase
+                        .from('booking_pets')
+                        .select('pet_id, booking:bookings(id, booking_number, status)')
+                        .in('pet_id', petIds)
+                        .limit(10);
+
+                    if (bookingPets) {
+                        bookingPets.forEach((bp: any) => {
+                            const petInfo = petMap.get(bp.pet_id);
+                            const bRaw = bp.booking;
+                            const b = Array.isArray(bRaw) ? bRaw[0] : bRaw;
+
+                            if (petInfo && b && b.booking_number) {
+                                let subtitle = petInfo.source === 'breed'
+                                    ? `Breed: ${petInfo.breedName} (Pet: ${petInfo.name}) • ${b.status || 'N/A'}`
+                                    : `Pet: ${petInfo.name} • ${b.status || 'N/A'}`;
+                                addBooking(b, 'pet', b.booking_number, subtitle);
+                            }
+                        });
+                    }
+                }
+
+                // Add booking hits via Origin/Destination nodes
+                if (nodeRes?.data && nodeRes.data.length > 0) {
+                    const nodeIds = nodeRes.data.map((n: any) => n.id);
+
+                    const [originRes, destRes] = await Promise.all([
+                        supabase.from('bookings').select('id, booking_number, status, origin_node_id').in('origin_node_id', nodeIds).limit(5),
+                        supabase.from('bookings').select('id, booking_number, status, destination_node_id').in('destination_node_id', nodeIds).limit(5)
                     ]);
 
-                    const customerHits = (customerRes.data || []).map(c => ({
-                        id: c.id,
-                        type: 'customer' as const,
-                        title: c.display_name,
-                        subtitle: c.contact_info?.email || 'Customer',
-                        url: `/admin/customers/${c.id}`
-                    }));
+                    const processNodeBookings = (nodeBookings: any[], isOrigin: boolean) => {
+                        if (nodeBookings) {
+                            nodeBookings.forEach((b: any) => {
+                                const nodeId = isOrigin ? b.origin_node_id : b.destination_node_id;
+                                const matchedNode = nodeRes.data.find((n: any) => n.id === nodeId);
+                                if (matchedNode) {
+                                    const locationStr = [matchedNode.name, matchedNode.city, matchedNode.iata_code].filter(Boolean).join(', ');
+                                    const direction = isOrigin ? 'Origin' : 'Dest';
+                                    addBooking(b, 'booking', b.booking_number, `${direction}: ${locationStr} • ${b.status || 'N/A'}`);
+                                }
+                            });
+                        }
+                    };
 
-                    const petHits = (petRes.data || []).map((item: any) => ({
-                        id: item.pet.id,
-                        type: 'pet' as const,
-                        title: item.pet.name,
-                        subtitle: item.pet.species_id === 1 ? 'Dog' : item.pet.species_id === 2 ? 'Cat' : 'Pet',
-                        url: `/admin/customers/${item.booking?.customer_id}?pet=${item.pet.id}`
-                    }));
-
-                    newResults = [...customerHits, ...petHits];
+                    processNodeBookings(originRes.data || [], true);
+                    processNodeBookings(destRes.data || [], false);
                 }
 
+                newResults = allBookingHits;
+
                 if (currentSearchId === searchIdRef.current) {
-                    console.log('Setting results:', newResults);
                     setResults(newResults);
                 }
 

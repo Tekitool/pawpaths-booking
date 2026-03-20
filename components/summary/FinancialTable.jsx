@@ -1,13 +1,13 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 
-export default function FinancialTable() {
-    const rows = [
-        { label: 'Today', sales: 1499.00, receipts: 750.00, due: 749.00 },
-        { label: 'This Week', sales: 28196.00, receipts: 12250.00, due: 13447.00 },
-        { label: 'This Month', sales: 28196.00, receipts: 19350.00, due: 14646.00 },
-        { label: 'This Quarter', sales: 30946.00, receipts: 25100.00, due: 14646.00 },
-        { label: 'This Year', sales: 30946.00, receipts: 26100.00, due: 14646.00 },
+export default function FinancialTable({ data = [] }) {
+    const rows = data.length > 0 ? data : [
+        { label: 'Today', sales: 0, receipts: 0, due: 0 },
+        { label: 'This Week', sales: 0, receipts: 0, due: 0 },
+        { label: 'This Month', sales: 0, receipts: 0, due: 0 },
+        { label: 'This Quarter', sales: 0, receipts: 0, due: 0 },
+        { label: 'This Year', sales: 0, receipts: 0, due: 0 },
     ];
 
     return (
@@ -31,14 +31,14 @@ export default function FinancialTable() {
                         {rows.map((row, index) => (
                             <tr key={index} className="hover:bg-surface-warm transition-colors">
                                 <td className="py-4 text-sm font-medium text-brand-text-01">{row.label}</td>
-                                <td className="py-4 text-right text-sm font-medium text-system-color-03 cursor-pointer hover:underline">
-                                    AED{row.sales.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                <td className="py-4 text-right text-sm font-medium text-system-color-03">
+                                    AED{Number(row.sales || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-4 text-right text-sm font-medium text-system-color-03 cursor-pointer hover:underline">
-                                    AED{row.receipts.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                <td className="py-4 text-right text-sm font-medium text-system-color-03">
+                                    AED{Number(row.receipts || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-4 text-right text-sm font-medium text-system-color-03 cursor-pointer hover:underline">
-                                    AED{row.due.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                <td className="py-4 text-right text-sm font-medium text-system-color-03">
+                                    AED{Number(row.due || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                 </td>
                             </tr>
                         ))}

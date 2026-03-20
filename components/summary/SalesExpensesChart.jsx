@@ -4,22 +4,11 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Info, ChevronDown } from 'lucide-react';
 
-const data = [
-    { name: 'Jan 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'Feb 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'Mar 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'Apr 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'May 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'Jun 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'Jul 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'Aug 2025', sales: 0, receipts: 500, expenses: 0 }, // Small blip
-    { name: 'Sep 2025', sales: 0, receipts: 0, expenses: 0 },
-    { name: 'Oct 2025', sales: 0, receipts: 2000, expenses: 0 },
-    { name: 'Nov 2025', sales: 2000, receipts: 2000, expenses: 0 },
-    { name: 'Dec 2025', sales: 30946, receipts: 19350, expenses: 8366 },
-];
+export default function SalesExpensesChart({ data = [], totals = {} }) {
+    const totalSales = totals.totalSales || data.reduce((s, d) => s + (d.sales || 0), 0);
+    const totalReceipts = totals.totalReceipts || data.reduce((s, d) => s + (d.receipts || 0), 0);
+    const totalExpenses = totals.totalExpenses || data.reduce((s, d) => s + (d.expenses || 0), 0);
 
-export default function SalesExpensesChart() {
     return (
         <div className="bg-white border border-brand-color-02 rounded-xl p-6 shadow-sm mb-6">
             <div className="flex justify-between items-center mb-6">
@@ -40,12 +29,7 @@ export default function SalesExpensesChart() {
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={data}
-                            margin={{
-                                top: 5,
-                                right: 30,
-                                left: 20,
-                                bottom: 5,
-                            }}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                             barGap={0}
                         >
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="oklch(var(--brand-color-02))" />
@@ -55,14 +39,8 @@ export default function SalesExpensesChart() {
                                 tickLine={false}
                                 tick={{ fill: 'oklch(var(--brand-text-02))', fontSize: 10 }}
                                 interval={0}
-                                tickFormatter={(value) => {
-                                    const [month, year] = value.split(' ');
-                                    return `${month}`; // Just month for compactness, or custom render
-                                }}
                                 height={50}
                             />
-                            {/* Custom tick to show year below month if needed, but simple string is fine for now */}
-
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
@@ -87,15 +65,15 @@ export default function SalesExpensesChart() {
                 <div className="w-full lg:w-48 flex flex-col justify-center space-y-8 border-l border-brand-color-02 pl-8 lg:py-8">
                     <div>
                         <div className="text-sm text-system-color-03 mb-1">Total Sales</div>
-                        <div className="text-xl font-bold text-brand-text-01">AED30,946...</div>
+                        <div className="text-xl font-bold text-brand-text-01">AED{totalSales.toLocaleString()}</div>
                     </div>
                     <div>
                         <div className="text-sm text-system-color-02 mb-1">Total Receipts</div>
-                        <div className="text-xl font-bold text-brand-text-01">AED26,100....</div>
+                        <div className="text-xl font-bold text-brand-text-01">AED{totalReceipts.toLocaleString()}</div>
                     </div>
                     <div>
                         <div className="text-sm text-status-warning mb-1">Total Expenses</div>
-                        <div className="text-xl font-bold text-brand-text-01">AED8,366.80</div>
+                        <div className="text-xl font-bold text-brand-text-01">AED{totalExpenses.toLocaleString()}</div>
                     </div>
                 </div>
             </div>

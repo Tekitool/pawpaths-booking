@@ -1,20 +1,17 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 
-export default function ReceivablesSummary() {
-    // Mock Data
-    const totalReceivables = 14646.00;
-    const current = 1948.00;
-    const overdue1_15 = 12698.00;
-    const overdue16_30 = 0.00;
-    const overdue31_45 = 0.00;
-    const overdue45plus = 0.00;
+export default function ReceivablesSummary({ data }) {
+    const current = data?.current || 0;
+    const overdue1_15 = data?.days_1_15 || 0;
+    const overdue16_30 = data?.days_16_30 || 0;
+    const overdue31_45 = data?.days_31_45 || 0;
+    const overdue45plus = data?.days_45_plus || 0;
+    const totalReceivables = data?.total || 0;
 
-    // Calculate percentages for the progress bar
     const total = current + overdue1_15 + overdue16_30 + overdue31_45 + overdue45plus;
-    const currentPercent = (current / total) * 100;
-    const overduePercent = (overdue1_15 / total) * 100;
-    // ... others are 0 in this example
+    const currentPercent = total > 0 ? (current / total) * 100 : 0;
+    const overduePercent = total > 0 ? (overdue1_15 / total) * 100 : 0;
 
     return (
         <div className="bg-white border border-brand-color-02 rounded-xl p-6 shadow-sm mb-6">
@@ -36,7 +33,6 @@ export default function ReceivablesSummary() {
             <div className="h-3 w-full bg-brand-color-02 rounded-full overflow-hidden flex mb-8">
                 <div style={{ width: `${currentPercent}%` }} className="h-full bg-system-color-03"></div>
                 <div style={{ width: `${overduePercent}%` }} className="h-full bg-status-warning"></div>
-                {/* Add other segments if needed */}
             </div>
 
             {/* Breakdown Grid */}
@@ -52,7 +48,7 @@ export default function ReceivablesSummary() {
                     <div className="text-xs text-brand-text-02 mt-1">1-15 Days</div>
                 </div>
 
-                <div className="pl-4 border-l-2 border-transparent"> {/* Placeholder for alignment if needed, or just standard */}
+                <div className="pl-4 border-l-2 border-transparent">
                     <div className="text-xl font-bold text-brand-text-01">AED{overdue16_30.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
                     <div className="text-xs text-brand-text-02 mt-1">16-30 Days</div>
                 </div>

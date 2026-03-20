@@ -1,8 +1,11 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here - full audit build */
   reactCompiler: true,
-  output: 'standalone',
+  // output: 'standalone' — disabled while using Sentry on Windows dev; Vercel handles bundling natively
+  serverExternalPackages: ['@sentry/profiling-node'],
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'pawpathsae.com', 'www.pawpathsae.com', '.pawpathsae.com', '*.vercel.app'],
@@ -50,7 +53,25 @@ const nextConfig = {
       },
     ];
   },
-
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Sentry build options
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Upload source maps for readable stack traces
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+
+  // Suppress noisy build logs
+  silent: !process.env.CI,
+
+  // Tree-shake unused Sentry features in production
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayIframe: true,
+    excludeReplayShadowDom: true,
+  },
+});

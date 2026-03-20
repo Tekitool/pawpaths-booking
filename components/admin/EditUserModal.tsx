@@ -8,7 +8,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import {
@@ -22,32 +21,16 @@ import {
     sendPasswordResetAction,
 } from '@/lib/actions/manageUser';
 import { ROLES, type Role, ROLE_META, ASSIGNABLE } from '@/lib/constants/roles';
+import {
+    editUserSchema,
+    type EditUserFormValues,
+    type EditUserModalUser,
+    splitName,
+    inputCls,
+} from '@/lib/validations/user-schema';
 
-// ── Zod Schema ─────────────────────────────────────────────────────────────────
-
-const editSchema = z.object({
-    firstName: z.string().min(2, 'Minimum 2 characters'),
-    lastName: z.string().min(2, 'Minimum 2 characters'),
-    // Email is read-only in this modal; kept in schema so the action receives it.
-    email: z.string().email(),
-    phone: z.string().optional(),
-    role: z.enum(ROLES),
-    status: z.boolean(),
-});
-
-type FormValues = z.infer<typeof editSchema>;
-
-// ── Props ──────────────────────────────────────────────────────────────────────
-
-export interface EditUserModalUser {
-    id: string;
-    full_name: string;
-    email: string;
-    phone?: string | null;
-    role: Role;
-    is_active: boolean;
-    avatar_url?: string | null;
-}
+// Re-export for consumers that import from this file
+export type { EditUserModalUser };
 
 interface EditUserModalProps {
     isOpen: boolean;
@@ -56,13 +39,6 @@ interface EditUserModalProps {
     /** Role of the admin currently viewing this modal — enforces client-side UI gate. */
     callerRole: Role;
     onSuccess?: () => void;
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function splitName(fullName: string): [string, string] {
-    const parts = fullName.trim().split(' ');
-    return [parts[0] ?? '', parts.slice(1).join(' ')];
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -96,8 +72,8 @@ export default function EditUserModal({
         reset,
         formState: { errors, isDirty },
         watch,
-    } = useForm<FormValues>({
-        resolver: zodResolver(editSchema),
+    } = useForm<EditUserFormValues>({
+        resolver: zodResolver(editUserSchema),
         defaultValues: {
             firstName: initialFirst,
             lastName: initialLast,
@@ -146,7 +122,7 @@ export default function EditUserModal({
 
     // ── Handlers ──────────────────────────────────────────────────────────────
 
-    const onSubmit = async (data: FormValues) => {
+    const onSubmit = async (data: EditUserFormValues) => {
         setIsSubmitting(true);
         try {
             const result = await updateUserAction(user.id, data);
@@ -661,11 +637,3 @@ function Field({
     );
 }
 
-function inputCls(hasError: boolean) {
-    return [
-        'w-full px-3 py-2 bg-white border rounded-lg text-sm text-gray-900 transition-all outline-none placeholder:text-gray-300',
-        hasError
-            ? 'border-red-300 focus:ring-2 focus:ring-red-100'
-            : 'border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300',
-    ].join(' ');
-}

@@ -25,7 +25,8 @@ const DOG_BREEDS = [
 const CAT_BREEDS = [
     'Domestic Short Hair', 'Persian', 'Maine Coon', 'Siamese', 'Ragdoll',
     'Bengal', 'Sphynx', 'British Shorthair', 'Scottish Fold', 'Abyssinian',
-    'Domestic Long Hair', 'Mixed Breed'
+    'Domestic Long Hair', 'American Shorthair', 'Norwegian Forest Cat',
+    'Birman', 'Oriental Shorthair', 'Cornish Rex', 'Ragamuffin', 'Mixed Breed'
 ];
 
 async function seedBreeds() {
@@ -59,7 +60,7 @@ async function seedBreeds() {
     const { error: insertError } = await supabase.from('breeds').upsert(breedsToInsert, { onConflict: 'species_id, name' });
 
     if (insertError) {
-        console.error('❌ Error inserting breeds:', insertError);
+        console.error('❌ Error inserting breeds:', JSON.stringify(insertError, null, 2));
     } else {
         console.log(`✅ Successfully seeded ${breedsToInsert.length} breeds.`);
     }

@@ -1,27 +1,40 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getPets } from '@/lib/actions/pet-actions';
 import PageShell from '@/components/ui/PageShell';
 import PetTable from '@/components/admin/PetTable';
+import Pagination from '@/components/ui/Pagination';
 import { Plus } from 'lucide-react';
 import SecurityModal from '@/components/ui/SecurityModal';
+
+const PAGE_SIZE = 15;
 
 function TableSkeleton() {
     return <div className="w-full h-96 bg-white/40 rounded-xl animate-pulse" />;
 }
 
 export default function PetsPage() {
+    const searchParams = useSearchParams();
+    const page = Math.max(1, Number(searchParams.get('page')) || 1);
+    const query = searchParams.get('query') || '';
+
     const [pets, setPets] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(true);
     const [deleteId, setDeleteId] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const fetchPets = async () => {
+            setLoading(true);
             try {
-                const data = await getPets();
-                setPets(data || []);
+                const result = await getPets({ page, pageSize: PAGE_SIZE, query });
+                setPets(result.data || []);
+                setTotal(result.total || 0);
+                setTotalPages(result.totalPages || 0);
             } catch (e) {
                 console.error('Error fetching pets:', e);
             } finally {
@@ -29,7 +42,7 @@ export default function PetsPage() {
             }
         };
         fetchPets();
-    }, []);
+    }, [page, query]);
 
     const handleDeleteClick = (id) => {
         setDeleteId(id);
@@ -44,9 +57,10 @@ export default function PetsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ audit_reason: reason }),
             });
-            // Refresh list after deletion
-            const refreshed = await getPets();
-            setPets(refreshed || []);
+            const result = await getPets({ page, pageSize: PAGE_SIZE, query });
+            setPets(result.data || []);
+            setTotal(result.total || 0);
+            setTotalPages(result.totalPages || 0);
         } catch (error) {
             console.error('Error deleting pet:', error);
         } finally {
@@ -68,7 +82,15 @@ export default function PetsPage() {
             {loading ? (
                 <TableSkeleton />
             ) : (
-                <PetTable pets={pets} onDelete={handleDeleteClick} />
+                <>
+                    <PetTable pets={pets} onDelete={handleDeleteClick} />
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        totalItems={total}
+                        pageSize={PAGE_SIZE}
+                    />
+                </>
             )}
             <SecurityModal
                 isOpen={!!deleteId}

@@ -138,8 +138,11 @@ export async function submitEnquiry(formData) {
         const petIds = newPets.map(p => p.id)
 
         // 2b. Resolve & persist a photo for EVERY pet
-        // Priority: uploaded custom photo → duplicate breed default into photos bucket → empty
+        // Priority: uploaded photo → copy breed default to photos bucket → avatars ref → frontend URL
         const sessionId = formData.enquiry_session_id
+        // Access raw (pre-Zod) pets array for breedDefaultImageUrl — Zod strips unknown keys
+        const rawPets = formData.pets || []
+
         for (let i = 0; i < pets.length; i++) {
             const uploadedPath = formData[`pet_${i}_photo_path`]
             let photoEntry = null
@@ -152,18 +155,27 @@ export async function submitEnquiry(formData) {
                     bucket: STORAGE_BUCKETS.PHOTOS,
                     source: 'user_upload',
                 }
+                console.log(`[PHOTO] Pet ${i}: using user-uploaded photo at ${uploadedPath}`)
             } else {
                 // No upload — copy the breed default image into the photos bucket
                 // so each pet owns an independent file under their enquiry folder
-                const breedId = parseInt(pets[i].breed_id)
+                const breedId = pets[i].breed_id
+                const frontendBreedUrl = rawPets[i]?.breedDefaultImageUrl || null
+                console.log(`[PHOTO] Pet ${i}: no upload. breedId=${breedId}, frontendBreedUrl=${frontendBreedUrl}`)
+
                 if (breedId) {
-                    const { data: breedRow } = await supabase
+                    const { data: breedRow, error: breedErr } = await supabase
                         .from('breeds')
                         .select('default_image_path, name')
                         .eq('id', breedId)
                         .single()
 
+                    if (breedErr) {
+                        console.error(`[PHOTO] Pet ${i}: breed query failed for id=${breedId}:`, breedErr.message)
+                    }
+
                     if (breedRow?.default_image_path) {
+                        console.log(`[PHOTO] Pet ${i}: breed "${breedRow.name}" default_image_path="${breedRow.default_image_path}"`)
                         try {
                             // 1. Download the original from the avatars bucket
                             const { data: fileBlob, error: downloadErr } = await supabase.storage
@@ -194,16 +206,31 @@ export async function submitEnquiry(formData) {
                                 source: 'breed_default',
                                 original_breed: breedRow.name,
                             }
+                            console.log(`[PHOTO] Pet ${i}: breed default copied to ${uploadData.path}`)
                         } catch (copyErr) {
-                            console.error(`[PHOTO] Failed to copy breed default for pet ${i}:`, copyErr.message)
+                            console.error(`[PHOTO] Pet ${i}: copy failed:`, copyErr.message)
                             // Fallback: store a reference to the original avatars image
                             photoEntry = {
                                 url: getPublicUrl(STORAGE_BUCKETS.AVATARS, breedRow.default_image_path),
                                 storage_path: breedRow.default_image_path,
                                 bucket: STORAGE_BUCKETS.AVATARS,
                                 source: 'breed_default_ref',
+                                original_breed: breedRow.name,
                             }
                         }
+                    } else {
+                        console.warn(`[PHOTO] Pet ${i}: breed id=${breedId} has no default_image_path in DB`)
+                    }
+                }
+
+                // Ultimate fallback: use the breed image URL the frontend already resolved
+                if (!photoEntry && frontendBreedUrl) {
+                    console.warn(`[PHOTO] Pet ${i}: all DB paths failed — using frontend breedDefaultImageUrl`)
+                    photoEntry = {
+                        url: frontendBreedUrl,
+                        storage_path: null,
+                        bucket: null,
+                        source: 'breed_default_frontend',
                     }
                 }
             }
@@ -216,8 +243,11 @@ export async function submitEnquiry(formData) {
 
                 if (photoError) {
                     console.error(`[PHOTO] Failed to save photo for pet ${petIds[i]}:`, photoError.message)
-                    // Non-fatal — booking proceeds even if photo write fails
+                } else {
+                    console.log(`[PHOTO] Pet ${i} (id=${petIds[i]}): saved photo (source=${photoEntry.source})`)
                 }
+            } else {
+                console.warn(`[PHOTO] Pet ${i} (id=${petIds[i]}): NO photo resolved — photos column will be empty`)
             }
         }
 
@@ -298,7 +328,7 @@ export async function submitEnquiry(formData) {
                     airport: travelDetails.destinationAirport
                 },
                 customer_contact_snapshot: contactInfo,
-                internal_notes: `Origin: ${travelDetails.originCountry} (${travelDetails.originAirport})\nDestination: ${travelDetails.destinationCountry} (${travelDetails.destinationAirport})`,
+                internal_notes: '',
                 // File Uploads
                 pet_photo_path: formData.pet_photo_path || null,
                 documents_path: formData.documents_path || null,
@@ -335,7 +365,7 @@ export async function submitEnquiry(formData) {
             // 1. Fetch matching services from catalog
             const { data: catalogServices, error: catalogError } = await supabase
                 .from('service_catalog')
-                .select('id, code, base_price, name')
+                .select('id, code, base_price, base_cost, tax_rate, pricing_model, name')
                 .in('id', services);
 
             if (catalogError) {
@@ -350,11 +380,11 @@ export async function submitEnquiry(formData) {
             const serviceInserts = validServices.map(service => ({
                 booking_id: newBooking.id,
                 service_id: service.id,
-                quantity: 1, // Default quantity
+                quantity: 1,
                 unit_price: service.base_price || 0,
-                // notes: service.name // Removed as 'notes' might not be in booking_services schema, or keep if it is. 
-                // The prompt says: booking_id, service_id, unit_price, quantity, line_total.
-                // line_total is usually calculated or generated.
+                unit_cost: service.base_cost || 0,
+                tax_rate: service.tax_rate ?? 5.0,
+                pricing_model: service.pricing_model || 'fixed',
             }));
 
             if (serviceInserts.length > 0) {
@@ -367,30 +397,13 @@ export async function submitEnquiry(formData) {
                 }
             }
 
-            // 3. Update internal notes with summary
-            let notesUpdate = `Origin: ${travelDetails.originCountry} (${travelDetails.originAirport})\nDestination: ${travelDetails.destinationCountry} (${travelDetails.destinationAirport})`;
-
             if (unmappedServices.length > 0) {
-                notesUpdate += `\n\n[Unmapped Service IDs]: ${unmappedServices.join(', ')}`;
+                console.warn(`[Unmapped Service IDs in booking ${newBooking.booking_number}]: ${unmappedServices.join(', ')}`);
             }
 
             if (validServices.length > 0) {
-                notesUpdate += `\n\n[Linked Services]: ${validServices.map(s => s.name).join(', ')}`;
                 servicesList = validServices.map(s => s.name);
             }
-
-            await supabase
-                .from('bookings')
-                .update({ internal_notes: notesUpdate })
-                .eq('id', newBooking.id);
-        } else {
-            // Just update notes if no services
-            await supabase
-                .from('bookings')
-                .update({
-                    internal_notes: `Origin: ${travelDetails.originCountry} (${travelDetails.originAirport})\nDestination: ${travelDetails.destinationCountry} (${travelDetails.destinationAirport})`
-                })
-                .eq('id', newBooking.id);
         }
 
         // --- EMAIL NOTIFICATION LOGIC ---
