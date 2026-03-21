@@ -1,8 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
-export async function GET() {
+export async function GET(request) {
     try {
+        // Rate-limit public service catalog requests
+        const ip = getClientIP(request);
+        const { allowed, retryAfterMs } = await checkRateLimit(`services:${ip}`, RATE_LIMITS.api);
+        if (!allowed) {
+            return NextResponse.json(
+                { success: false, message: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } }
+            );
+        }
+
         const supabase = await createClient();
 
         const { data: services, error } = await supabase
@@ -23,9 +34,10 @@ export async function GET() {
         });
 
     } catch (error) {
-        console.error('Error fetching services:', error);
+        const Sentry = await import('@sentry/nextjs');
+        Sentry.captureException(error);
         return NextResponse.json(
-            { success: false, message: 'Error fetching services', error: error.message },
+            { success: false, message: 'Unable to load services. Please try again.' },
             { status: 500 }
         );
     }

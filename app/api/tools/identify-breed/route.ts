@@ -2,8 +2,21 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
+// Module-level singleton — created once per Lambda warm start, not per request.
+// Null when OPENAI_API_KEY is absent; guarded below.
+const openai = process.env.OPENAI_API_KEY
+    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    : null;
+
 export async function POST(req: Request) {
     try {
+        if (!openai) {
+            return NextResponse.json(
+                { error: 'AI service is not configured. Please contact support.' },
+                { status: 500 }
+            );
+        }
+
         // Rate limit AI endpoints
         const ip = getClientIP(req);
         const { allowed, retryAfterMs } = await checkRateLimit(`breed:${ip}`, RATE_LIMITS.ai);
@@ -13,18 +26,6 @@ export async function POST(req: Request) {
                 { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } }
             );
         }
-
-        if (!process.env.OPENAI_API_KEY) {
-            console.error('OpenAI API Key is missing');
-            return NextResponse.json(
-                { error: 'Server Error: OpenAI API Key is missing. Please add OPENAI_API_KEY to your .env.local file.' },
-                { status: 500 }
-            );
-        }
-
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
 
         // 1. Parse the request body
         const body = await req.json();
@@ -139,7 +140,12 @@ Ensure valid JSON output.`
             throw new Error("No content received from AI");
         }
 
-        const data = JSON.parse(content);
+        let data: Record<string, unknown>;
+        try {
+            data = JSON.parse(content);
+        } catch {
+            throw new Error("OpenAI returned malformed JSON");
+        }
 
         // Basic validation
         if (data.is_pet === false) {
@@ -151,9 +157,10 @@ Ensure valid JSON output.`
         return NextResponse.json(data);
 
     } catch (error) {
-        console.error('AI Breed ID Error:', error);
+        const Sentry = await import('@sentry/nextjs');
+        const eventId = Sentry.captureException(error);
         return NextResponse.json(
-            { error: 'Failed to process image. Please try again.' },
+            { error: 'Failed to process image. Please try again.', ref: eventId },
             { status: 500 }
         );
     }

@@ -69,7 +69,12 @@ export async function POST(request) {
             );
         }
 
-        const uniqueFilename = `${uuidv4()}-${filename.replace(/\s+/g, '-')}`;
+        // Strip whitespace, path separators, and traversal sequences to prevent path injection.
+        const safeFilename = filename
+            .replace(/\s+/g, '-')
+            .replace(/[/\\]/g, '')
+            .replace(/\.\./g, '');
+        const uniqueFilename = `${uuidv4()}-${safeFilename}`;
         const key = `${folder}/${uniqueFilename}`;
         const bucketName = process.env.AWS_BUCKET_NAME;
 

@@ -151,13 +151,15 @@ const PetDocumentFrame = ({ pet, petIndex, petDocs, updatePetFiles, validateFile
 
     useEffect(() => {
         const photoFile = petDocs?.photo;
-        if (!(photoFile instanceof File)) {
-            setPhotoPreviewUrl(null);
-            return;
-        }
+        if (!(photoFile instanceof File)) return;
         const url = URL.createObjectURL(photoFile);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPhotoPreviewUrl(url);
-        return () => URL.revokeObjectURL(url);
+        // Revoke object URL and reset preview on cleanup (fires when file is removed or component unmounts)
+        return () => {
+            URL.revokeObjectURL(url);
+            setPhotoPreviewUrl(null);
+        };
     }, [petDocs?.photo]);
 
     const handleFileChange = async (docType, e) => {

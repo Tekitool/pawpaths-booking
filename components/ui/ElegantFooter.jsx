@@ -68,7 +68,7 @@ export default function ElegantFooter() {
                 className="w-full pt-10 pb-6 px-4 [padding-bottom:max(1.5rem,env(safe-area-inset-bottom))] relative z-10 bg-gradient-to-r from-brand-color-04 to-brand-color-03"
             >
                 {/* Extruded Logo Circle */}
-                <a
+                <Link
                     href="/"
                     className="absolute top-0 left-1/2 transform -translate-x-1/2 -mt-16 z-20 group"
                 >
@@ -90,7 +90,7 @@ export default function ElegantFooter() {
                             />
                         </div>
                     </div>
-                </a>
+                </Link>
 
                 {/* Content Container */}
                 <div className="max-w-7xl mx-auto flex flex-col items-center text-center pt-8">

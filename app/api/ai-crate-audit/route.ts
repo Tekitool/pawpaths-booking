@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { z } from 'zod';
 import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 const openai = new OpenAI({
@@ -431,15 +432,23 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { dimensions, breed, weight, destination } = body;
 
-        if (!dimensions || !dimensions.length || !dimensions.width || !dimensions.height) {
-            return NextResponse.json({ error: "Missing dimensions" }, { status: 400 });
+        // Validate dimensions with Zod — ensures positive numbers before hitting OpenAI
+        const DimensionsSchema = z.object({
+            length: z.number().positive('Length must be a positive number'),
+            width:  z.number().positive('Width must be a positive number'),
+            height: z.number().positive('Height must be a positive number'),
+        });
+        const parsed = DimensionsSchema.safeParse(dimensions);
+        if (!parsed.success) {
+            const msg = parsed.error.issues.map(e => e.message).join('; ');
+            return NextResponse.json({ error: `Invalid dimensions: ${msg}` }, { status: 400 });
         }
 
         const completion = await openai.chat.completions.create({
             model: "gpt-4-turbo",
             messages: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: JSON.stringify({ dimensions, breed, weight, destination }) }
+                { role: "user", content: JSON.stringify({ dimensions: parsed.data, breed, weight, destination }) }
             ],
             response_format: { type: "json_object" }
         });
@@ -448,11 +457,21 @@ export async function POST(req: Request) {
         if (!content) {
             throw new Error("No content returned from OpenAI");
         }
-        const result = JSON.parse(content);
+
+        let result: unknown;
+        try {
+            result = JSON.parse(content);
+        } catch {
+            throw new Error("OpenAI returned malformed JSON");
+        }
 
         return NextResponse.json(result);
     } catch (error) {
-        console.error("AI Audit Error:", error);
-        return NextResponse.json({ error: "Failed to perform AI audit" }, { status: 500 });
+        const Sentry = await import('@sentry/nextjs');
+        const eventId = Sentry.captureException(error);
+        return NextResponse.json(
+            { error: 'AI audit failed. Please try again.', ref: eventId },
+            { status: 500 }
+        );
     }
 }

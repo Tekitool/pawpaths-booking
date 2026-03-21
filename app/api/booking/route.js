@@ -45,10 +45,18 @@ export async function POST(req) {
             }, { status: 400 });
         }
 
-        const travelDetails = JSON.parse(travelDetailsRaw);
-        const pets = JSON.parse(petsRaw);
-        const services = JSON.parse(servicesRaw || '[]');
-        const contactInfo = JSON.parse(contactInfoRaw);
+        let travelDetails, pets, services, contactInfo;
+        try {
+            travelDetails = JSON.parse(travelDetailsRaw);
+            pets = JSON.parse(petsRaw);
+            services = JSON.parse(servicesRaw || '[]');
+            contactInfo = JSON.parse(contactInfoRaw);
+        } catch {
+            return NextResponse.json({
+                success: false,
+                message: 'Invalid form data. Please refresh and try again.',
+            }, { status: 400 });
+        }
 
         // Server-side schema validation
         const validationResult = EnquirySchema.safeParse({
@@ -403,7 +411,12 @@ export async function POST(req) {
             // Emails sent successfully
 
         } catch (emailError) {
-            console.error('Email sending failed (Non-blocking):', emailError.message);
+            // Non-blocking — booking has already succeeded; capture for alerting only
+            const Sentry = await import('@sentry/nextjs');
+            Sentry.captureException(emailError, {
+                level: 'warning',
+                extra: { bookingId: booking.booking_number, context: 'email_notification' },
+            });
         }
 
         // Generate WhatsApp Link

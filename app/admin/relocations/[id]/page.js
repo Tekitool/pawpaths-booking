@@ -19,7 +19,7 @@ export default async function BookingDetailPage(props) {
         }
 
         return (
-            <div className="min-h-screen bg-brand-text-02/5/50 p-8">
+            <div className="min-h-screen bg-brand-text-02/5 p-8">
                 {/* 1. PAGE HEADER */}
                 <div className="max-w-7xl mx-auto mb-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -315,8 +315,8 @@ export default async function BookingDetailPage(props) {
                 <div className="bg-white p-8 rounded-2xl shadow-sm border border-red-200 max-w-2xl text-center">
                     <div className="text-4xl mb-4">🚨</div>
                     <h2 className="text-xl font-bold text-red-600 mb-4">Diagnostics: Render Crash</h2>
-                    <p className="text-sm font-mono text-gray-800 bg-gray-50 p-4 rounded-lg break-all text-left border border-gray-200">
-                        {e.stack || e.message}
+                    <p className="text-sm text-gray-600 mt-2">
+                        Unable to load booking details. Please refresh or contact support.
                     </p>
                 </div>
             </div>

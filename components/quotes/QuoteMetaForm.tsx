@@ -35,7 +35,9 @@ export default function QuoteMetaForm({
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Sync the search input when formState.customer_name is reset externally (e.g. loading a saved quote).
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setEntitySearch(formState.customer_name || '');
     }, [formState.customer_name]);
 

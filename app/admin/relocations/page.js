@@ -97,7 +97,7 @@ export default async function BookingsPage(props) {
     const totalPages = Math.ceil((count || 0) / pageSize);
 
     return (
-        <div className="min-h-screen bg-brand-text-02/5/50 p-8 space-y-6">
+        <div className="min-h-screen bg-brand-text-02/5 p-8 space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>

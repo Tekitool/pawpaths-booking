@@ -28,16 +28,24 @@ export const RATE_LIMITS = {
 };
 
 // ── Upstash Redis singleton (created once per warm Lambda) ─────────────────
-const upstashConfigured = !!(
-    process.env.UPSTASH_REDIS_REST_URL &&
-    process.env.UPSTASH_REDIS_REST_TOKEN
-);
+const rawUrl = process.env.UPSTASH_REDIS_REST_URL ?? '';
+const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN ?? '';
+
+// Validate URL format early so misconfigured env vars fail loudly at startup
+// rather than producing an obscure UrlError on first request.
+const upstashUrlValid = rawUrl.startsWith('https://') && !rawUrl.includes(' ') && rawUrl.length < 200;
+const upstashConfigured = !!(upstashUrlValid && rawToken);
+
+if (rawUrl && !upstashUrlValid) {
+    console.error(
+        '[rate-limit] UPSTASH_REDIS_REST_URL is malformed. ' +
+            'Expected a URL starting with "https://", no spaces, max 200 chars. ' +
+            `Received: "${rawUrl.slice(0, 80)}${rawUrl.length > 80 ? '...' : ''}"`
+    );
+}
 
 const redis = upstashConfigured
-    ? new Redis({
-          url: process.env.UPSTASH_REDIS_REST_URL!,
-          token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-      })
+    ? new Redis({ url: rawUrl, token: rawToken })
     : null;
 
 if (process.env.NODE_ENV === 'production' && !upstashConfigured) {
