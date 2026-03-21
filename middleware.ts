@@ -28,14 +28,37 @@ function isPublicPath(pathname: string): boolean {
     )
 }
 
+// Content Security Policy — report-only until violations are confirmed clean.
+// Switch to 'Content-Security-Policy' once you have reviewed the Sentry reports.
+//
+// Directives:
+//   script-src  'unsafe-inline' + 'unsafe-eval' required by Next.js hydration and Sentry replay.
+//               Tighten to nonce-based CSP post-launch if needed.
+//   img-src     https: allows all HTTPS images (S3, Supabase, ui-avatars, etc.)
+//   connect-src covers Supabase REST/Realtime and Sentry ingest
+const CSP = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io",
+    "frame-src 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+].join('; ')
+
 // Security headers applied to every response
 const SECURITY_HEADERS: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
     'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+    // Report-only: logs violations to console without breaking anything.
+    // Change key to 'Content-Security-Policy' to enforce once clean.
+    'Content-Security-Policy-Report-Only': CSP,
 }
 
 function applySecurityHeaders(response: NextResponse): NextResponse {

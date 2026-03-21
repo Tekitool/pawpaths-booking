@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     try {
         // Rate limit AI endpoints
         const ip = getClientIP(req);
-        const { allowed, retryAfterMs } = checkRateLimit(`breed:${ip}`, RATE_LIMITS.ai);
+        const { allowed, retryAfterMs } = await checkRateLimit(`breed:${ip}`, RATE_LIMITS.ai);
         if (!allowed) {
             return NextResponse.json(
                 { error: 'Too many requests. Please try again later.' },

@@ -55,7 +55,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
     const handleWhatsApp = () => {
         const petDetails = pets.map(p => `• ${p.name} (${p.speciesName || getSpeciesName(p.species_id)}/${p.breedName || getBreedName(p.breed_id)}, ${p.age} ${p.ageUnit || 'yrs'})`).join('\n');
 
-        const rawMessage = `*I’ve just sent a new pet relocation booking enquiry.*` +
+        const rawMessage = `*I've just sent a new pet relocation booking enquiry.*` +
             `\n\n` +
             `*Reference:* ${bookingReference || 'PENDING'}\n` +
             `*Customer:* ${contactInfo.fullName}\n` +
@@ -125,7 +125,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
         // WhatsApp Link
         const petDetails = pets.map(p => `• ${p.name} (${p.speciesName || getSpeciesName(p.species_id)}/${p.breedName || getBreedName(p.breed_id)}, ${p.age} ${p.ageUnit || 'yrs'})`).join('\n');
 
-        const rawMessage = `*I’ve just sent a new pet relocation booking enquiry.*` +
+        const rawMessage = `*I've just sent a new pet relocation booking enquiry.*` +
             `\n\n` +
             `*Reference:* ${bookingReference || 'PENDING'}\n` +
             `*Customer:* ${contactInfo.fullName}\n` +

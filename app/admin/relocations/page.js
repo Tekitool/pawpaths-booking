@@ -139,7 +139,7 @@ export default async function BookingsPage(props) {
             {/* Table Container - Glassmorphism */}
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-brand-text-02/20 overflow-hidden">
                 <Suspense fallback={<div className="p-8 text-center text-brand-text-02/80">Loading relocations...</div>}>
-                    <BookingTable bookings={bookings} totalPages={totalPages} currentPage={page} />
+                    <BookingTable bookings={bookings} totalPages={totalPages} currentPage={page} totalCount={count || 0} />
                 </Suspense>
             </div>
         </div>

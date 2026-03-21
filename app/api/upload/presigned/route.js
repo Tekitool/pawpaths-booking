@@ -3,6 +3,22 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { logAuditAction } from '@/lib/audit-logger';
+
+/** Only these folder values are accepted — prevents path traversal */
+const ALLOWED_FOLDERS = ['uploads', 'documents', 'photos'];
+
+/** Only these MIME types may be uploaded via presigned URL */
+const ALLOWED_CONTENT_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+];
+
+/** Roles permitted to generate presigned upload URLs */
+const UPLOAD_ROLES = ['super_admin', 'admin', 'ops_manager', 'relocation_coordinator', 'finance', 'driver', 'staff'];
 
 const s3Client = new S3Client({
     region: process.env.AWS_REGION || 'us-east-1',
@@ -20,10 +36,37 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Role check — only staff may generate presigned URLs
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile || !UPLOAD_ROLES.includes(profile.role)) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const { filename, contentType, folder = 'uploads' } = await request.json();
 
         if (!filename || !contentType) {
             return NextResponse.json({ error: 'Filename and content type are required' }, { status: 400 });
+        }
+
+        // Whitelist folder to prevent path traversal
+        if (!ALLOWED_FOLDERS.includes(folder)) {
+            return NextResponse.json(
+                { error: `Invalid folder. Must be one of: ${ALLOWED_FOLDERS.join(', ')}` },
+                { status: 400 }
+            );
+        }
+
+        // Validate MIME type against allowlist
+        if (!ALLOWED_CONTENT_TYPES.includes(contentType)) {
+            return NextResponse.json(
+                { error: 'Invalid content type. Allowed: PDF, JPG, PNG.' },
+                { status: 400 }
+            );
         }
 
         const uniqueFilename = `${uuidv4()}-${filename.replace(/\s+/g, '-')}`;
@@ -41,6 +84,16 @@ export async function POST(request) {
         });
 
         const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+        // Audit every presigned URL request
+        await logAuditAction(
+            supabase,
+            'storage',
+            key,
+            'CREATE',
+            `Presigned upload URL generated: ${key}`,
+            { userId: user.id, role: profile.role, folder, filename, contentType }
+        );
 
         return NextResponse.json({
             uploadUrl,

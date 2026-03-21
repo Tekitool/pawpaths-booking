@@ -15,8 +15,8 @@ export const step1Schema = z.object({
 
 export const petSchema = z.object({
     name: z.string().min(1, 'Pet name is required'),
-    species: z.string().min(1, 'Species is required'),
-    breed: z.string().optional(),
+    species_id: z.coerce.number().int().positive('Species is required'),
+    breed_id: z.coerce.number().int().positive('Breed is required').optional(),
     gender: z.string().optional(),
     weight: z.coerce.number().min(0).optional(),
     age: z.coerce.number().min(0).optional(),

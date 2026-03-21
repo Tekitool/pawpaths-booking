@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MessageCircle, Phone, Settings, ArrowLeft } from 'lucide-react';
 
-export default function BookingHeader() {
+export default function EnquiryHeader() {
     const pathname = usePathname();
     const showBackButton = pathname?.startsWith('/tools/');
 

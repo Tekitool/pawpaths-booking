@@ -1,5 +1,5 @@
 import React from 'react';
-import BookingWizard from '@/components/booking/BookingWizard';
+import EnquiryWizard from '@/components/enquiry/EnquiryWizard';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -65,7 +65,7 @@ export default async function NewBookingPage() {
 
 
     return (
-        <BookingWizard
+        <EnquiryWizard
             speciesList={speciesList || []}
             breedsList={breedsList || []}
             countriesList={countriesList || []}

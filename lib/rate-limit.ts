@@ -1,21 +1,16 @@
 // lib/rate-limit.ts
-// In-memory rate limiter with configurable windows per route type.
+// Distributed rate limiter backed by Upstash Redis.
+// Falls back to an in-process Map when Upstash env vars are absent (local dev only).
+//
+// SETUP: Add to .env.local (and Vercel environment variables):
+//   UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
+//   UPSTASH_REDIS_REST_TOKEN=your-token
+//
+// Get these from: https://console.upstash.com → Create Database → REST API
 
-const store = new Map<string, { count: number; resetTime: number }>();
+import { Redis } from '@upstash/redis';
 
-// Clean up expired entries every 60s
-if (typeof setInterval !== 'undefined') {
-    setInterval(() => {
-        const now = Date.now();
-        for (const [key, value] of store.entries()) {
-            if (now > value.resetTime) {
-                store.delete(key);
-            }
-        }
-    }, 60_000);
-}
-
-interface RateLimitConfig {
+export interface RateLimitConfig {
     windowMs: number;
     maxRequests: number;
 }
@@ -32,21 +27,67 @@ export const RATE_LIMITS = {
     api: { windowMs: 15 * 60 * 1000, maxRequests: 100 } as RateLimitConfig,
 };
 
-/**
- * Check if a request is within rate limits.
- * @param identifier - Unique key (usually IP + route prefix)
- * @param config - Rate limit configuration
- * @returns { allowed, remaining, retryAfterMs }
- */
-export function checkRateLimit(
+// ── Upstash Redis singleton (created once per warm Lambda) ─────────────────
+const upstashConfigured = !!(
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+);
+
+const redis = upstashConfigured
+    ? new Redis({
+          url: process.env.UPSTASH_REDIS_REST_URL!,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      })
+    : null;
+
+if (process.env.NODE_ENV === 'production' && !upstashConfigured) {
+    console.warn(
+        '[rate-limit] WARNING: UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN are not set. ' +
+            'Rate limiting is ineffective across serverless instances. ' +
+            'Create a free database at https://console.upstash.com and add the env vars.'
+    );
+}
+
+// ── Upstash Redis implementation (fixed-window counter) ───────────────────
+async function checkRedis(
     identifier: string,
-    config: RateLimitConfig = RATE_LIMITS.api
+    config: RateLimitConfig
+): Promise<{ allowed: boolean; remaining: number; retryAfterMs: number }> {
+    const key = `rl:${identifier}`;
+    const windowSec = Math.floor(config.windowMs / 1000);
+
+    // INCR is atomic in Redis — no race condition possible
+    const count = await redis!.incr(key);
+
+    // Set the window TTL on the first request only; subsequent INCRs leave it unchanged
+    if (count === 1) {
+        await redis!.expire(key, windowSec);
+    }
+
+    if (count > config.maxRequests) {
+        const ttl = await redis!.ttl(key);
+        return { allowed: false, remaining: 0, retryAfterMs: Math.max(0, ttl * 1000) };
+    }
+
+    return {
+        allowed: true,
+        remaining: Math.max(0, config.maxRequests - count),
+        retryAfterMs: 0,
+    };
+}
+
+// ── In-memory fallback (local dev only) ───────────────────────────────────
+const memStore = new Map<string, { count: number; resetTime: number }>();
+
+function checkMemory(
+    identifier: string,
+    config: RateLimitConfig
 ): { allowed: boolean; remaining: number; retryAfterMs: number } {
     const now = Date.now();
-    const entry = store.get(identifier);
+    const entry = memStore.get(identifier);
 
     if (!entry || now > entry.resetTime) {
-        store.set(identifier, { count: 1, resetTime: now + config.windowMs });
+        memStore.set(identifier, { count: 1, resetTime: now + config.windowMs });
         return { allowed: true, remaining: config.maxRequests - 1, retryAfterMs: 0 };
     }
 
@@ -58,8 +99,27 @@ export function checkRateLimit(
     return { allowed: true, remaining: config.maxRequests - entry.count, retryAfterMs: 0 };
 }
 
+// ── Public API ─────────────────────────────────────────────────────────────
+
 /**
- * Helper to extract client IP from request headers.
+ * Check if a request is within rate limits.
+ * Uses Upstash Redis when configured, in-memory Map otherwise (dev only).
+ *
+ * @param identifier - Unique key per route + client, e.g. `booking:${ip}`
+ * @param config     - Rate limit config from RATE_LIMITS
+ */
+export async function checkRateLimit(
+    identifier: string,
+    config: RateLimitConfig = RATE_LIMITS.api
+): Promise<{ allowed: boolean; remaining: number; retryAfterMs: number }> {
+    if (redis) {
+        return checkRedis(identifier, config);
+    }
+    return checkMemory(identifier, config);
+}
+
+/**
+ * Extract the client's real IP from Vercel / proxy forwarded headers.
  */
 export function getClientIP(request: Request): string {
     return (

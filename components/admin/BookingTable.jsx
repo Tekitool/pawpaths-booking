@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Plane, FileText, Mail } from 'lucide-react';
+import { Plane, FileText, Mail, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import {
     getStatusLabel,
     getStatusColor,
@@ -11,6 +12,30 @@ import {
     buildWhatsAppMessage,
     buildEmailBody,
 } from '@/lib/utils/booking-table-helpers';
+
+// Build a URL preserving all current search params but overriding page
+function usePageUrl() {
+    const searchParams = useSearchParams();
+    return (page) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', String(page));
+        return `?${params.toString()}`;
+    };
+}
+
+// Returns a compact range like [1, 2, '…', 7, 8, 9, '…', 20]
+function getPaginationRange(current, total) {
+    if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    if (current <= 4) {
+        return [1, 2, 3, 4, 5, '…', total];
+    }
+    if (current >= total - 3) {
+        return [1, '…', total - 4, total - 3, total - 2, total - 1, total];
+    }
+    return [1, '…', current - 1, current, current + 1, '…', total];
+}
 
 function BookingTableRow({ booking }) {
     const petNames = booking.pets.map(p => p.name).join(' & ');
@@ -139,7 +164,92 @@ function BookingTableRow({ booking }) {
     );
 }
 
-export default function BookingTable({ bookings, totalPages, currentPage }) {
+function Pagination({ currentPage, totalPages, totalCount }) {
+    const buildUrl = usePageUrl();
+
+    const from  = totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1;
+    const to    = Math.min(currentPage * 10, totalCount);
+    const pages = getPaginationRange(currentPage, totalPages);
+
+    const prevDisabled = currentPage <= 1;
+    const nextDisabled = currentPage >= totalPages;
+
+    const btnBase     = 'inline-flex items-center justify-center h-9 min-w-[36px] px-2 rounded-xl text-xs font-semibold border transition-all duration-150 select-none';
+    const btnActive   = 'bg-brand-color-01 text-white border-brand-color-01 shadow-sm';
+    const btnIdle     = 'bg-white text-brand-text-02 border-brand-text-02/20 hover:bg-brand-color-02/20 hover:border-brand-color-01/30';
+    const btnDisabled = 'bg-white text-brand-text-02/25 border-brand-text-02/10 cursor-not-allowed pointer-events-none';
+    const btnNav      = 'gap-1.5 px-3';
+
+    return (
+        <div className="border-t border-brand-text-02/10 px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+                {/* Count — shown below controls on mobile */}
+                <p className="text-[11px] text-brand-text-02/60 font-medium order-2 sm:order-1 text-center sm:text-left">
+                    {totalCount === 0
+                        ? 'No results'
+                        : `Showing ${from}–${to} of ${totalCount} relocation${totalCount !== 1 ? 's' : ''}`
+                    }
+                </p>
+
+                {/* Controls */}
+                <div className="flex items-center justify-center gap-1.5 order-1 sm:order-2 flex-wrap">
+
+                    {/* Prev */}
+                    {prevDisabled ? (
+                        <span className={`${btnBase} ${btnDisabled} ${btnNav}`}>
+                            <ChevronLeft size={14} />
+                            <span className="hidden sm:inline">Prev</span>
+                        </span>
+                    ) : (
+                        <Link href={buildUrl(currentPage - 1)} className={`${btnBase} ${btnIdle} ${btnNav}`}>
+                            <ChevronLeft size={14} />
+                            <span className="hidden sm:inline">Prev</span>
+                        </Link>
+                    )}
+
+                    {/* Page numbers — desktop */}
+                    <div className="hidden sm:flex items-center gap-1">
+                        {pages.map((p, i) =>
+                            p === '…' ? (
+                                <span key={`e-${i}`} className="w-9 text-center text-xs text-brand-text-02/40 font-medium select-none">…</span>
+                            ) : (
+                                <Link
+                                    key={p}
+                                    href={buildUrl(p)}
+                                    className={`${btnBase} ${p === currentPage ? btnActive : btnIdle}`}
+                                >
+                                    {p}
+                                </Link>
+                            )
+                        )}
+                    </div>
+
+                    {/* Page indicator — mobile */}
+                    <span className="sm:hidden text-xs font-semibold text-brand-text-02 bg-brand-text-02/5 border border-brand-text-02/20 rounded-xl px-3 h-9 inline-flex items-center">
+                        Page {currentPage} of {totalPages}
+                    </span>
+
+                    {/* Next */}
+                    {nextDisabled ? (
+                        <span className={`${btnBase} ${btnDisabled} ${btnNav}`}>
+                            <span className="hidden sm:inline">Next</span>
+                            <ChevronRight size={14} />
+                        </span>
+                    ) : (
+                        <Link href={buildUrl(currentPage + 1)} className={`${btnBase} ${btnIdle} ${btnNav}`}>
+                            <span className="hidden sm:inline">Next</span>
+                            <ChevronRight size={14} />
+                        </Link>
+                    )}
+
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function BookingTable({ bookings, totalPages, currentPage, totalCount }) {
     return (
         <div className="w-full">
             <div className="overflow-x-auto">
@@ -162,6 +272,8 @@ export default function BookingTable({ bookings, totalPages, currentPage }) {
                     </tbody>
                 </table>
             </div>
+
+            {/* Empty state */}
             {bookings.length === 0 && (
                 <div className="p-12 text-center">
                     <div className="w-16 h-16 bg-brand-text-02/5 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -170,6 +282,15 @@ export default function BookingTable({ bookings, totalPages, currentPage }) {
                     <h3 className="text-gray-900 mb-1">No relocations found</h3>
                     <p className="text-brand-text-02/80 text-sm">Try adjusting your search or filters</p>
                 </div>
+            )}
+
+            {/* Pagination — only rendered when there are multiple pages */}
+            {totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                />
             )}
         </div>
     );

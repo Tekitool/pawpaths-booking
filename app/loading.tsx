@@ -17,29 +17,29 @@ const PAW_PATH =
     'M113.963,363.25c38.373-15.667,53.428-67.626,33.66-116.035s-66.892-75.031-105.264-59.363' +
     'C3.987,203.519-11.068,255.478,8.7,303.886C28.467,352.356,75.591,378.917,113.963,363.25z';
 
-const PAW_SVG = `<svg viewBox="0 0 551.062 551.062" xmlns="http://www.w3.org/2000/svg"><path d="${PAW_PATH}"/></svg>`;
+const PAW_SVG = `<svg viewBox="0 0 551.062 551.062" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="display: block;"><path d="${PAW_PATH}"/></svg>`;
 
 const NUM_SLOTS = 20;
-const TRAIL     = 4;
-const RADIUS    = 108;
-const PAW_SIZE  = 18;
-const CENTRE    = 130;
-const STEP_MS   = 320;
-const ZIGZAG    = 9;
+const TRAIL = 4;
+const RADIUS = 108;
+const PAW_SIZE = 18;
+const CENTRE = 130;
+const STEP_MS = 320;
+const ZIGZAG = 9;
 const OPACITIES = [1, 0.60, 0.28, 0.08];
-const SCALES    = [1, 0.92, 0.84, 0.74];
+const SCALES = [1, 0.92, 0.84, 0.74];
 
 // Pre-compute slot positions once
 const SLOTS = Array.from({ length: NUM_SLOTS }, (_, i) => {
     const angleDeg = (360 / NUM_SLOTS) * i - 90;
     const angleRad = (angleDeg * Math.PI) / 180;
-    const side     = i % 2 === 0 ? -1 : 1;
-    const r        = RADIUS + side * ZIGZAG;
+    const side = i % 2 === 0 ? -1 : 1;
+    const r = RADIUS + side * ZIGZAG;
     return {
-        cx:      CENTRE + r * Math.cos(angleRad),
-        cy:      CENTRE + r * Math.sin(angleRad),
+        cx: CENTRE + r * Math.cos(angleRad),
+        cy: CENTRE + r * Math.sin(angleRad),
         faceDeg: angleDeg + 180 + side * 12,
-        alt:     i % 2 === 1,
+        alt: i % 2 === 1,
     };
 });
 
@@ -56,52 +56,59 @@ export default function Loading() {
             const el = document.createElement('div');
             el.innerHTML = PAW_SVG;
             Object.assign(el.style, {
-                position:        'absolute',
-                width:           `${PAW_SIZE}px`,
-                height:          `${PAW_SIZE}px`,
-                left:            '0',
-                top:             '0',
+                position: 'absolute',
+                width: `${PAW_SIZE}px`,
+                height: `${PAW_SIZE}px`,
+                left: '0',
+                top: '0',
                 transformOrigin: 'center center',
-                opacity:         '0',
-                pointerEvents:   'none',
-                filter:          'drop-shadow(0 1px 3px rgba(80,50,31,.28))',
-                willChange:      'transform, opacity',
+                opacity: '0',
+                pointerEvents: 'none',
+                filter: 'drop-shadow(0 1px 3px rgba(80,50,31,.28))',
+                willChange: 'transform, opacity',
+                zIndex: '10',
+                transform: 'translate3d(0,0,0)',
             });
-            // Alternate paw colours: dark brown / warm tan
-            const svgEl = el.querySelector('svg');
-            if (svgEl) svgEl.style.fill = i % 2 === 0 ? '#50321f' : '#C4956A';
+            // Set path fill directly for best browser compatibility
+            const pathEl = el.querySelector('path');
+            if (pathEl) pathEl.setAttribute('fill', i % 2 === 0 ? '#50321f' : '#C4956A');
+
             stage.appendChild(el);
             pool.push(el);
         }
 
         const trail: Array<{ el: HTMLDivElement; faceDeg: number }> = [];
-        let cursor  = 0;
+        let cursor = 0;
         let timerId: ReturnType<typeof setTimeout>;
 
         function applyStyle(el: HTMLDivElement, faceDeg: number, opacity: number, scale: number) {
             el.style.transition = 'opacity 0.28s ease, transform 0.22s cubic-bezier(.34,1.45,.64,1)';
-            el.style.opacity    = String(opacity);
-            el.style.transform  = `rotate(${faceDeg}deg) scale(${scale})`;
+            el.style.opacity = String(opacity);
+            el.style.transform = `rotate(${faceDeg}deg) scale(${scale}) translateZ(0)`;
         }
 
         function tick() {
             const slot = SLOTS[cursor % NUM_SLOTS];
-            const el   = pool[cursor % TRAIL];
+            const el = pool[cursor % TRAIL];
 
-            // Teleport paw to new position with no transition
+            // 1. Reset state (Teleport)
             el.style.transition = 'none';
-            el.style.left       = `${slot.cx - PAW_SIZE / 2}px`;
-            el.style.top        = `${slot.cy - PAW_SIZE / 2}px`;
-            el.style.opacity    = '0';
-            el.style.transform  = `rotate(${slot.faceDeg}deg) scale(0.5)`;
+            el.style.left = `${slot.cx - PAW_SIZE / 2}px`;
+            el.style.top = `${slot.cy - PAW_SIZE / 2}px`;
+            el.style.opacity = '0';
+            el.style.transform = `rotate(${slot.faceDeg}deg) scale(0.5) translateZ(0)`;
 
             trail.unshift({ el, faceDeg: slot.faceDeg });
             if (trail.length > TRAIL) trail.pop();
 
-            void el.offsetWidth; // force reflow before transition
+            // 2. Force reflow to commit 'opacity: 0' and 'transition: none'
+            void el.offsetHeight;
 
-            trail.forEach((item, age) => {
-                applyStyle(item.el, item.faceDeg, OPACITIES[age] ?? 0, SCALES[age] ?? 0.5);
+            // 3. Trigger transitions in the next frame
+            requestAnimationFrame(() => {
+                trail.forEach((item, age) => {
+                    applyStyle(item.el, item.faceDeg, OPACITIES[age] ?? 0, SCALES[age] ?? 0.5);
+                });
             });
 
             cursor++;
@@ -136,11 +143,11 @@ export default function Loading() {
             `}</style>
 
             <div style={{
-                minHeight:      '100vh',
-                display:        'flex',
-                alignItems:     'center',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
-                background:     '#ffffff',
+                background: '#ffffff',
             }}>
                 <div ref={stageRef} style={{ position: 'relative', width: 260, height: 260 }}>
 
@@ -149,18 +156,18 @@ export default function Loading() {
 
                     {/* Centre logo hub */}
                     <div style={{
-                        position:     'absolute',
+                        position: 'absolute',
                         top: '50%', left: '50%',
-                        transform:    'translate(-50%, -50%)',
-                        width:        100,
-                        height:       100,
-                        background:   '#ffffff',
+                        transform: 'translate(-50%, -50%)',
+                        width: 100,
+                        height: 100,
+                        background: '#ffffff',
                         borderRadius: '50%',
-                        boxShadow:    '0 0 0 7px rgba(80,50,31,.06), 0 6px 28px rgba(80,50,31,.14)',
-                        display:      'flex',
-                        alignItems:   'center',
+                        boxShadow: '0 0 0 7px rgba(80,50,31,.06), 0 6px 28px rgba(80,50,31,.14)',
+                        display: 'flex',
+                        alignItems: 'center',
                         justifyContent: 'center',
-                        zIndex:       5,
+                        zIndex: 5,
                     }}>
                         <Image
                             src="/ppicon.svg"

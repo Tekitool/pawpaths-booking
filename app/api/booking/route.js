@@ -11,7 +11,7 @@ export async function POST(req) {
     try {
         // Rate limiting by IP
         const ip = getClientIP(req);
-        const { allowed, remaining, retryAfterMs } = checkRateLimit(`booking:${ip}`, RATE_LIMITS.submission);
+        const { allowed, remaining, retryAfterMs } = await checkRateLimit(`booking:${ip}`, RATE_LIMITS.submission);
         if (!allowed) {
             return NextResponse.json({
                 success: false,
@@ -290,7 +290,6 @@ export async function POST(req) {
             }
         } catch (dbError) {
             // Cleanup on failure: remove partially created records
-            console.error('Database operation failed, cleaning up:', dbError.message);
             try {
                 if (booking?.id) {
                     await supabaseAdmin.from('booking_services').delete().eq('booking_id', booking.id);
@@ -304,7 +303,18 @@ export async function POST(req) {
                     await supabaseAdmin.from('entities').delete().eq('id', customerId);
                 }
             } catch (cleanupError) {
-                console.error('Cleanup also failed:', cleanupError.message);
+                // Cleanup failure = orphaned records — alert immediately at fatal level
+                const Sentry = await import('@sentry/nextjs');
+                Sentry.captureException(cleanupError, {
+                    level: 'fatal',
+                    extra: {
+                        context: 'booking_cleanup_failed',
+                        originalError: dbError.message,
+                        bookingId: booking?.id ?? null,
+                        customerId: customerWasCreated ? customerId : null,
+                        createdPetIds,
+                    },
+                });
             }
             throw dbError;
         }
@@ -410,12 +420,14 @@ export async function POST(req) {
         }, { status: 201 });
 
     } catch (error) {
-        console.error('Booking submission error:', error);
+        const Sentry = await import('@sentry/nextjs');
+        const eventId = Sentry.captureException(error);
+        // Never expose error.message or stack to the client in production —
+        // use the Sentry event ID as a safe reference for support enquiries.
         return NextResponse.json({
             success: false,
-            message: 'Internal Server Error',
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            message: 'Something went wrong. Please try again or contact support.',
+            ref: eventId,
         }, { status: 500 });
     }
 }

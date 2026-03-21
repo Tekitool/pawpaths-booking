@@ -565,7 +565,7 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                                     const pId = typeof s === 'object' ? s.petId : null;
                                     const service = getServiceDetails(sId);
 
-                                    // Filter out "ghost" entries: 
+                                    // Filter out "ghost" entries:
                                     // If a service is strictly per-pet but has no petId, it's invalid state -> skip it.
                                     if (service && service.scope === 'per_pet' && !pId) {
                                         return;

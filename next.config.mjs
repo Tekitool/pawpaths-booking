@@ -8,7 +8,9 @@ const nextConfig = {
   serverExternalPackages: ['@sentry/profiling-node'],
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'pawpathsae.com', 'www.pawpathsae.com', '.pawpathsae.com', '*.vercel.app'],
+      // '*.vercel.app' removed — it allowed any Vercel-hosted app to call server actions cross-origin.
+      // To enable server actions on a specific Vercel preview URL, add it explicitly here.
+      allowedOrigins: ['localhost:3000', 'pawpathsae.com', 'www.pawpathsae.com', '.pawpathsae.com'],
     },
   },
   images: {

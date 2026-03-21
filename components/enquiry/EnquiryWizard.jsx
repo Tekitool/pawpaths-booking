@@ -1,22 +1,22 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import Step1Travel from '@/components/booking/Step1Travel';
-import Step2Pets from '@/components/booking/Step2Pets';
-import Step3Services from '@/components/booking/Step3Services';
-import Step4Documents from '@/components/booking/Step4Documents';
-import Step5Review from '@/components/booking/Step5Review';
-import Step6Success from '@/components/booking/Step6Success';
-import ServiceLimitationModal from '@/components/booking/ServiceLimitationModal';
-import ValidationFailureModal from '@/components/booking/ValidationFailureModal';
+import Step1Travel from '@/components/enquiry/Step1Travel';
+import Step2Pets from '@/components/enquiry/Step2Pets';
+import Step3Services from '@/components/enquiry/Step3Services';
+import Step4Documents from '@/components/enquiry/Step4Documents';
+import Step5Review from '@/components/enquiry/Step5Review';
+import Step6Success from '@/components/enquiry/Step6Success';
+import ServiceLimitationModal from '@/components/enquiry/ServiceLimitationModal';
+import ValidationFailureModal from '@/components/enquiry/ValidationFailureModal';
 import useBookingStore from '@/lib/store/booking-store';
 import { validateStep } from '@/lib/validations/booking-schemas';
 import Button from '@/components/ui/Button';
 import { ArrowLeft, RotateCcw, ArrowRight, Check, Loader2 } from 'lucide-react';
-import BookingHeader from '@/components/booking/BookingHeader';
+import EnquiryHeader from '@/components/enquiry/EnquiryHeader';
 import ElegantFooter from '@/components/ui/ElegantFooter';
 
-export default function BookingWizard({ speciesList, breedsList, genderOptions = [], countriesList = [] }) {
+export default function EnquiryWizard({ speciesList, breedsList, genderOptions = [], countriesList = [] }) {
     const { currentStep, nextStep, prevStep, setStep, resetForm, formData } = useBookingStore();
     const step5Ref = useRef(null);
     const TOTAL_STEPS = 5;
@@ -76,7 +76,7 @@ export default function BookingWizard({ speciesList, breedsList, genderOptions =
                 onClose={() => setIsValidationModalOpen(false)}
                 errors={validationErrors}
             />
-            <BookingHeader />
+            <EnquiryHeader />
 
             <div className="py-6 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
                 {/* Background Blobs */}

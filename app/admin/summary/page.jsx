@@ -1,4 +1,5 @@
 import React from 'react';
+export const dynamic = 'force-dynamic';
 import SummaryHeader from '@/components/summary/SummaryHeader';
 import ReceivablesSummary from '@/components/summary/ReceivablesSummary';
 import SalesExpensesChart from '@/components/summary/SalesExpensesChart';
