@@ -32,8 +32,14 @@ export const step2Schema = z.object({
     pets: z.array(petSchema).min(1, 'At least one pet is required'),
 });
 
+const serviceSelectionSchema = z.object({
+    serviceId: z.string(),
+    petId: z.string().nullable().optional(),
+    quantity: z.number().optional(),
+});
+
 export const step3Schema = z.object({
-    services: z.array(z.string()).min(1, 'Select at least one service'),
+    services: z.array(serviceSelectionSchema).optional().default([]),
 });
 
 export const contactInfoSchema = z.object({

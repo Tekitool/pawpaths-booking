@@ -87,8 +87,22 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                     <div className="mb-12 text-center relative">
                         <h1 className="text-accent tracking-tight mb-3">Start Your Relocation Enquiry</h1>
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-brand-text-02/20 shadow-sm text-sm font-medium text-brand-text-02">
-                            <span className="w-2 h-2 rounded-full bg-brand-color-01 animate-pulse"></span>
-                            Step {currentStep} of 5
+                            {currentStep === 6 ? (
+                                <>
+                                    <span className="w-2 h-2 rounded-full bg-system-color-02"></span>
+                                    <span className="text-system-color-02">Submitted ✓</span>
+                                </>
+                            ) : isStep5Submitting ? (
+                                <>
+                                    <span className="w-2 h-2 rounded-full bg-accent animate-ping"></span>
+                                    <span className="text-accent">Processing...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="w-2 h-2 rounded-full bg-brand-color-01 animate-pulse"></span>
+                                    Step {currentStep} of 5
+                                </>
+                            )}
                         </div>
                     </div>
 

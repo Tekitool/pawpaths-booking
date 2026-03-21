@@ -79,6 +79,11 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
         router.push('/');
     };
 
+    const handleNewEnquiry = () => {
+        resetForm();
+        setStep(1);
+    };
+
     const handleDownloadPDF = async () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.width;
@@ -436,9 +441,15 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                         </div>
                         Enquiry Summary
                     </h3>
-                    <span className="text-base sm:text-xl font-bold text-brand-color-01 font-mono bg-white/80 px-3 sm:px-6 py-2 rounded-full border border-brand-color-01/20 shadow-sm break-all">
-                        {bookingReference ? `#${bookingReference}` : 'Processing...'}
-                    </span>
+                    {bookingReference ? (
+                        <span className="text-base sm:text-xl font-bold text-brand-color-01 font-mono bg-white/80 px-3 sm:px-6 py-2 rounded-full border border-brand-color-01/20 shadow-sm break-all">
+                            #{bookingReference}
+                        </span>
+                    ) : (
+                        <span className="text-base sm:text-xl font-bold font-mono bg-white/80 px-3 sm:px-6 py-2 rounded-full shadow-sm break-all text-system-color-02 border border-system-color-02/30">
+                            Submitted ✓
+                        </span>
+                    )}
                 </div>
 
                 <div className="p-6 lg:p-8">
@@ -602,7 +613,16 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                         Download Enquiry Details PDF
                     </Button>
 
-                    {/* 3. Book Another Pet (Tertiary) */}
+                    {/* 3. Start a New Enquiry */}
+                    <Button
+                        onClick={handleNewEnquiry}
+                        className="w-full h-14 text-lg font-bold flex items-center justify-center gap-3 bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-300 rounded-xl"
+                    >
+                        <Plus size={24} />
+                        Start a New Enquiry
+                    </Button>
+
+                    {/* 5. Visit Pawpaths */}
                     <Button
                         onClick={handleClose}
                         className="w-full h-14 text-lg font-bold flex items-center justify-center gap-3 bg-brand-color-01 hover:bg-brand-color-01/90 text-white shadow-level-3 hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300 rounded-xl"
