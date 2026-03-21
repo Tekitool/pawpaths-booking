@@ -28,12 +28,13 @@ export const RATE_LIMITS = {
 };
 
 // ── Upstash Redis singleton (created once per warm Lambda) ─────────────────
-const rawUrl = process.env.UPSTASH_REDIS_REST_URL ?? '';
-const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN ?? '';
+// .trim() strips trailing newlines/spaces that Vercel's env var editor can inject
+const rawUrl = (process.env.UPSTASH_REDIS_REST_URL ?? '').trim();
+const rawToken = (process.env.UPSTASH_REDIS_REST_TOKEN ?? '').trim();
 
 // Validate URL format early so misconfigured env vars fail loudly at startup
 // rather than producing an obscure UrlError on first request.
-const upstashUrlValid = rawUrl.startsWith('https://') && !rawUrl.includes(' ') && rawUrl.length < 200;
+const upstashUrlValid = rawUrl.startsWith('https://') && !/\s/.test(rawUrl) && rawUrl.length < 200;
 const upstashConfigured = !!(upstashUrlValid && rawToken);
 
 if (rawUrl && !upstashUrlValid) {
