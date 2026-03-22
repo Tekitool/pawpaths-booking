@@ -3,6 +3,11 @@
 import React from 'react';
 import Image from 'next/image';
 
+interface WhatsAppIconProps {
+    size?: number;
+    className?: string;
+}
+
 /**
  * WhatsAppIcon Component
  * 
@@ -13,7 +18,7 @@ import Image from 'next/image';
  * @param {number} props.size - The width and height in pixels (default: 20)
  * @param {string} props.className - Additional CSS classes
  */
-const WhatsAppIcon = ({ size = 20, className = "" }) => {
+const WhatsAppIcon: React.FC<WhatsAppIconProps> = ({ size = 20, className = "" }) => {
     return (
         <div
             className={`relative flex items-center justify-center shrink-0 ${className}`}
