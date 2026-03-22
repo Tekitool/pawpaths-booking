@@ -5,7 +5,8 @@ import useBookingStore from '@/lib/store/booking-store';
 import { COUNTRIES } from '@/lib/constants/countries';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, Phone, CreditCard, Plane, PlaneLanding, PlaneTakeoff, MessageCircle, ChevronDown, ChevronUp, Home } from 'lucide-react';
+import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, Phone, CreditCard, Plane, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Home } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import { useRouter } from 'next/navigation';
 import { submitEnquiry } from '@/app/booking/actions';
 import { toast } from '@/hooks/use-toast';
@@ -342,7 +343,7 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                                             className="w-4 h-4 rounded border-brand-text-02/30 text-brand-color-01 focus:ring-brand-color-01"
                                         />
                                         <span className="text-sm text-brand-text-02 font-medium flex items-center gap-1.5">
-                                            <MessageCircle size={14} className="text-green-600" />
+                                            <WhatsAppIcon size={14} />
                                             WhatsApp same as phone number
                                         </span>
                                     </label>
@@ -356,7 +357,7 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                                         value={contactInfo?.whatsapp || ''}
                                         onChange={handleContactChange}
                                         placeholder="e.g. +971 50 123 4567"
-                                        icon={<MessageCircle size={18} className="text-green-600" />}
+                                        icon={<WhatsAppIcon size={18} />}
                                         className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300 animate-in fade-in slide-in-from-top-2 duration-300"
                                     />
                                 )}

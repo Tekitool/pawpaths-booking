@@ -87,6 +87,10 @@ const config = {
                 'glow-amber': '0 0 30px rgba(255, 100, 0, 0.4)',
                 'nav': '0 4px 30px rgba(77, 42, 0, 0.06)',
             },
+            fontFamily: {
+                'jakarta': ['var(--font-jakarta)', 'sans-serif'],
+                'baloo':   ['var(--font-baloo)',   'cursive'],
+            },
             backgroundImage: {
                 'gradient-card-warm': 'var(--gradient-card-warm)',
                 'gradient-card-cool': 'var(--gradient-card-cool)',

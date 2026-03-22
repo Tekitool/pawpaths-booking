@@ -1,5 +1,14 @@
 import { withSentryConfig } from '@sentry/nextjs';
 
+// Derive Supabase storage hostname from env var to avoid hardcoding project IDs
+const supabaseHostname = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').hostname;
+  } catch {
+    return '';
+  }
+})();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here - full audit build */
@@ -27,12 +36,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      {
+      ...(supabaseHostname ? [{
         protocol: 'https',
-        hostname: 'cmqccuszskcawmjupqjn.supabase.co',
+        hostname: supabaseHostname,
         port: '',
         pathname: '/storage/v1/object/public/**',
-      },
+      }] : []),
     ],
   },
   async redirects() {

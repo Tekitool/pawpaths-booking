@@ -1,43 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Facebook, Instagram, Youtube, Linkedin, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-// Custom Icons for brands not always in Lucide
-const XIcon = ({ size = 24, className = "" }) => (
-    <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
-        <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
-    </svg>
-);
-
-const TikTokIcon = ({ size = 24, className = "" }) => (
-    <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <path d="M9 12a4 4 0 1 0 4 4v-12a5 5 0 0 0 5 5" />
-    </svg>
-);
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
+import {
+    FacebookIcon,
+    InstagramIcon,
+    TikTokIcon,
+    YouTubeIcon,
+    LinkedInIcon,
+    XIcon
+} from '@/components/ui/SocialIcons';
 
 const SocialButton = ({ href, icon: Icon, label }) => (
     <a
@@ -108,12 +82,12 @@ export default function ElegantFooter() {
 
                     {/* Social Icons */}
                     <div className="flex flex-wrap justify-center gap-3 mb-6">
-                        <SocialButton href="https://wa.me/971586947755?text=Hi,%20Pawpaths,%0a%0aI%20want%20to%20know%20more%20about%20the%20pet%20relocation%20services.%0aPlease%20call%20me%20back..." icon={MessageCircle} label="WhatsApp" />
-                        <SocialButton href="https://www.facebook.com/pawpathsae" icon={Facebook} label="Facebook" />
-                        <SocialButton href="https://www.instagram.com/pawpathsae/" icon={Instagram} label="Instagram" />
+                        <SocialButton href="https://wa.me/971586947755?text=Hi,%20Pawpaths,%0a%0aI%20want%20to%20know%20more%20about%20the%20pet%20relocation%20services.%0aPlease%20call%20me%20back..." icon={WhatsAppIcon} label="WhatsApp" />
+                        <SocialButton href="https://www.facebook.com/pawpathsae" icon={FacebookIcon} label="Facebook" />
+                        <SocialButton href="https://www.instagram.com/pawpathsae/" icon={InstagramIcon} label="Instagram" />
                         <SocialButton href="https://www.tiktok.com/@pawpathsae" icon={TikTokIcon} label="TikTok" />
-                        <SocialButton href="https://www.youtube.com/@pawpaths" icon={Youtube} label="YouTube" />
-                        <SocialButton href="https://www.linkedin.com/company/pawpaths/" icon={Linkedin} label="LinkedIn" />
+                        <SocialButton href="https://www.youtube.com/@pawpaths" icon={YouTubeIcon} label="YouTube" />
+                        <SocialButton href="https://www.linkedin.com/company/pawpaths/" icon={LinkedInIcon} label="LinkedIn" />
                         <SocialButton href="https://x.com/pawpathsae" icon={XIcon} label="X (Twitter)" />
                     </div>
 

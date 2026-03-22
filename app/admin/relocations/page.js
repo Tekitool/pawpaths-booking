@@ -57,7 +57,7 @@ export default async function BookingsPage(props) {
             origin:origin_node_id ( name, iata_code, city, country:countries(iso_code) ),
             destination:destination_node_id ( name, iata_code, city, country:countries(iso_code) ),
             pets:booking_pets (
-                pet:pet_id ( name, weight_kg, species(name), breed:breeds(name) )
+                pet:pet_id ( name, weight_kg, deleted_at, species(name), breed:breeds(name) )
             )
         `, { count: 'exact' });
 

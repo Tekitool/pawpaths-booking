@@ -34,7 +34,7 @@ export default async function DashboardPage() {
                 origin:origin_node_id ( country:countries(iso_code) ),
                 destination:destination_node_id ( country:countries(iso_code) ),
                 pets:booking_pets (
-                    pet:pet_id ( name, species(name), breed:breeds(name) )
+                    pet:pet_id ( name, is_active, deleted_at, species(name), breed:breeds(name) )
                 )
             `)
             .order('created_at', { ascending: false })
@@ -48,6 +48,12 @@ export default async function DashboardPage() {
         active: activeCount || 0,
         completed: completedCount || 0
     };
+
+    // Strip soft-deleted pets from each booking before rendering
+    const filteredEnquiries = (recentEnquiries || []).map(b => ({
+        ...b,
+        pets: (b.pets || []).filter(bp => !bp?.pet?.deleted_at)
+    }));
 
     return (
         <div className="space-y-8 min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100/50 p-2 rounded-3xl">
@@ -73,7 +79,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Recent Enquiries (Takes up 2/3 space) */}
                 <div className="lg:col-span-2 h-full min-h-[400px]">
-                    <RecentEnquiries enquiries={recentEnquiries || []} />
+                    <RecentEnquiries enquiries={filteredEnquiries} />
                 </div>
 
                 {/* Right Column: Quick Actions (Takes up 1/3 space) */}

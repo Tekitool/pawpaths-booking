@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 
 interface WhatsAppShareBtnProps {
     title?: string;
@@ -35,7 +35,7 @@ export default function WhatsAppShareBtn({
       "
             aria-label="Share via WhatsApp"
         >
-            <MessageCircle size={20} strokeWidth={2.5} />
+            <WhatsAppIcon size={20} />
             <span>Share via WhatsApp</span>
         </button>
     );

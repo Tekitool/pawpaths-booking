@@ -155,18 +155,20 @@ export function mapNodeBookingToViewModel(b: Record<string, unknown>): BookingVi
     const destCountry = (destination.country || {}) as Record<string, unknown>;
 
     const rawPets = Array.isArray(b.pets) ? b.pets : [];
-    const pets: BookingPet[] = rawPets.map((p: Record<string, unknown>) => {
-        const pet = (p.pet || p) as Record<string, unknown>;
-        const species = (pet.species || {}) as Record<string, unknown>;
-        const breed = (pet.breed || {}) as Record<string, unknown>;
-        return {
-            id: pet.id as string,
-            name: (pet.name as string) || 'Unknown',
-            species: (species.name as string) || 'Pet',
-            breed: (breed.name as string) || '',
-            weight: Number(pet.weight_kg) || 0,
-        };
-    });
+    const pets: BookingPet[] = rawPets
+        .filter((p: Record<string, unknown>) => !(p.pet as Record<string, unknown>)?.deleted_at)
+        .map((p: Record<string, unknown>) => {
+            const pet = (p.pet || p) as Record<string, unknown>;
+            const species = (pet.species || {}) as Record<string, unknown>;
+            const breed = (pet.breed || {}) as Record<string, unknown>;
+            return {
+                id: pet.id as string,
+                name: (pet.name as string) || 'Unknown',
+                species: (species.name as string) || 'Pet',
+                breed: (breed.name as string) || '',
+                weight: Number(pet.weight_kg) || 0,
+            };
+        });
 
     return {
         id: b.id as string,

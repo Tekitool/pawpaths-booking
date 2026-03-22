@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
 
@@ -131,7 +132,7 @@ export default function ServiceLimitationModal({ isOpen, onClose }) {
                                         />
 
                                         {/* Icon & Text */}
-                                        <MessageCircle size={24} className="text-white drop-shadow-md relative z-10" />
+                                        <WhatsAppIcon size={24} className="drop-shadow-md relative z-10" />
                                         <span className="text-white font-bold text-lg tracking-wide drop-shadow-md relative z-10">
                                             Chat with our Travel Specialists
                                         </span>

@@ -46,7 +46,7 @@ function BookingTableRow({ booking }) {
     };
 
     return (
-        <tr className="hover:bg-brand-color-02/30 transition-all duration-200 group">
+        <tr className="odd:bg-white even:bg-brand-color-02/10 hover:bg-brand-color-02/30 transition-all duration-200 group">
             {/* Ref */}
             <td className="px-4 py-4 font-medium text-brand-color-01 pl-6">
                 <Link

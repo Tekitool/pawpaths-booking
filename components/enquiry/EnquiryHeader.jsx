@@ -4,7 +4,8 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, Phone, Settings, ArrowLeft } from 'lucide-react';
+import { Phone, Settings, ArrowLeft } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 
 export default function EnquiryHeader() {
     const pathname = usePathname();
@@ -46,7 +47,7 @@ export default function EnquiryHeader() {
                         className="flex items-center gap-3 text-brand-color-01 hover:bg-brand-color-01/5 px-4 py-2 rounded-full transition-all duration-300 group border border-transparent hover:border-brand-color-01/10"
                     >
                         <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-system-color-02 group-hover:scale-110 transition-transform duration-300">
-                            <MessageCircle size={20} fill="currentColor" className="text-white" />
+                            <WhatsAppIcon size={20} />
                         </div>
                         <div className="hidden sm:flex flex-col items-start leading-tight">
                             <span className="text-xs text-brand-text-02/80 font-medium group-hover:text-brand-color-01 transition-colors">Need Help?</span>

@@ -89,7 +89,10 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-brand-text-02/20 shadow-sm text-sm font-medium text-brand-text-02">
                             {currentStep === 6 ? (
                                 <>
-                                    <span className="w-2 h-2 rounded-full bg-system-color-02"></span>
+                                    <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-system-color-02 opacity-40"></span>
+                                        <Check size={10} className="relative text-system-color-02" strokeWidth={3} />
+                                    </span>
                                     <span className="text-system-color-02">Submitted ✓</span>
                                 </>
                             ) : isStep5Submitting ? (
@@ -116,7 +119,7 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                             {/* Progress Fill */}
                             <div
                                 className="h-full rounded-full relative transition-all duration-700 ease-out shadow-[0_2px_8px_rgba(255,107,107,0.4)] bg-gradient-to-r from-red-500 via-orange-400 via-amber-300 to-yellow-50"
-                                style={{ width: `${((currentStep - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
+                                style={{ width: `${Math.min(100, ((currentStep - 1) / (TOTAL_STEPS - 1)) * 100)}%` }}
                             >
                                 {/* Inner Glow */}
                                 <div className="absolute top-0 left-0 w-full h-[1px] bg-white/60 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
@@ -130,30 +133,40 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                                     {/* Step Circle */}
                                     <button
                                         onClick={() => setStep(step)}
+                                        disabled={currentStep === 6 || isStep5Submitting}
                                         className={`
                                             w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-500 relative
-                                            backdrop-blur-md shadow-lg pointer-events-auto cursor-pointer
-                                            hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80 hover:text-accent
-                                            ${step <= currentStep
-                                                ? 'bg-accent border-accent/50 text-white shadow-[0_0_20px_rgba(249,115,22,0.6)] scale-110'
-                                                : 'bg-white/40 border-white/40 text-brand-text-02'
+                                            backdrop-blur-md shadow-lg pointer-events-auto
+                                            ${currentStep === 6
+                                                ? 'bg-system-color-02/80 border-system-color-02/50 text-white cursor-not-allowed opacity-70'
+                                                : isStep5Submitting
+                                                    ? 'cursor-not-allowed opacity-60 bg-accent/60 border-accent/40 text-white'
+                                                    : step <= currentStep
+                                                        ? 'bg-accent border-accent/50 text-white shadow-[0_0_20px_rgba(249,115,22,0.6)] scale-110 cursor-pointer hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80 hover:text-accent'
+                                                        : 'bg-white/40 border-white/40 text-brand-text-02 cursor-pointer hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80 hover:text-accent'
                                             }
                                         `}
-                                        aria-label={`Go to step ${step}`}
+                                        aria-label={currentStep === 6 ? `Step ${step} — submitted` : `Go to step ${step}`}
                                     >
                                         {/* Glossy Effect */}
                                         <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/50 to-transparent rounded-t-full"></div>
-                                        {step}
+                                        {currentStep === 6 ? <Check size={16} strokeWidth={3} /> : step}
                                     </button>
 
                                     {/* Label — hidden on small screens to prevent overflow */}
                                     <button
                                         onClick={() => setStep(step)}
-                                        className={`text-xs font-bold uppercase tracking-wider absolute -bottom-8 w-32 text-center transition-colors duration-300 pointer-events-auto cursor-pointer hover:text-accent hidden sm:block ${step === currentStep
-                                            ? 'text-accent'
-                                            : step < currentStep
-                                                ? 'text-brand-color-01'
-                                                : 'text-brand-text-02/60'
+                                        disabled={currentStep === 6 || isStep5Submitting}
+                                        className={`text-xs font-bold uppercase tracking-wider absolute -bottom-8 w-32 text-center transition-colors duration-300 pointer-events-auto hidden sm:block
+                                            ${currentStep === 6
+                                                ? 'text-system-color-02/60 cursor-not-allowed'
+                                                : isStep5Submitting
+                                                    ? 'text-brand-text-02/40 cursor-not-allowed'
+                                                    : step === currentStep
+                                                        ? 'text-accent cursor-pointer hover:text-accent'
+                                                        : step < currentStep
+                                                            ? 'text-brand-color-01 cursor-pointer hover:text-accent'
+                                                            : 'text-brand-text-02/60 cursor-pointer hover:text-accent'
                                             }`}
                                     >
                                         {step === 1 && 'Travel'}

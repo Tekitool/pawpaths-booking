@@ -2,7 +2,8 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Upload, ScanFace, Dog, Cat, AlertCircle, CheckCircle2, Info, Sparkles, RefreshCw, Ban, Wind, MessageCircle, ExternalLink } from 'lucide-react';
+import { Upload, ScanFace, Dog, Cat, AlertCircle, CheckCircle2, Info, Sparkles, RefreshCw, Ban, Wind, ExternalLink } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 
 type BreedData = {
     breed_name: string;
@@ -539,7 +540,7 @@ export default function BreedIdentifierPage() {
                                                     {/* Animated shine effect */}
                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"></div>
                                                     <div className="flex items-center justify-center gap-3 relative z-10">
-                                                        <MessageCircle size={28} className="group-hover:scale-110 group-hover:rotate-12 transition-transform" />
+                                                        <WhatsAppIcon size={28} className="group-hover:scale-110 group-hover:rotate-12 transition-transform" />
                                                         <div className="text-center">
                                                             <div className="text-xs text-green-100 font-bold tracking-wide">Ready to move?</div>
                                                             <div className="text-xl font-black leading-tight">Get Personalized Quote</div>

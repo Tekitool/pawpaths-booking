@@ -6,13 +6,15 @@ import {
     Mail,
     Clock,
     ArrowRight,
-    MessageCircle,
-    Facebook,
-    Instagram,
-    Youtube,
-    Twitter,
     Send,
 } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
+import {
+    FacebookIcon,
+    InstagramIcon,
+    YouTubeIcon,
+    XIcon
+} from '@/components/ui/SocialIcons';
 import NavBar from '@/components/layouts/NavBar';
 import Footer from '@/components/layouts/Footer';
 
@@ -93,31 +95,31 @@ const CONTACT_CARDS = [
 
 const SOCIAL_LINKS = [
     {
-        icon: MessageCircle,
+        icon: WhatsAppIcon,
         label: 'WhatsApp',
         href: 'https://wa.me/971586947755',
         bg: 'bg-[#25D366]',
     },
     {
-        icon: Instagram,
+        icon: InstagramIcon,
         label: 'Instagram',
         href: 'https://instagram.com/pawpathsae',
         bg: 'bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]',
     },
     {
-        icon: Facebook,
+        icon: FacebookIcon,
         label: 'Facebook',
         href: 'https://facebook.com/pawpathsae',
         bg: 'bg-[#1877F2]',
     },
     {
-        icon: Youtube,
+        icon: YouTubeIcon,
         label: 'YouTube',
         href: '#',
         bg: 'bg-[#FF0000]',
     },
     {
-        icon: Twitter,
+        icon: XIcon,
         label: 'X / Twitter',
         href: 'https://twitter.com/pawpathsae',
         bg: 'bg-[#000000]',
@@ -292,7 +294,7 @@ export default function ContactPage() {
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2 border-2 border-[#25D366] text-[#1a9e4e] font-semibold text-sm py-3 rounded-xl hover:bg-[#25D366]/8 transition-colors"
                                 >
-                                    <MessageCircle size={15} /> WhatsApp Chat
+                                    <WhatsAppIcon size={15} /> WhatsApp Chat
                                 </a>
                             </div>
                         </div>

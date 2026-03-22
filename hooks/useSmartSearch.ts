@@ -84,6 +84,7 @@ export function useSmartSearch(query: string) {
                         .from('pets')
                         .select('id, name')
                         .ilike('name', `%${trimmedQuery}%`)
+                        .is('deleted_at', null)
                         .limit(5);
                     promises.push(petPromise);
 

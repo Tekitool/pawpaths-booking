@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Save, Bell, Shield, Globe, Mail, Lock, MessageCircle, Check, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Save, Bell, Shield, Globe, Mail, Lock, Check, CheckCircle, ShieldAlert } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import Button from '@/components/ui/Button';
 
 
@@ -176,7 +177,7 @@ export default function AdminSettings() {
                         </div>
                         <div className="flex items-center justify-between p-4 bg-white/60 rounded-2xl border border-amber-100/50">
                             <div className="flex items-center gap-3">
-                                <MessageCircle size={18} className="text-success" />
+                                <WhatsAppIcon size={18} />
                                 <span className="font-medium text-brand-text-02">WhatsApp Notifications</span>
                             </div>
                             <div className="w-12 h-6 bg-system-color-02 rounded-full relative cursor-pointer">

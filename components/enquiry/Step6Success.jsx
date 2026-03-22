@@ -3,7 +3,8 @@
 import React from 'react';
 import useBookingStore from '@/lib/store/booking-store';
 import Button from '@/components/ui/Button';
-import { CheckCircle, FileDown, MessageCircle, Plus, LogOut, MapPin, Calendar, Dog, User, Mail, Phone, CreditCard, FileText, PlaneTakeoff, PlaneLanding, Truck } from 'lucide-react';
+import { Check, CheckCircle, FileDown, Plus, LogOut, MapPin, Calendar, Dog, User, Mail, Phone, CreditCard, FileText, PlaneTakeoff, PlaneLanding, Truck } from 'lucide-react';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import { useRouter } from 'next/navigation';
 import { COUNTRIES } from '@/lib/constants/countries';
 import jsPDF from 'jspdf';
@@ -125,7 +126,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
 
         // Load White Logo
         const logo = await loadImage('/pplogo-white.svg');
-        const waIcon = await loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/120px-WhatsApp.svg.png');
+        const waIcon = await loadImage('/icons/whatsapp.svg');
 
         // WhatsApp Link
         const petDetails = pets.map(p => `• ${p.name} (${p.speciesName || getSpeciesName(p.species_id)}/${p.breedName || getBreedName(p.breed_id)}, ${p.age} ${p.ageUnit || 'yrs'})`).join('\n');
@@ -441,15 +442,19 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                         </div>
                         Enquiry Summary
                     </h3>
-                    {bookingReference ? (
-                        <span className="text-base sm:text-xl font-bold text-brand-color-01 font-mono bg-white/80 px-3 sm:px-6 py-2 rounded-full border border-brand-color-01/20 shadow-sm break-all">
-                            #{bookingReference}
+                    <span className="flex items-center gap-2 sm:gap-3 font-bold font-mono bg-white/80 px-3 sm:px-5 py-2 rounded-full shadow-sm text-system-color-02 border border-system-color-02/40">
+                        <span className="relative flex h-4 w-4 items-center justify-center shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-system-color-02 opacity-30"></span>
+                            <Check size={12} className="relative text-system-color-02" strokeWidth={3} />
                         </span>
-                    ) : (
-                        <span className="text-base sm:text-xl font-bold font-mono bg-white/80 px-3 sm:px-6 py-2 rounded-full shadow-sm break-all text-system-color-02 border border-system-color-02/30">
-                            Submitted ✓
-                        </span>
-                    )}
+                        <span className="text-sm sm:text-base">Submitted </span>
+                        {bookingReference && (
+                            <>
+                                <span className="w-px h-5 bg-system-color-02/30 shrink-0"></span>
+                                <span className="text-xs sm:text-sm text-system-color-02/80">Ref No: #{bookingReference}</span>
+                            </>
+                        )}
+                    </span>
                 </div>
 
                 <div className="p-6 lg:p-8">
@@ -600,7 +605,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                         onClick={handleWhatsApp}
                         className="w-full h-14 text-lg font-bold flex items-center justify-center gap-3 bg-system-color-02 hover:bg-system-color-02/90 text-white shadow-glow-success hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300 rounded-xl"
                     >
-                        <MessageCircle size={24} />
+                        <WhatsAppIcon size={24} />
                         Send a WhatsApp Notification
                     </Button>
 

@@ -316,7 +316,7 @@ export default function ThemesPage() {
                             <div className="h-24 w-full rounded-xl shadow-inner mb-6 relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-r from-brand-color-04 to-brand-color-03"></div>
                                 {/* Grid pattern overlay for texture */}
-                                <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+                                <div className="absolute inset-0 opacity-20 bg-[url('/textures/noise.svg')]"></div>
                             </div>
 
                             <div className="space-y-4">
