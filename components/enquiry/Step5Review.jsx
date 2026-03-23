@@ -529,13 +529,12 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], countriesLi
                                         className="mr-4 group-hover/pet:scale-110 transition-transform duration-300 shrink-0"
                                     />
                                     <div className="flex-grow min-w-0">
-                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                            <p className="font-bold text-brand-text-02 text-base truncate">{pet.name || 'Unnamed Pet'}</p>
-                                            <span className="px-2 py-0.5 rounded-md bg-brand-text-02/10 text-[10px] font-bold text-brand-text-02/80 uppercase whitespace-nowrap">{getSpeciesName(pet.species_id)}</span>
+                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                            <p className="font-bold text-brand-text-02 text-base truncate uppercase">{pet.name || 'UNNAMED PET'}</p>
+                                            <span className="px-2 py-0.5 rounded-md bg-brand-text-02/10 text-[10px] font-bold text-brand-text-02/80 capitalize whitespace-nowrap">
+                                                {getSpeciesName(pet.species_id)} ({getBreedName(pet.breed_id)})
+                                            </span>
                                         </div>
-                                        <p className="text-xs font-medium text-brand-text-02 mb-2 truncate">
-                                            {getBreedName(pet.breed_id)}
-                                        </p>
                                         <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-brand-text-02/80 bg-brand-text-02/5/50 w-fit px-2 py-1 rounded-lg border border-brand-text-02/20">
                                             <span>{pet.gender}</span>
                                             <span className="text-brand-text-02/60">|</span>
