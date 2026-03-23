@@ -317,7 +317,7 @@ export default function Step4Documents() {
                 {pets.length > 0 ? (
                     pets.map((pet, index) => (
                         <PetDocumentFrame
-                            key={index}
+                            key={pet.id || index}
                             pet={pet}
                             petIndex={index}
                             petName={pet.name || `Pet ${index + 1}`}

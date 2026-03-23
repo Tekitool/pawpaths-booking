@@ -1,23 +1,35 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import Step1Travel from '@/components/enquiry/Step1Travel';
-import Step2Pets from '@/components/enquiry/Step2Pets';
-import Step3Services from '@/components/enquiry/Step3Services';
-import Step4Documents from '@/components/enquiry/Step4Documents';
-import Step5Review from '@/components/enquiry/Step5Review';
-import Step6Success from '@/components/enquiry/Step6Success';
+// ── Code-split: Steps 2-6 are downloaded on demand, not upfront ──────────────
+// Their .preload() methods are called by usePrefetchWizardData in the background.
+const Step2Pets = dynamic(() => import('@/components/enquiry/Step2Pets'), { ssr: false });
+const Step3Services = dynamic(() => import('@/components/enquiry/Step3Services'), { ssr: false });
+const Step4Documents = dynamic(() => import('@/components/enquiry/Step4Documents'), { ssr: false });
+const Step5Review = dynamic(() => import('@/components/enquiry/Step5Review'), { ssr: false });
+const Step6Success = dynamic(() => import('@/components/enquiry/Step6Success'), { ssr: false });
 import ServiceLimitationModal from '@/components/enquiry/ServiceLimitationModal';
 import ValidationFailureModal from '@/components/enquiry/ValidationFailureModal';
 import useBookingStore from '@/lib/store/booking-store';
 import { validateStep } from '@/lib/validations/booking-schemas';
+import { usePrefetchWizardData } from '@/hooks/usePrefetchWizardData';
 import Button from '@/components/ui/Button';
 import { ArrowLeft, RotateCcw, ArrowRight, Check, Loader2 } from 'lucide-react';
 import EnquiryHeader from '@/components/enquiry/EnquiryHeader';
 import ElegantFooter from '@/components/ui/ElegantFooter';
+import { isUAE } from '@/lib/utils/uae';
 
-export default function EnquiryWizard({ speciesList, breedsList, genderOptions = [], countriesList = [] }) {
+// Stable reference for dynamic component preloaders (avoids re-creating on every render)
+const DYNAMIC_COMPONENTS = { Step2: Step2Pets, Step3: Step3Services, Step4: Step4Documents, Step5: Step5Review };
+
+export default function EnquiryWizard({ countriesList = [] }) {
     const { currentStep, nextStep, prevStep, setStep, resetForm, formData } = useBookingStore();
+    const cache = useBookingStore((s) => s._cache);
+
+    // ── Background prefetch orchestration ─────────────────────────────────────
+    usePrefetchWizardData(currentStep, formData, DYNAMIC_COMPONENTS);
     const step5Ref = useRef(null);
     const TOTAL_STEPS = 5;
     const [isLimitationModalOpen, setIsLimitationModalOpen] = useState(false);
@@ -26,14 +38,20 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
     // Lifted from Step5Review so the nav button layer can react to submission state
     const [isStep5Submitting, setIsStep5Submitting] = useState(false);
 
+    // Track the highest step the user has successfully validated past.
+    // Allows backward navigation to any visited step but blocks forward jumps.
+    const [highestValidatedStep, setHighestValidatedStep] = useState(1);
+
+    const handleStepClick = (step) => {
+        if (currentStep === 6 || isStep5Submitting) return;
+        // Only allow navigation to steps already visited (backward or current)
+        if (step <= highestValidatedStep) {
+            setStep(step);
+        }
+    };
+
     const validateRoute = () => {
         const { originCountry, destinationCountry } = formData.travelDetails;
-
-        // Helper to check for UAE
-        const isUAE = (country) => {
-            const c = (country || '').toLowerCase();
-            return c === 'ae' || c === 'uae' || c.includes('united arab emirates');
-        };
 
         const isOriginUAE = isUAE(originCountry);
         const isDestUAE = isUAE(destinationCountry);
@@ -56,6 +74,9 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
             setIsLimitationModalOpen(true);
             return;
         }
+
+        // Validation passed — advance the frontier so the user can navigate back to this step
+        setHighestValidatedStep((prev) => Math.max(prev, currentStep + 1));
 
         if (currentStep === 5 && step5Ref.current) {
             // On step 5, trigger the submit handler
@@ -132,8 +153,8 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                                 <div key={step} className="flex flex-col items-center relative group">
                                     {/* Step Circle */}
                                     <button
-                                        onClick={() => setStep(step)}
-                                        disabled={currentStep === 6 || isStep5Submitting}
+                                        onClick={() => handleStepClick(step)}
+                                        disabled={currentStep === 6 || isStep5Submitting || step > highestValidatedStep}
                                         className={`
                                             w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-500 relative
                                             backdrop-blur-md shadow-lg pointer-events-auto
@@ -143,10 +164,12 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                                                     ? 'cursor-not-allowed opacity-60 bg-accent/60 border-accent/40 text-white'
                                                     : step <= currentStep
                                                         ? 'bg-accent border-accent/50 text-white shadow-[0_0_20px_rgba(249,115,22,0.6)] scale-110 cursor-pointer hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80 hover:text-accent'
-                                                        : 'bg-white/40 border-white/40 text-brand-text-02 cursor-pointer hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80 hover:text-accent'
+                                                        : step <= highestValidatedStep
+                                                            ? 'bg-white/60 border-accent/30 text-accent cursor-pointer hover:scale-110 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:border-accent/50 hover:bg-white/80'
+                                                            : 'bg-white/40 border-white/40 text-brand-text-02/40 cursor-not-allowed opacity-60'
                                             }
                                         `}
-                                        aria-label={currentStep === 6 ? `Step ${step} — submitted` : `Go to step ${step}`}
+                                        aria-label={currentStep === 6 ? `Step ${step} — submitted` : step <= highestValidatedStep ? `Go to step ${step}` : `Complete step ${step - 1} first`}
                                     >
                                         {/* Glossy Effect */}
                                         <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/50 to-transparent rounded-t-full"></div>
@@ -155,8 +178,8 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
 
                                     {/* Label — hidden on small screens to prevent overflow */}
                                     <button
-                                        onClick={() => setStep(step)}
-                                        disabled={currentStep === 6 || isStep5Submitting}
+                                        onClick={() => handleStepClick(step)}
+                                        disabled={currentStep === 6 || isStep5Submitting || step > highestValidatedStep}
                                         className={`text-xs font-bold uppercase tracking-wider absolute -bottom-8 w-32 text-center transition-colors duration-300 pointer-events-auto hidden sm:block
                                             ${currentStep === 6
                                                 ? 'text-system-color-02/60 cursor-not-allowed'
@@ -164,9 +187,9 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                                                     ? 'text-brand-text-02/40 cursor-not-allowed'
                                                     : step === currentStep
                                                         ? 'text-accent cursor-pointer hover:text-accent'
-                                                        : step < currentStep
+                                                        : step <= highestValidatedStep
                                                             ? 'text-brand-color-01 cursor-pointer hover:text-accent'
-                                                            : 'text-brand-text-02/60 cursor-pointer hover:text-accent'
+                                                            : 'text-brand-text-02/30 cursor-not-allowed'
                                             }`}
                                     >
                                         {step === 1 && 'Travel'}
@@ -185,11 +208,25 @@ export default function EnquiryWizard({ speciesList, breedsList, genderOptions =
                     {/* Content Container */}
                     <div className="relative z-10">
                         {currentStep === 1 && <Step1Travel countriesList={countriesList} />}
-                        {currentStep === 2 && <Step2Pets speciesList={speciesList} breedsList={breedsList} genderOptions={genderOptions} />}
+                        {currentStep === 2 && (
+                            <Step2Pets
+                                speciesList={cache.species || []}
+                                breedsList={cache.breeds || []}
+                                genderOptions={cache.genderOptions || []}
+                            />
+                        )}
                         {currentStep === 3 && <Step3Services />}
                         {currentStep === 4 && <Step4Documents />}
-                        {currentStep === 5 && <Step5Review ref={step5Ref} speciesList={speciesList} breedsList={breedsList} isSubmitting={isStep5Submitting} setIsSubmitting={setIsStep5Submitting} />}
-                        {currentStep === 6 && <Step6Success speciesList={speciesList} breedsList={breedsList} />}
+                        {currentStep === 5 && (
+                            <Step5Review
+                                ref={step5Ref}
+                                speciesList={cache.species || []}
+                                breedsList={cache.breeds || []}
+                                isSubmitting={isStep5Submitting}
+                                setIsSubmitting={setIsStep5Submitting}
+                            />
+                        )}
+                        {currentStep === 6 && <Step6Success speciesList={cache.species || []} breedsList={cache.breeds || []} />}
 
                         {/* Navigation Buttons */}
                         {currentStep < 6 && (

@@ -6,12 +6,12 @@ import { X } from 'lucide-react';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
+import { buildWhatsAppUrl } from '@/lib/constants/contact';
 
 export default function ServiceLimitationModal({ isOpen, onClose }) {
     if (!isOpen) return null;
 
-    const whatsappMessage = encodeURIComponent("Hi Pawpath, I am looking for pet relocation assistance for a route outside the UAE.");
-    const whatsappLink = `https://wa.me/971586947755?text=${whatsappMessage}`;
+    const whatsappLink = buildWhatsAppUrl("Hi Pawpath, I am looking for pet relocation assistance for a route outside the UAE.");
 
     return (
         <AnimatePresence>

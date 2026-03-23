@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { PawPrint } from 'lucide-react';
 
 /**
@@ -12,25 +12,39 @@ export const SmartPetAvatar = ({
     petName = 'Pet',
     className = '',
     size = 128
+}: {
+    userUploadedFile?: File | string | null;
+    breedDefaultImageUrl?: string | null;
+    petName?: string;
+    className?: string;
+    size?: number;
 }) => {
+    const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-    const displayImage = useMemo(() => {
-        if (userUploadedFile) {
-            if (userUploadedFile instanceof File) {
-                return URL.createObjectURL(userUploadedFile);
-            }
-            // If it's already a URL (e.g. from storage)
-            return userUploadedFile;
+    // Create and revoke object URLs safely inside useEffect
+    useEffect(() => {
+        if (!(userUploadedFile instanceof File)) {
+            setBlobUrl(null);
+            return;
         }
 
-        // Fallback to breed image
-        if (breedDefaultImageUrl) {
-            return breedDefaultImageUrl;
-        }
+        const url = URL.createObjectURL(userUploadedFile);
+        setBlobUrl(url);
 
-        // No image available
-        return null;
-    }, [userUploadedFile, breedDefaultImageUrl]);
+        return () => {
+            URL.revokeObjectURL(url);
+        };
+    }, [userUploadedFile]);
+
+    // Resolve final display image: blob URL > string URL > breed default > null
+    let displayImage: string | null = null;
+    if (userUploadedFile instanceof File) {
+        displayImage = blobUrl;
+    } else if (typeof userUploadedFile === 'string' && userUploadedFile) {
+        displayImage = userUploadedFile;
+    } else if (breedDefaultImageUrl) {
+        displayImage = breedDefaultImageUrl;
+    }
 
     return (
         <div

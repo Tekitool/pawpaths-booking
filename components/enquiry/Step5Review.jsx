@@ -5,13 +5,15 @@ import useBookingStore from '@/lib/store/booking-store';
 import { COUNTRIES } from '@/lib/constants/countries';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, Phone, CreditCard, Plane, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Home } from 'lucide-react';
+import { CheckCircle, MapPin, Calendar, Dog, Truck, FileText, AlertCircle, User, Mail, CreditCard, Plane, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Home } from 'lucide-react';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
+import PhoneInput from '@/components/ui/PhoneInput';
 import { useRouter } from 'next/navigation';
 import { submitEnquiry } from '@/app/booking/actions';
 import { toast } from '@/hooks/use-toast';
-import { uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage';
+import { uploadFile, STORAGE_BUCKETS } from '@/lib/services/storage';
 import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
+import { isUAE } from '@/lib/utils/uae';
 import ValidationFailureModal from './ValidationFailureModal';
 
 const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmitting, setIsSubmitting }, ref) => {
@@ -24,6 +26,8 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
     // a ref update is instantaneous — it blocks the second click in the ~16ms
     // window between the first click and the first re-render with disabled=true.
     const submittingGuard = useRef(false);
+    const mountedRef = useRef(true);
+    React.useEffect(() => () => { mountedRef.current = false; }, []);
 
     const [showError, setShowError] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
@@ -80,7 +84,9 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
         let total = 0;
         const petCount = Math.max(1, pets.length);
         (formData.servicesData || []).forEach(service => {
-            if (service) total += Number(service.baseCost) * petCount;
+            if (!service) return;
+            const price = Number(service.base_price) || 0;
+            total += service.scope === 'per_pet' ? price * petCount : price;
         });
         return total;
     };
@@ -91,8 +97,8 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
         const originCountry = (travelDetails.originCountry || '').toLowerCase();
         const destinationCountry = (travelDetails.destinationCountry || '').toLowerCase();
 
-        const isOriginUAE = originCountry === 'ae' || originCountry.includes('united arab emirates') || originCountry === 'uae';
-        const isDestUAE = destinationCountry === 'ae' || destinationCountry.includes('united arab emirates') || destinationCountry === 'uae';
+        const isOriginUAE = isUAE(originCountry);
+        const isDestUAE = isUAE(destinationCountry);
 
         if (isOriginUAE && isDestUAE) return 'LOCL';
         if (isOriginUAE && !isDestUAE) return 'EXP';
@@ -162,6 +168,7 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
             }
 
             for (const [indexStr, docs] of petFileEntries) {
+                if (!mountedRef.current) return;
                 const index = parseInt(indexStr);
 
                 // Photo upload
@@ -171,6 +178,7 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                         bucket: STORAGE_BUCKETS.PHOTOS,
                         folder: `enquiries/${sessionId}/pet-${index}/photos`
                     });
+                    if (!mountedRef.current) return;
                     updatedFormData[`pet_${index}_photo_path`] = path;
                     if (index === 0) updatedFormData.pet_photo_path = path;
                 }
@@ -182,6 +190,7 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                         bucket: STORAGE_BUCKETS.DOCUMENTS,
                         folder: `enquiries/${sessionId}/pet-${index}/documents`
                     });
+                    if (!mountedRef.current) return;
                     updatedFormData[`pet_${index}_medical_path`] = path;
                     if (index === 0) {
                         updatedFormData.passport_path = path;
@@ -194,11 +203,12 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
             // and non-serializable values can corrupt the server action payload
             delete updatedFormData.petFiles;
 
-            console.log('Step5Review: Submitting enquiry with uploaded paths...', updatedFormData);
+            console.log('Step5Review: Submitting enquiry…');
 
             // 3. Call Server Action
             const result = await submitEnquiry(updatedFormData);
-            console.log('Step5Review: Submission result:', result);
+            if (!mountedRef.current) return;
+            console.log('Step5Review: Submission', result.success ? 'OK' : 'FAIL');
 
             if (result.success) {
                 succeeded = true; // Prevent finally from re-enabling the button
@@ -232,11 +242,11 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
             } else {
                 // Validation or Server Error
                 if (result.errors) {
-                    console.log('Step5Review: Validation failed, showing modal with errors:', result.errors);
+                    console.log('Step5Review: Validation failed, showing modal');
                     setValidationErrors(result.errors);
                     setShowValidationModal(true);
                 } else {
-                    console.error('Step5Review: Submission failed with message:', result.message);
+                    console.error('Step5Review: Submission failed');
                     toast({
                         variant: "error",
                         title: "Submission Failed",
@@ -245,7 +255,7 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                 }
             }
         } catch (error) {
-            console.error('Step5Review: Submission error (catch):', error);
+            console.error('Step5Review: Submission error');
             toast({
                 variant: "error",
                 title: "Network Error",
@@ -254,7 +264,8 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
         } finally {
             // Only re-enable on failure. On success the step moves to 6 and the button
             // is removed from the DOM, so keeping these locked prevents any edge-case flash.
-            if (!succeeded) {
+            // Also skip state updates if the component unmounted during submission.
+            if (!succeeded && mountedRef.current) {
                 submittingGuard.current = false;
                 setIsSubmitting(false);
             }
@@ -309,16 +320,13 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                                 className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                             />
                             {/* Row 2: Phone + Email */}
-                            <Input
+                            <PhoneInput
                                 id="phone"
                                 name="phone"
-                                type="tel"
                                 label="Phone Number"
                                 value={contactInfo?.phone || ''}
                                 onChange={handleContactChange}
-                                placeholder="e.g. +971 50 123 4567"
-                                icon={<Phone size={18} className="text-brand-color-01" />}
-                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
+                                className="bg-white/50 transition-all duration-300"
                             />
                             <Input
                                 id="email"
@@ -349,16 +357,13 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                                     </label>
                                 </div>
                                 {!contactInfo?.whatsappSameAsPhone && (
-                                    <Input
+                                    <PhoneInput
                                         id="whatsapp"
                                         name="whatsapp"
-                                        type="tel"
                                         label="WhatsApp Number"
                                         value={contactInfo?.whatsapp || ''}
                                         onChange={handleContactChange}
-                                        placeholder="e.g. +971 50 123 4567"
-                                        icon={<WhatsAppIcon size={18} />}
-                                        className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300 animate-in fade-in slide-in-from-top-2 duration-300"
+                                        className="bg-white/50 transition-all duration-300 animate-in fade-in slide-in-from-top-2 duration-300"
                                     />
                                 )}
                             </div>
@@ -452,15 +457,12 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                         <div className="flex flex-col items-center justify-start px-2 w-full md:w-auto pt-2">
                             <div className="w-full md:w-24 h-[2px] bg-gradient-to-r from-transparent via-blue-200 to-transparent relative mb-2 mt-1">
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-pearl p-2 rounded-full shadow-sm border border-blue-200">
-                                    {((travelDetails.originCountry === 'AE' || travelDetails.originCountry === 'United Arab Emirates') &&
-                                        (travelDetails.destinationCountry === 'AE' || travelDetails.destinationCountry === 'United Arab Emirates')) ? (
+                                    {(isUAE(travelDetails.originCountry) && isUAE(travelDetails.destinationCountry)) ? (
                                         <Truck size={24} className="text-blue-600" />
+                                    ) : isUAE(travelDetails.destinationCountry) ? (
+                                        <PlaneLanding size={24} className="text-blue-600" />
                                     ) : (
-                                        (travelDetails.destinationCountry === 'AE' || travelDetails.destinationCountry === 'United Arab Emirates') ? (
-                                            <PlaneLanding size={24} className="text-blue-600" />
-                                        ) : (
-                                            <PlaneTakeoff size={24} className="text-blue-600" />
-                                        )
+                                        <PlaneTakeoff size={24} className="text-blue-600" />
                                     )}
                                 </div>
                             </div>
@@ -494,14 +496,11 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                         {pets.map((pet, index) => {
                             const petFiles = formData.petFiles || {};
                             const localPhoto = petFiles[index]?.photo;
-                            const photoPath = formData[`pet_${index}_photo_path`] || formData[`pet_photo_path`];
-                            const uploadedPhotoUrl = photoPath ? getPublicUrl(STORAGE_BUCKETS.PHOTOS, photoPath) : null;
-                            const displayPhoto = localPhoto || uploadedPhotoUrl;
 
                             return (
-                                <div key={index} className="flex items-center p-4 rounded-2xl border border-brand-text-03/30 bg-white/40 hover:bg-white/60 hover:shadow-md transition-all duration-300 group/pet">
+                                <div key={pet.id || index} className="flex items-center p-4 rounded-2xl border border-brand-text-03/30 bg-white/40 hover:bg-white/60 hover:shadow-md transition-all duration-300 group/pet">
                                     <SmartPetAvatar
-                                        userUploadedFile={displayPhoto}
+                                        userUploadedFile={localPhoto || undefined}
                                         breedDefaultImageUrl={pet.breedDefaultImageUrl}
                                         petName={pet.name}
                                         size={56}
@@ -537,14 +536,13 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                         <CreditCard size={80} />
                     </div>
                     <h3 className="flex items-center gap-3 relative z-10">
-                        <CreditCard size={24} /> Enquiry Summary
+                        <CreditCard size={24} /> Selected Services
                     </h3>
                 </div>
 
                 <div className="p-6 space-y-6">
                     {/* Services List */}
                     <div>
-                        <h4 className="text-brand-text-02/60 uppercase tracking-wider mb-4 text-xs">Selected Services</h4>
                         <div className="space-y-0.5">
                             {(() => {
                                 const validServices = (services || []).filter(s => {

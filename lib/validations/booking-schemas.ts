@@ -66,10 +66,8 @@ export function validateStep(
             result = step2Schema.safeParse({ pets: formData.pets });
             break;
         case 3:
-            result = step3Schema.safeParse({ services: formData.services });
-            break;
         case 4:
-            // Documents are optional
+            // Services and documents are both optional — always allow advancing
             return { valid: true, errors: {} };
         case 5:
             result = contactInfoSchema.safeParse(formData.contactInfo);

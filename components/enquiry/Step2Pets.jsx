@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import useBookingStore from '@/lib/store/booking-store';
+import { prefetchBreedData } from '@/lib/actions/enquiry-prefetch-actions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage';
@@ -57,12 +58,36 @@ const calculateAgeFromDob = (dobString) => {
     return { age: String(Math.max(0, months)), ageUnit: 'months' };
 };
 
-export default function Step2Pets({ speciesList = [], breedsList = [], genderOptions = [] }) {
+export default function Step2Pets({ speciesList: propSpecies = [], breedsList: propBreeds = [], genderOptions: propGenders = [] }) {
     const { formData, addPet, removePet, updatePet } = useBookingStore();
+    const setCacheData = useBookingStore((s) => s.setCacheData);
     const { pets } = formData;
     const initialized = useRef(false);
     const [expandedDetails, setExpandedDetails] = useState({});
     const [tooltipIndex, setTooltipIndex] = useState(null);
+
+    // ── Fallback: if cache was empty when Step2 mounted, fetch now ─────────
+    const [fallbackSpecies, setFallbackSpecies] = useState([]);
+    const [fallbackBreeds, setFallbackBreeds] = useState([]);
+    const [fallbackGenders, setFallbackGenders] = useState([]);
+
+    useEffect(() => {
+        if (propSpecies.length > 0) return; // cache was ready
+        prefetchBreedData().then((data) => {
+            setFallbackSpecies(data.species);
+            setFallbackBreeds(data.breeds);
+            setFallbackGenders(data.genderOptions);
+            // Also warm the cache for Step5 Review
+            setCacheData('species', data.species);
+            setCacheData('breeds', data.breeds);
+            setCacheData('genderOptions', data.genderOptions);
+        });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Resolved data: cache (via props) first, fallback second
+    const speciesList = propSpecies.length > 0 ? propSpecies : fallbackSpecies;
+    const breedsList = propBreeds.length > 0 ? propBreeds : fallbackBreeds;
+    const genderOptions = propGenders.length > 0 ? propGenders : fallbackGenders;
 
     // Close breed scan tooltip when tapping outside (mobile)
     React.useEffect(() => {
@@ -195,7 +220,7 @@ export default function Step2Pets({ speciesList = [], breedsList = [], genderOpt
             </div>
             <div className="space-y-8">
                 {pets.map((pet, index) => (
-                    <div key={index} className="bg-brand-color-02/20 backdrop-blur-xl border-[0.5px] border-brand-color-02/50 shadow-glow-accent rounded-3xl p-4 sm:p-6 md:p-8 relative hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group">
+                    <div key={pet.id || index} className="bg-brand-color-02/20 backdrop-blur-xl border-[0.5px] border-brand-color-02/50 shadow-glow-accent rounded-3xl p-4 sm:p-6 md:p-8 relative hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group">
                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-text-02/20">
                             <div className="flex items-center gap-3 text-brand-color-01 font-bold text-lg">
                                 <span className="bg-brand-color-02 text-brand-color-01 w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm border border-brand-color-04">

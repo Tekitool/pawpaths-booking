@@ -12,6 +12,8 @@ import autoTable from 'jspdf-autotable';
 import { BRAND_COLORS } from '@/lib/theme-config';
 import { getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage';
 import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
+import { WHATSAPP_NUMBER, COMPANY_PHONE_DISPLAY, buildWhatsAppUrl } from '@/lib/constants/contact';
+import { isUAE } from '@/lib/utils/uae';
 
 export default function Step6Success({ speciesList = [], breedsList = [] }) {
     const router = useRouter();
@@ -48,7 +50,9 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
         let total = 0;
         const petCount = Math.max(1, pets.length);
         (formData.servicesData || []).forEach(service => {
-            if (service) total += Number(service.baseCost) * petCount;
+            if (!service) return;
+            const price = Number(service.base_price) || 0;
+            total += service.scope === 'per_pet' ? price * petCount : price;
         });
         return total;
     };
@@ -73,7 +77,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
             `\n` +
             `Warm regards.`;
 
-        window.open(`https://wa.me/971586947755?text=${encodeURIComponent(rawMessage)}`, '_blank');
+        window.open(buildWhatsAppUrl(rawMessage), '_blank');
     };
 
     const handleLogout = () => {
@@ -148,8 +152,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
             `\n` +
             `Warm regards.`;
 
-        const waMessage = encodeURIComponent(rawMessage);
-        const waLink = `https://wa.me/971586947755?text=${waMessage}`;
+        const waLink = buildWhatsAppUrl(rawMessage);
 
         // --- Header ---
         const headerHeight = 28; // Reduced height
@@ -176,7 +179,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
         doc.text('www.pawpathsae.com', pageWidth - margin, 15, { align: 'right' });
 
         // WhatsApp Line in Header (Icon + Number)
-        const waNumber = '+971 58 694 7755';
+        const waNumber = COMPANY_PHONE_DISPLAY;
         const waNumWidth = doc.getTextWidth(waNumber);
         const waIconSize = 3.5;
         const waY = 18.5;
@@ -509,15 +512,12 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                                             <div className="flex items-center gap-2 w-full md:w-32">
                                                 <div className="h-[2px] flex-1 bg-blue-200"></div>
                                                 <div className="p-2 bg-white rounded-full border border-blue-200 text-blue-600 shadow-sm">
-                                                    {((travelDetails.originCountry === 'AE' || travelDetails.originCountry === 'United Arab Emirates') &&
-                                                        (travelDetails.destinationCountry === 'AE' || travelDetails.destinationCountry === 'United Arab Emirates')) ? (
+                                                    {(isUAE(travelDetails.originCountry) && isUAE(travelDetails.destinationCountry)) ? (
                                                         <Truck size={20} />
+                                                    ) : isUAE(travelDetails.destinationCountry) ? (
+                                                        <PlaneLanding size={20} />
                                                     ) : (
-                                                        (travelDetails.destinationCountry === 'AE' || travelDetails.destinationCountry === 'United Arab Emirates') ? (
-                                                            <PlaneLanding size={20} />
-                                                        ) : (
-                                                            <PlaneTakeoff size={20} />
-                                                        )
+                                                        <PlaneTakeoff size={20} />
                                                     )}
                                                 </div>
                                                 <div className="h-[2px] flex-1 bg-blue-200"></div>
@@ -552,7 +552,7 @@ export default function Step6Success({ speciesList = [], breedsList = [] }) {
                                     const uploadedPhotoUrl = photoPath ? getPublicUrl(STORAGE_BUCKETS.PHOTOS, photoPath) : null;
 
                                     return (
-                                        <div key={idx} className="bg-white/60 p-4 rounded-2xl border border-brand-text-03/10 hover:border-brand-text-03/30 hover:shadow-md transition-all duration-300 group">
+                                        <div key={pet.id || idx} className="bg-white/60 p-4 rounded-2xl border border-brand-text-03/10 hover:border-brand-text-03/30 hover:shadow-md transition-all duration-300 group">
                                             <div className="flex items-center gap-4 mb-3">
                                                 <SmartPetAvatar
                                                     userUploadedFile={uploadedPhotoUrl}

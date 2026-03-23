@@ -7,6 +7,7 @@ import Select from '@/components/ui/Select';
 import { Plane, MapPin, Calendar, PlaneTakeoff, Users } from 'lucide-react';
 
 import { COUNTRIES } from '@/lib/constants/countries';
+import { isUAE } from '@/lib/utils/uae';
 
 export default function Step1Travel({ countriesList = [] }) {
     const { formData, updateTravelDetails } = useBookingStore();
@@ -39,8 +40,8 @@ export default function Step1Travel({ countriesList = [] }) {
         const origin = (travelDetails.originCountry || '').toLowerCase();
         const dest = (travelDetails.destinationCountry || '').toLowerCase();
 
-        const isOriginUAE = origin === 'ae' || origin === 'uae';
-        const isDestUAE = dest === 'ae' || dest === 'uae';
+        const isOriginUAE = isUAE(origin);
+        const isDestUAE = isUAE(dest);
         const isLocal = isOriginUAE && isDestUAE;
 
         if (isLocal) {
@@ -83,7 +84,7 @@ export default function Step1Travel({ countriesList = [] }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Origin Section - Glass Card */}
-                <div className="bg-system-color-03/5 backdrop-blur-xl border-[0.5px] border-system-color-03/30 shadow-glow-info rounded-3xl p-4 sm:p-6 hover:shadow-glow-info hover:shadow-lg transition-all duration-300 group">
+                <div className="bg-system-color-03/5 backdrop-blur-xl border-[0.5px] border-system-color-03/40 shadow-glow-info rounded-3xl p-4 sm:p-6 hover:shadow-glow-info hover:shadow-lg transition-all duration-300 group">
                     <div className="flex items-center gap-3 text-system-color-03 font-bold text-lg mb-6 pb-4 border-b border-brand-text-02/20">
                         <div className="p-2 bg-system-color-03/10 rounded-xl text-system-color-03 group-hover:scale-110 transition-transform duration-300">
                             <PlaneTakeoff size={22} />
@@ -113,7 +114,7 @@ export default function Step1Travel({ countriesList = [] }) {
                 </div>
 
                 {/* Destination Section - Glass Card */}
-                <div className="bg-system-color-02/5 backdrop-blur-xl border-[0.5px] border-system-color-02/30 shadow-glow-success rounded-3xl p-6 hover:shadow-glow-success hover:shadow-lg transition-all duration-300 group">
+                <div className="bg-system-color-02/5 backdrop-blur-xl border-[0.5px] border-system-color-02/40 shadow-glow-success rounded-3xl p-6 hover:shadow-glow-success hover:shadow-lg transition-all duration-300 group">
                     <div className="flex items-center gap-3 text-system-color-02 font-bold text-lg mb-6 pb-4 border-b border-brand-text-02/20">
                         <div className="p-2 bg-system-color-02/10 rounded-xl text-system-color-02 group-hover:scale-110 transition-transform duration-300">
                             <MapPin size={22} />
@@ -142,15 +143,15 @@ export default function Step1Travel({ countriesList = [] }) {
                     </div>
                 </div>
 
-                {/* Travel Date - Full Width Glass Card */}
-                <div className="md:col-span-2 bg-brand-text-03/5 backdrop-blur-xl border-[0.5px] border-brand-text-03/20 shadow-glow-accent rounded-3xl p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group">
+                {/* Frame 3: Travel Date */}
+                <div className="bg-brand-text-03/5 backdrop-blur-xl border-[0.5px] border-brand-text-03/40 shadow-glow-accent rounded-3xl p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group flex flex-col h-full">
                     <div className="flex items-center gap-3 text-brand-text-03 font-bold text-lg mb-6 pb-4 border-b border-brand-text-02/20">
                         <div className="p-2 bg-brand-text-03/10 rounded-xl text-brand-text-03 group-hover:scale-110 transition-transform duration-300">
                             <Calendar size={22} />
                         </div>
                         <h3>Travel Date</h3>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+                    <div className="flex-1">
                         <Input
                             id="travelDate"
                             name="travelDate"
@@ -161,46 +162,55 @@ export default function Step1Travel({ countriesList = [] }) {
                             min={new Date().toISOString().split('T')[0]}
                             className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300"
                         />
-
-                        <div className="flex items-center h-full pt-2">
-                            <Select
-                                id="transportMode"
-                                name="transportMode"
-                                label="How is the pet traveling?"
-                                value={travelDetails.transportMode || (transportOptions[0]?.value)}
-                                onChange={handleChange}
-                                options={transportOptions}
-                                className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300 w-full"
-                            />
-                        </div>
                     </div>
                 </div>
 
-                {/* Traveling With Pet Toggle - Full Width */}
-                <div className="md:col-span-2 bg-brand-color-02/10 backdrop-blur-xl border-[0.5px] border-brand-color-02/30 rounded-3xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 group">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-brand-color-01/10 rounded-xl text-brand-color-01 group-hover:scale-110 transition-transform duration-300">
-                                <Users size={22} />
-                            </div>
-                            <div>
-                                <h3 className="text-brand-color-01 font-bold text-lg">Traveling With Your Pet?</h3>
-                                <p className="text-brand-text-02/60 text-sm mt-0.5">Will you be on the same flight as your pet?</p>
+                {/* Frame 4: Mode of Transport */}
+                <div className="bg-brand-color-02/5 backdrop-blur-xl border-[0.5px] border-brand-color-03/40 shadow-glow-accent rounded-3xl p-6 hover:shadow-glow-accent hover:shadow-lg transition-all duration-300 group flex flex-col h-full">
+                    <div className="flex items-center gap-3 text-brand-color-03 font-bold text-lg mb-6 pb-4 border-b border-brand-text-02/20">
+                        <div className="p-2 bg-brand-color-03/10 rounded-xl text-brand-color-03 group-hover:scale-110 transition-transform duration-300">
+                            <Plane size={22} />
+                        </div>
+                        <h3>Mode of Transport</h3>
+                    </div>
+                    <div className="space-y-6 flex-1">
+                        <Select
+                            id="transportMode"
+                            name="transportMode"
+                            label="How is the pet traveling?"
+                            value={travelDetails.transportMode || (transportOptions[0]?.value)}
+                            onChange={handleChange}
+                            options={transportOptions}
+                            className="bg-white/50 border-brand-text-02/20/50 focus:bg-white transition-all duration-300 w-full"
+                        />
+
+                        {/* Traveling With Pet Toggle - Integrated */}
+                        <div className="pt-4 border-t border-brand-text-02/10">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-1.5 bg-brand-color-03/10 rounded-lg text-brand-color-03">
+                                        <Users size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-brand-color-03 font-bold text-sm">Traveling With Pet?</p>
+                                        <p className="text-brand-text-02/60 text-[10px]">On the same flight?</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={travelDetails.travelingWithPet || false}
+                                    onClick={() => updateTravelDetails({ travelingWithPet: !travelDetails.travelingWithPet })}
+                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-color-03 focus-visible:ring-offset-2 ${travelDetails.travelingWithPet ? 'bg-brand-color-03' : 'bg-brand-text-02/30'
+                                        }`}
+                                >
+                                    <span
+                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${travelDetails.travelingWithPet ? 'translate-x-5' : 'translate-x-0'
+                                            }`}
+                                    />
+                                </button>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            role="switch"
-                            aria-checked={travelDetails.travelingWithPet || false}
-                            onClick={() => updateTravelDetails({ travelingWithPet: !travelDetails.travelingWithPet })}
-                            className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-color-01 focus-visible:ring-offset-2 min-h-[44px] ${travelDetails.travelingWithPet ? 'bg-brand-color-01' : 'bg-brand-text-02/30'
-                                }`}
-                        >
-                            <span
-                                className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${travelDetails.travelingWithPet ? 'translate-x-[1.375rem]' : 'translate-x-0'
-                                    }`}
-                            />
-                        </button>
                     </div>
                 </div>
             </div>

@@ -7,6 +7,7 @@ import { getPublicUrl, STORAGE_BUCKETS } from '@/lib/services/storage'
 
 import { EnquirySchema } from '@/lib/schemas';
 import { COUNTRIES } from '@/lib/constants/countries';
+import { isUAE } from '@/lib/utils/uae';
 
 export async function submitEnquiry(formData) {
     const supabase = createAdminClient()
@@ -31,7 +32,7 @@ export async function submitEnquiry(formData) {
             };
 
             const formattedErrors = formatZodErrors(validationResult.error);
-            console.error('Validation Failed:', formattedErrors);
+            console.error('Validation Failed:', Object.keys(formattedErrors));
 
             return {
                 success: false,
@@ -100,7 +101,7 @@ export async function submitEnquiry(formData) {
             .maybeSingle()
 
         if (recentBooking) {
-            console.warn(`[IDEMPOTENCY] Duplicate submission detected for customer ${customerId} — returning existing reference ${recentBooking.booking_number}`)
+            console.warn(`[IDEMPOTENCY] Duplicate submission detected — returning existing reference ${recentBooking.booking_number}`)
             return { success: true, bookingReference: recentBooking.booking_number }
         }
 
@@ -257,8 +258,8 @@ export async function submitEnquiry(formData) {
         const origin = travelDetails.originCountry?.toLowerCase();
         const dest = travelDetails.destinationCountry?.toLowerCase();
 
-        const isOriginUAE = origin === 'ae' || origin === 'uae' || origin?.includes('united arab emirates');
-        const isDestUAE = dest === 'ae' || dest === 'uae' || dest?.includes('united arab emirates');
+        const isOriginUAE = isUAE(origin);
+        const isDestUAE = isUAE(dest);
 
         if (isOriginUAE && !isDestUAE) serviceType = 'export';
         else if (!isOriginUAE && isDestUAE) serviceType = 'import';
@@ -358,34 +359,48 @@ export async function submitEnquiry(formData) {
             if (linkError) throw new Error(`Error linking pets: ${linkError.message}`)
         }
 
-        // 5. Add Services
+        // 5. Add Services (handles both object and plain-ID formats)
         let servicesList = [];
         if (services && services.length > 0) {
+
+            // Normalise: accept [{ serviceId, petId, quantity }] or plain ["uuid"]
+            const selections = services.map(s =>
+                typeof s === 'string'
+                    ? { serviceId: s, petId: null, quantity: 1 }
+                    : { serviceId: s.serviceId || s.id || s, petId: s.petId || null, quantity: s.quantity || 1 }
+            );
+
+            const uniqueServiceIds = [...new Set(selections.map(s => s.serviceId))];
 
             // 1. Fetch matching services from catalog
             const { data: catalogServices, error: catalogError } = await supabase
                 .from('service_catalog')
                 .select('id, code, base_price, base_cost, tax_rate, pricing_model, name')
-                .in('id', services);
+                .in('id', uniqueServiceIds);
 
             if (catalogError) {
                 console.error('Error fetching service catalog:', catalogError);
             }
 
-            const validServices = catalogServices || [];
-            const validServiceIds = validServices.map(s => s.id);
-            const unmappedServices = services.filter(s => !validServiceIds.includes(s));
+            const catalogMap = new Map((catalogServices || []).map(s => [s.id, s]));
+            const unmappedIds = uniqueServiceIds.filter(id => !catalogMap.has(id));
 
-            // 2. Prepare inserts for valid services
-            const serviceInserts = validServices.map(service => ({
-                booking_id: newBooking.id,
-                service_id: service.id,
-                quantity: 1,
-                unit_price: service.base_price || 0,
-                unit_cost: service.base_cost || 0,
-                tax_rate: service.tax_rate ?? 5.0,
-                pricing_model: service.pricing_model || 'fixed',
-            }));
+            // 2. Prepare inserts — one row per selection (preserves pet association)
+            const serviceInserts = selections
+                .filter(sel => catalogMap.has(sel.serviceId))
+                .map(sel => {
+                    const catalog = catalogMap.get(sel.serviceId);
+                    return {
+                        booking_id: newBooking.id,
+                        service_id: catalog.id,
+                        pet_id: sel.petId || null,
+                        quantity: sel.quantity,
+                        unit_price: catalog.base_price || 0,
+                        unit_cost: catalog.base_cost || 0,
+                        tax_rate: catalog.tax_rate ?? 5.0,
+                        pricing_model: catalog.pricing_model || 'fixed',
+                    };
+                });
 
             if (serviceInserts.length > 0) {
                 const { error: servicesInsertError } = await supabase
@@ -397,12 +412,12 @@ export async function submitEnquiry(formData) {
                 }
             }
 
-            if (unmappedServices.length > 0) {
-                console.warn(`[Unmapped Service IDs in booking ${newBooking.booking_number}]: ${unmappedServices.join(', ')}`);
+            if (unmappedIds.length > 0) {
+                console.warn(`[Unmapped Service IDs in booking ${newBooking.booking_number}]: ${unmappedIds.join(', ')}`);
             }
 
-            if (validServices.length > 0) {
-                servicesList = validServices.map(s => s.name);
+            if (catalogMap.size > 0) {
+                servicesList = [...catalogMap.values()].map(s => s.name);
             }
         }
 
@@ -418,14 +433,16 @@ export async function submitEnquiry(formData) {
             const transporter = nodemailer.createTransport({
                 host: process.env.EMAIL_HOST,
                 port: Number(process.env.EMAIL_PORT) || 587,
-                secure: false,
+                secure: Number(process.env.EMAIL_PORT) === 465,
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASSWORD,
                 },
                 tls: {
-                    rejectUnauthorized: false
-                }
+                    // Enforce certificate validation in production to prevent MITM.
+                    // Set EMAIL_TLS_REJECT_UNAUTHORIZED=false ONLY in dev with self-signed certs.
+                    rejectUnauthorized: process.env.EMAIL_TLS_REJECT_UNAUTHORIZED !== 'false',
+                },
             })
 
             // Verify connection first
@@ -555,7 +572,7 @@ export async function submitEnquiry(formData) {
             // error — potentially hiding which email actually failed and making the
             // booking appear to error even though the DB write succeeded. allSettled
             // gives us an independent result for each send so we can log precisely.
-            console.log(`[EMAIL] Dispatching in parallel → client: ${contactInfo.email} | company: ${companyMailPayload.to}`)
+            console.log(`[EMAIL] Dispatching in parallel → client + company`)
             const [customerResult, companyResult] = await Promise.allSettled([
                 transporter.sendMail(customerMailPayload),
                 transporter.sendMail(companyMailPayload),
@@ -582,7 +599,7 @@ export async function submitEnquiry(formData) {
         return { success: true, bookingReference: newBooking.booking_number }
 
     } catch (error) {
-        console.error('Submit Enquiry Error:', error)
+        console.error('Submit Enquiry Error:', error.message)
         return { success: false, message: error.message }
     }
 }
