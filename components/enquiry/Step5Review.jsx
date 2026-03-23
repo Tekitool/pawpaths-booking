@@ -16,7 +16,7 @@ import { SmartPetAvatar } from '@/components/ui/SmartPetAvatar';
 import { isUAE } from '@/lib/utils/uae';
 import ValidationFailureModal from './ValidationFailureModal';
 
-const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmitting, setIsSubmitting }, ref) => {
+const Step5Review = forwardRef(({ speciesList = [], breedsList = [], countriesList = [], isSubmitting, setIsSubmitting }, ref) => {
     const router = useRouter();
     const { formData, resetForm, updateContactInfo, setStep } = useBookingStore();
     const { travelDetails, pets, services, contactInfo } = formData;
@@ -36,8 +36,30 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
 
     // Helper to get label from value
     const getCountryLabel = (code) => {
-        if (code === 'GB') return 'United Kingdom';
-        return COUNTRIES.find(c => c.value === code)?.label || code;
+        const list = countriesList.length > 0 ? countriesList : COUNTRIES;
+        const country = list.find(c => c.value === code || c.iso_code === code || c.code === code);
+        let name = country ? (country.name || country.label) : code;
+
+        // Explicit exceptions requested by the user
+        const exceptions = {
+            'United Arab Emirates': 'U.A.E',
+            'United States': 'U.S.A',
+            'United States of America': 'U.S.A',
+            'United Kingdom': 'U.K',
+            'Great Britain': 'U.K',
+            'Bosnia and Herzegovina': 'B.A.H'
+        };
+
+        if (exceptions[name]) return exceptions[name];
+        if (name === 'Azerbaijan') return 'Azerbaijan';
+
+        // Rule: 3 or more words -> abbreviate (e.g. B.A.H)
+        const words = name.split(' ').filter(word => word.length > 0);
+        if (words.length >= 3) {
+            return words.map(w => w[0].toUpperCase()).join('.');
+        }
+
+        return name;
     };
     const getServiceDetails = (id) => (formData.servicesData || []).find(s => s.id === id);
 
@@ -109,10 +131,10 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
 
     const getCustomerTypeDetails = (code) => {
         const types = {
-            'EXP': { label: 'Export', color: 'bg-accent/15 text-orange-700 border-accent/50', title: 'International Export Services' },
-            'IMP': { label: 'Import', color: 'bg-info/10 text-info border-info/30', title: 'International Import Services' },
+            'EXP': { label: 'Export', color: 'bg-accent/10 text-orange-700 border-accent/30', title: 'International Export Services' },
+            'IMP': { label: 'Import', color: 'bg-cyan-50 text-[#000080] border-[#000080]/30', title: 'International Import Services' },
             'LOCL': { label: 'Local Move', color: 'bg-brand-text-03/10 text-brand-text-03 border-brand-text-03/30', title: 'Domestic Relocation Services' },
-            'TRANSIT': { label: 'Transit', color: 'bg-success/15 text-success border-success/30', title: 'Transit Services' }
+            'TRANSIT': { label: 'Transit', color: 'bg-success/10 text-success border-success/30', title: 'Transit Services' }
         };
         return types[code] || types['LOCL'];
     };
@@ -449,9 +471,9 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                     </h3>
                     <div className="flex flex-col md:flex-row items-start justify-between gap-2 bg-white/40 p-4 rounded-2xl border border-blue-200 shadow-inner">
                         <div className="flex-1 text-center md:text-left">
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Origin</p>
-                            <p className="text-base font-bold text-brand-text-02">{getCountryLabel(travelDetails.originCountry)}</p>
-                            <p className="text-sm text-brand-text-02/80 mt-1 font-medium">{travelDetails.originAirport || 'Airport not specified'}</p>
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 whitespace-nowrap">Origin</p>
+                            <p className="text-base font-bold text-brand-text-02 truncate whitespace-nowrap">{travelDetails.originAirport || 'Airport not specified'}</p>
+                            <p className="text-sm text-brand-text-02/80 mt-1 font-medium">{getCountryLabel(travelDetails.originCountry)}</p>
                         </div>
 
                         <div className="flex flex-col items-center justify-start px-2 w-full md:w-auto pt-2">
@@ -470,16 +492,16 @@ const Step5Review = forwardRef(({ speciesList = [], breedsList = [], isSubmittin
                                 <Calendar size={16} />
                                 {travelDetails.travelDate ? new Date(travelDetails.travelDate).toLocaleDateString('en-GB') : 'Date TBD'}
                             </div>
-                            <div className={`mt-1 text-[10px] font-semibold px-3 py-1 rounded-xl border text-center ${typeDetails.color.replace('bg-', 'bg-opacity-10 bg-').replace('text-', 'text-').replace('border-', 'border-')}`}>
+                            <div className={`mt-1 text-[10px] font-bold px-3 py-1 rounded-xl border text-center ${typeDetails.color}`}>
                                 <div className="leading-tight">{typeDetails.title}</div>
                                 <div className="mt-0.5 opacity-90">- {typeCode === 'LOCL' ? 'Pawpaths Pet Taxi' : transportModeLabel}</div>
                             </div>
                         </div>
 
                         <div className="flex-1 text-center md:text-right">
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Destination</p>
-                            <p className="text-base font-bold text-brand-text-02">{getCountryLabel(travelDetails.destinationCountry)}</p>
-                            <p className="text-sm text-brand-text-02/80 mt-1 font-medium">{travelDetails.destinationAirport || 'Airport not specified'}</p>
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 whitespace-nowrap">Destination</p>
+                            <p className="text-base font-bold text-brand-text-02 truncate whitespace-nowrap">{travelDetails.destinationAirport || 'Airport not specified'}</p>
+                            <p className="text-sm text-brand-text-02/80 mt-1 font-medium">{getCountryLabel(travelDetails.destinationCountry)}</p>
                         </div>
                     </div>
                 </section>

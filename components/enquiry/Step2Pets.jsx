@@ -407,9 +407,9 @@ export default function Step2Pets({ speciesList: propSpecies = [], breedsList: p
                                     id={`pet-${index}-weight`}
                                     label="Weight (kg)"
                                     type="number"
-                                    min="0.1"
+                                    min="0"
                                     max="150"
-                                    step="0.1"
+                                    step="1"
                                     value={pet.weight || ''}
                                     onChange={(e) => handlePetChange(index, 'weight', e.target.value)}
                                     placeholder="e.g. 25"

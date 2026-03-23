@@ -222,6 +222,7 @@ export default function EnquiryWizard({ countriesList = [] }) {
                                 ref={step5Ref}
                                 speciesList={cache.species || []}
                                 breedsList={cache.breeds || []}
+                                countriesList={countriesList}
                                 isSubmitting={isStep5Submitting}
                                 setIsSubmitting={setIsStep5Submitting}
                             />
